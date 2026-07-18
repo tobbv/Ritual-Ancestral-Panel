@@ -601,6 +601,7 @@ h1,h2,h3,h4{letter-spacing:-.01em;font-weight:700}
 .price-alert,.daily-item{
   display:flex;align-items:center;gap:14px;
   padding:14px 16px;
+  justify-content:flex-start!important;
 }
 .price-alert::before,.daily-item::before{
   content:'';width:9px;height:9px;min-width:9px;border-radius:50%;
@@ -1214,6 +1215,14 @@ document.addEventListener('DOMContentLoaded', function(){
 
       <!-- INICIO -->
       <div class="pv active" id="pv-inicio">
+        <div class="card" id="dashHoyCard" style="margin-bottom:14px">
+          <div class="card-hdr" style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+            <span>Hoy · <span id="dashHoyFecha"></span></span>
+            <button type="button" class="btn btn-s btn-sm" onclick="copiarResumenDiario()">Copiar resumen del día</button>
+          </div>
+          <div id="dashHoyResumen" class="mini-grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px"></div>
+          <div id="dashChecklist" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)"></div>
+        </div>
         <div id="dashHero" class="finance-hero">
           <div>
             <div class="finance-state" id="dashEstadoTitulo">Cargando...</div>
@@ -1260,11 +1269,20 @@ document.addEventListener('DOMContentLoaded', function(){
           <div class="card-hdr">Nueva Venta</div>
           <div class="fg fg2" style="margin-bottom:14px;">
             <div class="field"><label>Fecha</label><input type="date" id="vFecha"></div>
-            <div class="field"><label>Cliente</label><input type="text" id="vCliente" placeholder="Nombre del cliente"></div>
-            <div class="field"><label>Contacto / WhatsApp</label><input type="text" id="vTel" placeholder="0981..."></div>
+            <div class="field" style="position:relative">
+              <label>Cliente</label>
+              <input type="text" id="vCliente" placeholder="Nombre del cliente" autocomplete="off" oninput="vClienteBuscar()" onfocus="vClienteBuscar()" onblur="setTimeout(()=>{if(gs('vClienteResultados'))gs('vClienteResultados').classList.remove('open')},150)">
+              <div id="vClienteResultados" class="global-results" style="max-height:220px"></div>
+            </div>
+            <div class="field">
+              <label>Contacto / WhatsApp</label>
+              <input type="text" id="vTel" placeholder="0981..." oninput="vValidarTel()">
+              <div id="vTelAviso" style="font-size:11px;margin-top:4px"></div>
+            </div>
             <div class="field"><label>RUC / CI</label><input type="text" id="vRuc" placeholder="Opcional"></div>
           </div>
           <div class="card-hdr" style="margin-top:4px;">Productos</div>
+          <div id="vCombosBar" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px"></div>
           <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:10px;">
             <!-- Producto picker — ocupa el espacio disponible -->
             <div class="field" style="margin:0;flex:1;">
@@ -1294,11 +1312,24 @@ document.addEventListener('DOMContentLoaded', function(){
           <input type="hidden" id="vProdNombre">
           <input type="hidden" id="vProdPrecio">
           <div id="vCarritoList"></div>
+          <div class="cfg-item" style="margin:6px 0 10px;gap:12px">
+            <div style="display:flex;align-items:center;gap:10px;min-width:0">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="color:var(--olive1,var(--primary));flex:0 0 auto"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg>
+              <div style="min-width:0">
+                <div class="cfg-item-name">Es para regalo</div>
+                <div class="cfg-item-meta" id="vRegaloMontoLabel">+Gs 0 c/u</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;flex:0 0 auto">
+              <label style="font-size:11px;color:var(--text3)">Cant.</label>
+              <input type="number" id="vRegaloCant" min="0" value="0" style="width:64px" oninput="vActualizarRegalo()">
+            </div>
+          </div>
           <div class="cart-total" id="vTotal">Total: Gs 0</div>
           <div class="fg fg2" style="margin:14px 0;">
             <div class="field"><label>Ciudad</label><select id="vCiudad" class="select-s" onchange="vCiudadChange()"><option value="">— Seleccionar —</option></select></div>
             <div class="field" id="vOtraCiudadWrap" style="display:none"><label>Otra ciudad</label><input type="text" id="vOtraCiudad"></div>
-            <div class="field"><label>Tipo de Envio</label><select id="vTipoEnvio" class="select-s"></select></div>
+            <div class="field"><label>Tipo de Envio</label><select id="vTipoEnvio" class="select-s" onchange="vTipoEnvioChange()"></select></div>
             <div class="field"><label>Costo Envio (Gs)</label><input type="text" inputmode="numeric" id="vCostoEnvio" value="0" oninput="formatMoneyInput(this);vCalcTotal()"></div>
             <div class="field"><label>Metodo de Pago</label><select id="vMetodo" class="select-s" onchange="vMetodoChange()"></select></div>
             <div class="field"><label>Tipo de Pago</label><select id="vTipoPago" class="select-s" onchange="vTipoPagoChange()"></select></div>
@@ -1310,7 +1341,14 @@ document.addEventListener('DOMContentLoaded', function(){
             <div class="field"><label>Dia de entrega</label><input type="date" id="vDiaEntrega"></div>
             <div class="field"><label>Comprobante / referencia</label><input type="text" id="vComprobante" placeholder="Opcional"></div>
           </div>
-          <div class="field"><label>Observaciones</label><textarea id="vObs" rows="2" placeholder="Opcional..."></textarea></div>
+          <div class="field"><label>Observaciones</label>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+              <button type="button" class="chip" onclick="vAgregarObsRapida('Frágil')">Frágil</button>
+              <button type="button" class="chip" onclick="vAgregarObsRapida('Urgente')">Urgente</button>
+              <button type="button" class="chip" onclick="vAgregarObsRapida('Cliente nuevo')">Cliente nuevo</button>
+              <button type="button" class="chip" onclick="vAgregarObsRapida('Coordinar horario')">Coordinar horario</button>
+            </div>
+            <textarea id="vObs" rows="2" placeholder="Opcional..."></textarea></div>
           <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">
             <button type="button" class="btn btn-s" onclick="vLimpiar()">Limpiar</button>
             <button type="button" class="btn btn-p" id="vGuardarBtn" onclick="vGuardar()">Guardar Venta</button>
@@ -1454,6 +1492,7 @@ document.addEventListener('DOMContentLoaded', function(){
             <div class="field"><label>Costo (Gs)</label><input type="text" inputmode="numeric" id="pCosto" placeholder="0" oninput="formatMoneyInput(this);pActualizarCostosBase()"></div>
             <div class="field"><label>Stock mínimo</label><input type="number" id="pStockMin" value="0" oninput="pActualizarMinimosBase()"></div>
             <div class="field"><label>Stock inicial</label><input type="number" id="pStockInicial" value="0"></div>
+            <div class="field" style="grid-column:span 2" id="pMargenIndicador"></div>
           </div>
 
           <!-- Sección Variantes -->
@@ -1515,8 +1554,8 @@ document.addEventListener('DOMContentLoaded', function(){
           <button type="button" class="btn btn-p btn-sm" onclick="cExportarPlanilla()">Descargar clientes</button>
         </div>
         <div class="tw">
-          <table><thead><tr><th>Cliente</th><th>WhatsApp</th><th>Ciudad</th><th>Compras</th><th>Tipo</th><th>Total comprado</th><th>Ultima compra</th><th>Pago pendiente</th></tr></thead>
-          <tbody id="cBody"><tr><td colspan="8" class="empty">Sin datos</td></tr></tbody></table>
+          <table><thead><tr><th>Cliente</th><th>WhatsApp</th><th>Ciudad</th><th>Compras</th><th>Tipo</th><th>Total comprado</th><th>Ultima compra</th><th>Pago pendiente</th><th>Nota</th><th>Acciones</th></tr></thead>
+          <tbody id="cBody"><tr><td colspan="10" class="empty">Sin datos</td></tr></tbody></table>
         </div>
       </div>
 
@@ -1529,6 +1568,10 @@ document.addEventListener('DOMContentLoaded', function(){
           <div class="stat" style="border-left:3px solid var(--err)"><div class="stat-v" id="dCancel" style="color:var(--err)">-</div><div class="stat-l">Cancelados</div></div>
           <div class="stat"><div class="stat-v" id="dCosto">-</div><div class="stat-l">Costo Total</div></div>
           <div class="stat"><div class="stat-v" id="dPagPend" style="color:var(--warn)">-</div><div class="stat-l">Cobro Pendiente</div></div>
+        </div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-hdr">Ruta del día</div>
+          <div id="dRutaDelDia"><div class="empty">Sin datos</div></div>
         </div>
         <div class="tw" style="margin:16px 0">
           <table><thead><tr><th>Cliente</th><th>Ciudad</th><th>Delivery</th><th>Costo</th><th>Entrega</th><th>Pago</th><th>Fecha</th></tr></thead>
@@ -1552,6 +1595,10 @@ document.addEventListener('DOMContentLoaded', function(){
           <div><div class="finance-k">Ganancia neta</div><div class="finance-v" id="fHeroNeta">Gs 0</div></div>
           <div><div class="finance-k">Margen</div><div class="finance-v" id="fHeroMargen">0%</div></div>
           <div><div class="finance-k">Pendiente</div><div class="finance-v" id="fHeroPendiente">Gs 0</div></div>
+        </div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-hdr">Ritmo y comparativa</div>
+          <div class="dinero-grid" id="fRitmoGrid"></div>
         </div>
         <div class="card" style="margin-bottom:14px">
           <div class="card-hdr">Metas del Mes</div>
@@ -1614,9 +1661,14 @@ document.addEventListener('DOMContentLoaded', function(){
             <div class="field"><label>Descripcion</label><input type="text" id="gDesc" placeholder="Meta Ads, bolsas, etc."></div>
             <div class="field"><label>Monto (Gs)</label><input type="text" inputmode="numeric" id="gMonto" placeholder="0" oninput="formatMoneyInput(this)"></div>
           </div>
+          <label class="login-check" style="margin:0 0 10px">
+            <input type="checkbox" id="gRecurrente">
+            <span>Repetir este gasto todos los meses automáticamente</span>
+          </label>
           <div style="display:flex;justify-content:flex-end;margin-bottom:10px"><button type="button" class="btn btn-p btn-sm" onclick="gAgregar()">+ Agregar gasto</button></div>
           <div id="gMsg"></div>
           <div id="gLista" class="expense-list"><div class="empty">Sin gastos cargados</div></div>
+          <div id="gGraficoCategorias" style="margin-top:14px"></div>
         </div>
         <div class="mini-grid">
           <div class="card">
@@ -1659,6 +1711,42 @@ document.addEventListener('DOMContentLoaded', function(){
             <button type="button" class="btn btn-p btn-sm" onclick="cfgGuardarNegocio()">Guardar</button>
             <div id="cfgNegMsg"></div>
           </div>
+        </div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-hdr">Envoltorio de regalo</div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:14px">Monto que se suma automáticamente cuando marcás "Es para regalo" en Registro de Ventas.</div>
+          <div class="fg fg2">
+            <div class="field"><label>Monto adicional (Gs)</label><input type="text" inputmode="numeric" id="cfgMontoRegalo" placeholder="4000" oninput="formatMoneyInput(this)"></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
+            <button type="button" class="btn btn-p btn-sm" onclick="cfgGuardarMontoRegalo()">Guardar</button>
+            <div id="cfgRegaloMsg"></div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-hdr">Combos rápidos</div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:14px">Armá atajos para agregar varios productos al carrito con un clic en Registro de Ventas. El % de descuento (opcional) se aplica al precio de cada producto del combo.</div>
+          <div class="fg fg3">
+            <div class="field"><label>Nombre del combo</label><input type="text" id="cfgComboNombre" placeholder="Ej: Kit Inicio"></div>
+            <div class="field"><label>Códigos (separados por coma)</label><input type="text" id="cfgComboCodigos" placeholder="YER-001,BOM-001-ROS"></div>
+            <div class="field"><label>Descuento % (opcional)</label><input type="number" id="cfgComboDescuento" placeholder="0" min="0" max="90"></div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:8px">
+            <button type="button" class="btn btn-p btn-sm" onclick="cfgAddCombo()">+ Agregar combo</button>
+          </div>
+          <div id="cfgComboMsg" style="margin:8px 0"></div>
+          <div id="cfgComboList"></div>
+        </div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-hdr">Fechas especiales</div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:14px">El Dashboard te avisa cuando se acerca una de estas fechas. Ya incluye las más comunes; podés agregar las tuyas (aniversario del negocio, etc).</div>
+          <div class="fg fg3">
+            <div class="field"><label>Nombre</label><input type="text" id="cfgFechaNombre" placeholder="Aniversario Ritual Ancestral"></div>
+            <div class="field"><label>Fecha</label><input type="date" id="cfgFechaValor"></div>
+            <div style="align-self:end"><button type="button" class="btn btn-p btn-sm" onclick="cfgAddFechaEspecial()" style="width:100%">+ Agregar</button></div>
+          </div>
+          <div id="cfgFechaMsg" style="margin:8px 0"></div>
+          <div id="cfgFechaList"></div>
         </div>
         <div class="card" style="margin-bottom:14px">
           <div class="card-hdr">Datos bancarios</div>
@@ -2087,6 +2175,7 @@ const SUPABASE_KEY_DIRECTA = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzd
 const SESSION_STORAGE_KEY = 'ritual_auth_session';
 
 let carrito = [];
+const REGALO_CODIGO = 'REGALO-ENVOLTORIO';
 let allProductos = [];
 let allCiudades = [];
 let allVentasCache = [];
@@ -2182,6 +2271,77 @@ function parseJSONSafe(v, fallback){
 async function guardarConfigClave(clave,valor){
   appConfig[clave]=valor;
   return SB.from('configuracion').upsert({clave,valor:String(valor??'')},{onConflict:'clave'});
+}
+
+// ═══ HELPERS: funciones nuevas (todas guardadas en la tabla configuracion, sin tocar el esquema) ═══
+function clienteKey(nombre){return String(nombre||'').trim().toLowerCase();}
+function notasClientesGet(){return parseJSONSafe(appConfig.clientes_notas,{});}
+async function notasClienteGuardar(nombre,nota){
+  const map=notasClientesGet();
+  const key=clienteKey(nombre);
+  if(!key)return;
+  if(nota&&nota.trim())map[key]=nota.trim();else delete map[key];
+  await guardarConfigClave('clientes_notas',JSON.stringify(map));
+}
+function esperaStockGet(){return parseJSONSafe(appConfig.lista_espera_stock,{});}
+async function esperaStockAgregar(codigo,cliente,telefono){
+  const map=esperaStockGet();
+  if(!map[codigo])map[codigo]=[];
+  map[codigo].push({cliente,telefono,fecha:fechaHoyLocal()});
+  await guardarConfigClave('lista_espera_stock',JSON.stringify(map));
+}
+async function esperaStockQuitar(codigo,idx){
+  const map=esperaStockGet();
+  if(map[codigo]){map[codigo].splice(idx,1);if(!map[codigo].length)delete map[codigo];}
+  await guardarConfigClave('lista_espera_stock',JSON.stringify(map));
+}
+function stockBajoDesdeGet(){return parseJSONSafe(appConfig.stock_bajo_desde,{});}
+async function stockBajoDesdeActualizar(codigosBajoActual){
+  const map=stockBajoDesdeGet();
+  let cambio=false;
+  codigosBajoActual.forEach(cod=>{if(!map[cod]){map[cod]=fechaHoyLocal();cambio=true;}});
+  Object.keys(map).forEach(cod=>{if(!codigosBajoActual.includes(cod)){delete map[cod];cambio=true;}});
+  if(cambio)await guardarConfigClave('stock_bajo_desde',JSON.stringify(map));
+  return map;
+}
+function diasDesde(fechaStr){
+  if(!fechaStr)return 0;
+  const d1=new Date(fechaStr+'T00:00:00');
+  const d2=new Date(fechaHoyLocal()+'T00:00:00');
+  return Math.max(0,Math.round((d2-d1)/86400000));
+}
+function combosRapidosGet(){return parseJSONSafe(appConfig.combos_rapidos,[]);}
+async function combosRapidosGuardar(lista){await guardarConfigClave('combos_rapidos',JSON.stringify(lista));}
+const FECHAS_ESPECIALES_BASE=[
+  {nombre:'Día del Terere',fecha:'02-22'},
+  {nombre:'Día de la Mujer',fecha:'03-08'},
+  {nombre:'Día de la Madre (PY)',fecha:'05-15'},
+  {nombre:'Día del Amigo',fecha:'07-30'},
+  {nombre:'Día del Niño',fecha:'08-16'},
+  {nombre:'Navidad',fecha:'12-25'},
+  {nombre:'Año Nuevo',fecha:'01-01'}
+];
+function fechasEspecialesGet(){
+  const custom=parseJSONSafe(appConfig.fechas_especiales_custom,[]);
+  return [...FECHAS_ESPECIALES_BASE,...custom];
+}
+function proximaFechaEspecial(){
+  const hoy=new Date(fechaHoyLocal()+'T00:00:00');
+  const anioActual=hoy.getFullYear();
+  let mejor=null;
+  fechasEspecialesGet().forEach(f=>{
+    [anioActual,anioActual+1].forEach(anio=>{
+      const d=new Date(`${anio}-${f.fecha}T00:00:00`);
+      const dias=Math.round((d-hoy)/86400000);
+      if(dias>=0&&(!mejor||dias<mejor.dias))mejor={...f,dias,fechaCompleta:d};
+    });
+  });
+  return mejor;
+}
+function ultimoRespaldoDias(){
+  const iso=localStorage.getItem('ritual_ultimo_respaldo');
+  if(!iso)return null;
+  return Math.round((Date.now()-new Date(iso).getTime())/86400000);
 }
 function telefonoWA(v){
   let raw=String(v||'').trim();
@@ -2373,13 +2533,111 @@ async function dashCargar(){
     if(gs('dashPorEntregar'))gs('dashPorEntregar').textContent=porEntregar;
     if(gs('dashStockBajo'))gs('dashStockBajo').textContent=stockBajo.length;
     if(gs('dashTicket'))gs('dashTicket').textContent=fmtGs(ticket);
+    await stockBajoDesdeActualizar(stockBajo.map(p=>p.codigo));
     renderDashAlertas(analisis,stockBajo,porEntregar,pendientesHistoricos,rows);
     renderDashStock(stockBajo);
     renderDashPreparacion(rows);
+    await renderDashHoy(rows,pendientesHistoricos,stockBajo);
   }catch(e){
     if(gs('dashAlertas'))gs('dashAlertas').innerHTML='<div class="empty">No se pudo cargar el dashboard</div>';
     console.warn(e);
   }
+}
+async function copiarResumenDiario(){
+  const hoyStr=fechaHoyLocal();
+  let ventas=allVentasCache;
+  if(!ventas||!ventas.length){
+    const {data}=await SB.from('ventas').select('*').order('fecha',{ascending:false}).catch(()=>({data:[]}));
+    ventas=data||[];
+  }
+  const ventasHoy=ventas.filter(r=>String(r.fecha||'').slice(0,10)===hoyStr);
+  const totalHoy=ventasHoy.reduce((s,r)=>s+totalVenta(r),0);
+  const cobradoHoy=ventasHoy.filter(r=>esPagado(r.estado_pago)).reduce((s,r)=>s+totalVenta(r),0);
+  const entregasHoy=ventas.filter(r=>{
+    const dia=String(r.dia_entrega||r.fecha||'').slice(0,10);
+    return dia===hoyStr&&!['entregado','cancelado'].includes(String(r.estado_entrega||'').toLowerCase());
+  });
+  const pendientes=ventas.filter(r=>saldoPendienteVenta(r)>0);
+  const totalPendiente=pendientes.reduce((s,r)=>s+saldoPendienteVenta(r),0);
+  const stockBajo=(allProductos||[]).filter(p=>(parseFloat(p.stock_actual)||0)<=(parseFloat(p.stock_minimo)||0));
+  const fechaLegible=new Date(hoyStr+'T12:00:00').toLocaleDateString('es-PY',{weekday:'long',day:'numeric',month:'long'});
+  const nombreNegocio=appConfig.nombre_negocio||'Ritual Ancestral';
+  const lineas=[
+    '📊 Resumen de hoy — '+nombreNegocio,
+    fechaLegible,
+    '',
+    '🧾 Ventas de hoy: '+fmtGs(totalHoy)+' ('+ventasHoy.length+' pedido'+(ventasHoy.length===1?'':'s')+')',
+    '💰 Cobrado hoy: '+fmtGs(cobradoHoy),
+    '🚚 Entregas de hoy: '+entregasHoy.length+(entregasHoy.length?' ('+entregasHoy.slice(0,5).map(r=>r.cliente).join(', ')+')':''),
+    '⏳ Cobros pendientes: '+fmtGs(totalPendiente)+' ('+pendientes.length+' venta'+(pendientes.length===1?'':'s')+')',
+    '📦 Stock bajo: '+stockBajo.length+' producto(s)'
+  ];
+  const txt=lineas.join('\n');
+  navigator.clipboard?.writeText(txt).then(()=>toast('Resumen copiado — pegalo en WhatsApp')).catch(()=>alert(txt));
+}
+async function renderDashHoy(rows,pendientesHistoricos,stockBajo){
+  const fechaEl=gs('dashHoyFecha');
+  if(fechaEl){
+    const hoy=new Date(fechaHoyLocal()+'T12:00:00');
+    fechaEl.textContent=hoy.toLocaleDateString('es-PY',{weekday:'long',day:'numeric',month:'long'});
+  }
+  const hoyStr=fechaHoyLocal();
+  const entregasHoy=(allVentasCache||rows).filter(r=>{
+    const dia=String(r.dia_entrega||r.fecha||'').slice(0,10);
+    const entr=String(r.estado_entrega||'').toLowerCase();
+    return dia===hoyStr&&!['entregado','cancelado'].includes(entr);
+  });
+  const proxFecha=proximaFechaEspecial();
+  const diasBackup=ultimoRespaldoDias();
+  const tiles=[];
+  tiles.push({
+    tipo:entregasHoy.length?'warn':'ok',
+    titulo:entregasHoy.length+' entrega'+(entregasHoy.length===1?'':'s')+' hoy',
+    detalle:entregasHoy.length?entregasHoy.slice(0,3).map(r=>r.cliente).join(', '):'Sin entregas agendadas'
+  });
+  if(proxFecha){
+    tiles.push({
+      tipo:proxFecha.dias<=7?'warn':'ok',
+      titulo:proxFecha.dias===0?'¡Hoy es '+proxFecha.nombre+'!':proxFecha.nombre,
+      detalle:proxFecha.dias===0?'Aprovechá para promocionar':'Faltan '+proxFecha.dias+' día'+(proxFecha.dias===1?'':'s')
+    });
+  }
+  tiles.push({
+    tipo:(diasBackup===null||diasBackup>7)?'warn':'ok',
+    titulo:diasBackup===null?'Nunca respaldaste':'Último respaldo: '+diasBackup+' día'+(diasBackup===1?'':'s'),
+    detalle:(diasBackup===null||diasBackup>7)?'Convendría exportar un respaldo (Configuración)':'Todo al día'
+  });
+  const cont=gs('dashHoyResumen');
+  if(cont)cont.innerHTML=tiles.map(t=>alertRowHTML(t)).join('');
+
+  const pendientes=(pendientesHistoricos||[]).filter(r=>diasDesde(r.fecha)>=7&&saldoPendienteVenta(r)>0)
+    .sort((a,b)=>diasDesde(b.fecha)-diasDesde(a.fecha)).slice(0,4);
+  if(pendientes.length&&cont){
+    cont.innerHTML+=pendientes.map(r=>`<div class="price-alert err"><div class="alert-main"><strong>${esc(r.cliente||'Sin nombre')}</strong><div class="td-mu">${fmtGs(saldoPendienteVenta(r))} pendiente hace ${diasDesde(r.fecha)} días</div></div><button type="button" class="btn btn-wa btn-sm" onclick="enviarRecordatorioPagoId('${esc(r.id)}')">WhatsApp</button></div>`).join('');
+  }
+  renderChecklistCierre();
+}
+const CHECKLIST_ITEMS=[
+  {id:'stock',label:'Revisé el stock bajo'},
+  {id:'entregas',label:'Marqué las entregas de hoy'},
+  {id:'cobros',label:'Envié recordatorios de cobro pendiente'},
+  {id:'respaldo',label:'Hice el respaldo (si correspondía)'}
+];
+function checklistCierreGet(){
+  return parseJSONSafe(localStorage.getItem('checklist_cierre_'+fechaHoyLocal()),{});
+}
+function checklistCierreToggle(id){
+  const estado=checklistCierreGet();
+  estado[id]=!estado[id];
+  localStorage.setItem('checklist_cierre_'+fechaHoyLocal(),JSON.stringify(estado));
+  renderChecklistCierre();
+}
+function renderChecklistCierre(){
+  const el=gs('dashChecklist');if(!el)return;
+  const estado=checklistCierreGet();
+  const hechos=CHECKLIST_ITEMS.filter(i=>estado[i.id]).length;
+  el.innerHTML=`<div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Cierre del día · ${hechos}/${CHECKLIST_ITEMS.length}</div>`+
+    CHECKLIST_ITEMS.map(i=>`<label class="login-check" style="cursor:pointer"><input type="checkbox" ${estado[i.id]?'checked':''} onchange="checklistCierreToggle('${i.id}')"><span style="${estado[i.id]?'text-decoration:line-through;color:var(--text3)':''}">${esc(i.label)}</span></label>`).join('');
 }
 
 function renderDashAlertas(a,stockBajo,porEntregar,pendientesHistoricos=[],rows=[]){
@@ -2390,7 +2648,12 @@ function renderDashAlertas(a,stockBajo,porEntregar,pendientesHistoricos=[],rows=
   const deudaVieja=pendientesHistoricos.filter(r=>mesDesdeFecha(r.fecha)!==getMesActual()).reduce((s,r)=>s+saldoPendienteVenta(r),0);
   if(deudaVieja>0)alerts.push({tipo:'err',titulo:fmtGs(deudaVieja)+' atrasado',detalle:'Pendiente de meses anteriores.',tag:'Urgente'});
   if(porEntregar>0)alerts.push({tipo:'warn',titulo:porEntregar+' pedidos por entregar',detalle:'Revisar agenda y preparación.',tag:'Delivery'});
-  if(stockBajo.length)alerts.push({tipo:'err',titulo:'Stock bajo',detalle:stockBajo.length+' producto(s) cerca del mínimo.',tag:'Stock'});
+  if(stockBajo.length){
+    const desdeMap=stockBajoDesdeGet();
+    const maxDias=Math.max(0,...stockBajo.map(p=>diasDesde(desdeMap[p.codigo])));
+    const detalleStock=stockBajo.length+' producto(s) cerca del mínimo.'+(maxDias>=3?' El más antiguo lleva '+maxDias+' días así.':'');
+    alerts.push({tipo:'err',titulo:'Stock bajo',detalle:detalleStock,tag:'Stock'});
+  }
   if(a.alertas?.length)alerts.push({tipo:'warn',titulo:'Margen bajo',detalle:'Revisar precios y costos en Finanzas.',tag:'Precios'});
   const sinUbicacion=rows.filter(r=>!String(r.ubicacion||'').trim()&&!['entregado','cancelado'].includes(String(r.estado_entrega||'').toLowerCase()));
   if(sinUbicacion.length)alerts.push({tipo:'warn',titulo:sinUbicacion.length+' ventas sin ubicación',detalle:'Revisar en Ventas del Mes.',tag:'Revisar'});
@@ -2479,6 +2742,7 @@ function navTo(tab, el) {
   if(tab==='finanzas')  fCargar();
   if(tab==='clientes')  cCargar();
   if(tab==='config')    cfgMostrar();
+  if(tab==='registro')  poblarCombosRapidos();
 }
 
 // ═══ DATOS BASE ═══
@@ -2537,6 +2801,8 @@ async function cargarConfiguracion() {
   cfgPintarApariencia(cfg);
   cfgCargarDeliverys();
   cfgWaPoblar();
+  vPintarLabelRegalo();
+  if(gs('cfgMontoRegalo'))setMoneyValue('cfgMontoRegalo',montoRegaloActual());
 }
 function getTransferencia(){
   return {banco:gs('cfgBanco')?.value||'',titular:gs('cfgTitular')?.value||'',ci:gs('cfgCI')?.value||'',alias:gs('cfgAlias')?.value||''};
@@ -2654,7 +2920,7 @@ function vRenderCarrito(){
   el.innerHTML=carrito.map((p,i)=>`<div class="cart-item">
     <div><div style="color:var(--text);font-weight:500">${p.nombre}</div><div style="font-size:11px;color:var(--text3)">${fmtGs(p.precio)} × ${p.cant}</div></div>
     <div style="display:flex;align-items:center;gap:10px"><span style="font-family:var(--fm);color:var(--gold)">${fmtGs(p.precio*p.cant)}</span>
-    <button type="button" class="btn btn-g btn-sm" onclick="carrito.splice(${i},1);vRenderCarrito();vCalcTotal()">✕</button></div>
+    <button type="button" class="btn btn-g btn-sm" onclick="if(carrito[${i}]?.codigo===REGALO_CODIGO&&gs('vRegaloCant'))gs('vRegaloCant').value=0;carrito.splice(${i},1);vRenderCarrito();vCalcTotal()">✕</button></div>
   </div>`).join('');
 }
 function esPagado(valor){
@@ -2687,11 +2953,72 @@ function vCalcTotal(){
   if(gs('vTotal'))gs('vTotal').textContent='Total: '+fmtGs(sub+env);
   if(gs('vSaldoPendiente'))gs('vSaldoPendiente').value=fmtGs(calcularSaldoDesdeForm());
 }
+function vClienteBuscar(){
+  const q=(gs('vCliente')?.value||'').trim().toLowerCase();
+  const box=gs('vClienteResultados');if(!box)return;
+  if(!clientesResumen.length&&allVentasCache&&allVentasCache.length)clientesResumen=cArmarResumen(allVentasCache);
+  if(q.length<2){box.classList.remove('open');box.innerHTML='';return;}
+  const coincidencias=(clientesResumen||[]).filter(c=>(c.nombre||'').toLowerCase().includes(q)).slice(0,6);
+  if(!coincidencias.length){box.classList.remove('open');box.innerHTML='';return;}
+  box.innerHTML=coincidencias.map(c=>`<button type="button" class="global-result" onmousedown="vSeleccionarClienteExistente('${esc(c.nombre)}')"><strong>${esc(c.nombre)}</strong><small>${esc(c.tel||'Sin teléfono')} · ${esc(c.ciudad||'Sin ciudad')} · ${c.compras} compra${c.compras===1?'':'s'}</small></button>`).join('');
+  box.classList.add('open');
+}
+function vSeleccionarClienteExistente(nombre){
+  const c=(clientesResumen||[]).find(x=>x.nombre===nombre);
+  if(!c)return;
+  if(gs('vCliente'))gs('vCliente').value=c.nombre;
+  if(c.tel&&gs('vTel')){gs('vTel').value=c.tel;vValidarTel();}
+  if(c.ciudad&&gs('vCiudad')){
+    const sel=gs('vCiudad');
+    if([...sel.options].some(o=>o.value===c.ciudad)){sel.value=c.ciudad;vCiudadChange();}
+  }
+  const box=gs('vClienteResultados');
+  if(box){box.classList.remove('open');box.innerHTML='';}
+  toast('Datos de '+c.nombre+' cargados');
+}
+function vValidarTel(){
+  const val=(gs('vTel')?.value||'').trim();
+  const aviso=gs('vTelAviso');if(!aviso)return;
+  if(!val){aviso.innerHTML='';return;}
+  const limpio=val.replace(/\D/g,'');
+  const pareceValido=/^0?9\d{8}$/.test(limpio)||/^595\d{9}$/.test(limpio);
+  if(pareceValido){aviso.innerHTML='<span style="color:var(--ok)">✓ Formato válido</span>';}
+  else{aviso.innerHTML='<span style="color:var(--warn)">⚠ Revisá el número (ej: 0981123456)</span>';}
+}
+function vAgregarObsRapida(texto){
+  const el=gs('vObs');if(!el)return;
+  const actual=el.value.trim();
+  if(actual.includes(texto))return;
+  el.value=actual?actual+' · '+texto:texto;
+}
 function vCiudadChange(){
   const sel=gs('vCiudad');const opt=sel.selectedOptions[0];
   const wrap=gs('vOtraCiudadWrap');
   if(sel.value==='_otra'){if(wrap)wrap.style.display='';gs('vCostoEnvio').value='';}
   else{if(wrap)wrap.style.display='none';if(opt)setMoneyValue('vCostoEnvio',opt.dataset.costo||0);}
+  vCalcTotal();
+}
+function montoRegaloActual(){
+  return parseInt(appConfig.monto_regalo)||4000;
+}
+function vPintarLabelRegalo(){
+  const el=gs('vRegaloMontoLabel');
+  if(el)el.textContent='+'+fmtGs(montoRegaloActual())+' c/u';
+}
+function vActualizarRegalo(){
+  const cant=Math.max(0,parseInt(gs('vRegaloCant')?.value)||0);
+  carrito=carrito.filter(item=>item.codigo!==REGALO_CODIGO);
+  if(cant>0){
+    carrito.push({codigo:REGALO_CODIGO,nombre:'🎁 Envoltorio de regalo',precio:montoRegaloActual(),cant});
+  }
+  vRenderCarrito();
+  vCalcTotal();
+}
+function vTipoEnvioChange(){
+  const val=gs('vTipoEnvio')?.value||'';
+  if(/retiro/i.test(val)){
+    setMoneyValue('vCostoEnvio',0);
+  }
   vCalcTotal();
 }
 function vMetodoChange(){
@@ -2729,7 +3056,10 @@ async function vGuardar(){
   const btnTxt=btn?btn.textContent:'Guardar Venta';
   if(btn){btn.disabled=true;btn.textContent='Guardando...';}
   try{
-  const ciudad=gs('vCiudad').value==='_otra'?gs('vOtraCiudad').value:gs('vCiudad').value;
+  let ciudad=gs('vCiudad').value==='_otra'?gs('vOtraCiudad').value:gs('vCiudad').value;
+  const tipoEnvioVal=gs('vTipoEnvio').value||'';
+  const esRetiroLocal=/retiro/i.test(tipoEnvioVal);
+  if(!ciudad&&esRetiroLocal)ciudad='Retiro en el local';
   const fechaStr=gs('vFecha').value;
   const mes=mesDesdeFecha(fechaStr);
   const totalProds=carrito.reduce((s,p)=>s+p.precio*p.cant,0);
@@ -2742,15 +3072,16 @@ async function vGuardar(){
     delivery_persona:gs('vDelivery').value,observaciones:gs('vObs').value,historial:[{fecha:new Date().toISOString(),accion:'Venta creada'}]};
   if(!row.fecha){showAlert('vMsg','Elegí la fecha de compra.','err');return;}
   if(!row.cliente){showAlert('vMsg','Escribí el nombre del cliente.','err');return;}
-  if(!row.ciudad){showAlert('vMsg','Elegí o escribí la ciudad del cliente.','err');return;}
+  if(!row.ciudad&&!esRetiroLocal){showAlert('vMsg','Elegí o escribí la ciudad del cliente.','err');return;}
   const stockActualPorCodigo={};
-  for(const item of carrito){
+  const carritoProductos=carrito.filter(item=>item.codigo!==REGALO_CODIGO);
+  for(const item of carritoProductos){
     let prod=null;
     try{prod=await productoFreshPorCodigo(item.codigo);}catch(e){showAlert('vMsg','No pude verificar stock: '+(e?.message||e),'err');return;}
     if(!prod){showAlert('vMsg','El producto '+item.nombre+' ya no existe en inventario.','err');btn.disabled=false;return;}
     stockActualPorCodigo[item.codigo]=parseFloat(prod.stock_actual)||0;
   }
-  const pedidoPorCodigo=carrito.reduce((map,item)=>{
+  const pedidoPorCodigo=carritoProductos.reduce((map,item)=>{
     map[item.codigo]=(map[item.codigo]||0)+(parseFloat(item.cant)||0);
     return map;
   },{});
@@ -2791,6 +3122,8 @@ function vLimpiar(){
   ['vCliente','vTel','vRuc','vDelivery','vObs','vOtraCiudad','vUbicacion','vDiaEntrega','vProdSearch','vProdCodigo','vProdNombre','vProdPrecio','vComprobante'].forEach(id=>{const el=gs(id);if(el)el.value='';});
   if(gs('vCostoEnvio'))gs('vCostoEnvio').value='0';
   if(gs('vMontoPagado'))gs('vMontoPagado').value='0';
+  if(gs('vTelAviso'))gs('vTelAviso').innerHTML='';
+  if(gs('vClienteResultados')){gs('vClienteResultados').innerHTML='';gs('vClienteResultados').classList.remove('open');}
   if(gs('vProd'))gs('vProd').selectedIndex=0;
   if(gs('vCiudad'))gs('vCiudad').selectedIndex=0;
   if(gs('vTipoEnvio'))gs('vTipoEnvio').selectedIndex=0;
@@ -2806,6 +3139,7 @@ function vLimpiar(){
   if(gs('vCant'))gs('vCant').value=1;
   if(gs('vOtraCiudadWrap'))gs('vOtraCiudadWrap').style.display='none';
   if(gs('vFecha'))gs('vFecha').value=fechaHoyLocal();
+  if(gs('vRegaloCant'))gs('vRegaloCant').value=0;
   ppSelectedCodigo=null;
   vRenderCarrito();
   vCalcTotal();
@@ -3119,7 +3453,7 @@ function ventaPlanillaRow(r){
 
 // ═══ WHATSAPP ═══
 function ventaPorId(id){
-  return ventasDelMes.find(v=>String(v.id)===String(id));
+  return ventasDelMes.find(v=>String(v.id)===String(id))||(allVentasCache||[]).find(v=>String(v.id)===String(id));
 }
 function enviarWAId(id){
   const r=ventaPorId(id);
@@ -3477,7 +3811,41 @@ function stockRow(p,child){
     <td><input type="checkbox" class="row-check stock-row-check" data-codigo="${esc(p.codigo)}" ${stockSeleccionados.has(String(p.codigo))?'checked':''} onchange="stockToggleSeleccion('${esc(p.codigo)}',this.checked)"></td>
     <td class="td-m">${esc(p.codigo)}</td>
     <td class="td-em"><span class="stock-name-cell">${esc(p.nombre)}${child?'<small>Variante de '+esc(stockBaseCodigo(p.codigo))+'</small>':''}</span></td>
-    <td class="td-m" style="color:${ok?'var(--ok)':'var(--err)'}">${p.stock_actual||0}</td><td class="td-mu">${esc(p.unidad||'')}</td><td class="td-mu">${esc(p.grupo||'')}</td><td class="td-m td-mu">${p.stock_minimo||0}</td><td class="td-m">${fmtGs(p.precio_venta)}</td><td class="td-m">${p.precio_promo?fmtGs(p.precio_promo):'-'}</td><td class="td-m">${fmtGs(p.costo)}</td><td><span class="badge ${estadoCls}">${esc(estado)}</span></td><td><span class="badge ${ok?'b-ok':'b-err'}">${ok?'OK':'Bajo'}</span></td><td><div style="display:flex;gap:6px;"><button type="button" class="btn btn-s btn-sm" onclick="editarStock('${esc(p.codigo)}')">Editar</button><button type="button" class="btn btn-s btn-sm" onclick="svAbrir('${esc(stockBaseCodigo(p.codigo))}')">Variante</button><button type="button" class="btn btn-d btn-sm" onclick="eliminarProducto('${esc(p.codigo)}','${esc(p.nombre)}')">Eliminar</button></div></td></tr>`;
+    <td class="td-m" style="color:${ok?'var(--ok)':'var(--err)'}">${p.stock_actual||0}</td><td class="td-mu">${esc(p.unidad||'')}</td><td class="td-mu">${esc(p.grupo||'')}</td><td class="td-m td-mu">${p.stock_minimo||0}</td><td class="td-m">${fmtGs(p.precio_venta)}</td><td class="td-m">${p.precio_promo?fmtGs(p.precio_promo):'-'}</td><td class="td-m">${fmtGs(p.costo)}</td><td><span class="badge ${estadoCls}">${esc(estado)}</span></td><td><span class="badge ${ok?'b-ok':'b-err'}">${ok?'OK':'Bajo'}</span></td><td><div style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn btn-s btn-sm" onclick="editarStock('${esc(p.codigo)}')">Editar</button><button type="button" class="btn btn-s btn-sm" onclick="duplicarProducto('${esc(p.codigo)}')">Duplicar</button><button type="button" class="btn btn-s btn-sm" onclick="svAbrir('${esc(stockBaseCodigo(p.codigo))}')">Variante</button>${(parseFloat(p.stock_actual)||0)<=0?`<button type="button" class="btn btn-s btn-sm" onclick="avisarStockAbrir('${esc(p.codigo)}','${esc(p.nombre)}')" title="Anotar clientes esperando este producto">🔔 Avisar${(esperaStockGet()[p.codigo]||[]).length?' ('+esperaStockGet()[p.codigo].length+')':''}</button>`:''}<button type="button" class="btn btn-d btn-sm" onclick="eliminarProducto('${esc(p.codigo)}','${esc(p.nombre)}')">Eliminar</button></div></td></tr>`;
+}
+async function duplicarProducto(codigo){
+  const p=productoPorCodigo(codigo);
+  if(!p){toast('No encontré ese producto');return;}
+  const btn=[...document.querySelectorAll('.nav-item')].find(b=>b.textContent.includes('Nuevo Producto'));
+  navTo('productos',btn);
+  setTimeout(()=>{
+    pLimpiar();
+    if(gs('pNombre'))gs('pNombre').value=p.nombre_base||p.nombre||'';
+    unidadSeleccionar(p.unidad||'unidad');
+    catSeleccionar(p.grupo||'Accesorios');
+    if(gs('pEstado'))gs('pEstado').value=p.estado||'En venta';
+    setMoneyValue('pPrecio',p.precio_venta||0);
+    setMoneyValue('pPrecioPromo',p.precio_promo||0);
+    setMoneyValue('pCosto',p.costo||0);
+    if(gs('pStockMin'))gs('pStockMin').value=parseInt(p.stock_minimo)||0;
+    pActualizarMargenIndicador();
+    if(gs('pCodigo'))gs('pCodigo').focus();
+    toast('Datos copiados. Poné un código y nombre nuevos.');
+  },80);
+}
+async function avisarStockAbrir(codigo,nombre){
+  const lista=esperaStockGet()[codigo]||[];
+  if(lista.length){
+    const texto=lista.map((e,i)=>(i+1)+'. '+e.cliente+(e.telefono?' — '+e.telefono:'')).join('\n');
+    const agregar=confirm('Esperando "'+nombre+'":\n\n'+texto+'\n\n¿Agregar otro cliente a la lista?');
+    if(!agregar)return;
+  }
+  const cliente=prompt('Nombre del cliente que espera "'+nombre+'":');
+  if(!cliente||!cliente.trim())return;
+  const telefono=prompt('WhatsApp del cliente (opcional):')||'';
+  await esperaStockAgregar(codigo,cliente.trim(),telefono.trim());
+  toast('Agregado a la lista de espera');
+  await cargarStock();
 }
 function stockToggleGrupoAbierto(key){
   stockGruposAbiertos[key]=stockGruposAbiertos[key]===false;
@@ -3572,6 +3940,16 @@ async function guardarStockEdit(codigoOriginal){
   }
   stockEditCodigo=null;
   toast('Producto actualizado');
+  if(original&&(parseFloat(original.stock_actual)||0)<=0&&nuevoStock>0){
+    const esperando=esperaStockGet()[row.codigo]||[];
+    if(esperando.length){
+      setTimeout(()=>{
+        if(confirm('¡'+row.nombre+' volvió a tener stock! Hay '+esperando.length+' cliente(s) esperando. ¿Ver la lista para avisarles?')){
+          alert(esperando.map((e,i)=>(i+1)+'. '+e.cliente+(e.telefono?' — '+e.telefono:'')).join('\n'));
+        }
+      },300);
+    }
+  }
   await cargarProductos();
   await cargarStock();
 }
@@ -3705,21 +4083,62 @@ function cFiltrar(){
   const tbody=gs('cBody');if(!tbody)return;
   const q=(gs('cBuscar')?gs('cBuscar').value:'').toLowerCase();
   const filtrado=clientesResumen.filter(c=>!q||(c.nombre||'').toLowerCase().includes(q)||(c.ciudad||'').toLowerCase().includes(q)||(c.tel||'').toLowerCase().includes(q));
-  if(!filtrado.length){tbody.innerHTML='<tr><td colspan="8" class="empty">Sin clientes</td></tr>';return;}
+  if(!filtrado.length){tbody.innerHTML='<tr><td colspan="10" class="empty">Sin clientes</td></tr>';return;}
+  const notas=notasClientesGet();
   tbody.innerHTML=filtrado.map(c=>{
     const frecuente=c.compras>=3;
+    const vip=c.compras>=5;
     const tipo=frecuente?'Cliente frecuente':'Cliente';
+    const nota=notas[clienteKey(c.nombre)]||'';
     return `<tr class="${frecuente?'cliente-frecuente':''}">
       <td class="td-em">${esc(c.nombre)}</td>
       <td class="td-mu">${esc(c.tel||'-')}</td>
       <td class="td-mu">${esc(c.ciudad||'-')}</td>
       <td class="td-m"><span class="cliente-badge ${frecuente?'freq':''}">${c.compras}</span></td>
-      <td><span class="cliente-tipo ${frecuente?'freq':''}">${tipo}</span></td>
+      <td><span class="cliente-tipo ${frecuente?'freq':''}">${tipo}</span>${vip?' <span class="badge b-warn" title="5+ compras: considerá un descuento o regalo">💡 VIP</span>':''}</td>
       <td class="td-m">${fmtGs(c.total)}</td>
       <td class="td-mu">${formatoFecha(c.ultima)||'-'}</td>
       <td class="td-m" style="color:${c.pendiente>0?'var(--warn)':'var(--ok)'}">${c.pendiente>0?fmtGs(c.pendiente):'OK'}</td>
+      <td><input type="text" class="vm-edit vm-edit-md" value="${esc(nota)}" placeholder="Agregar nota..." onchange="notasClienteGuardar('${esc(c.nombre)}',this.value);toast('Nota guardada')"></td>
+      <td><div style="display:flex;gap:6px;flex-wrap:wrap;min-width:170px">
+        <button type="button" class="btn btn-s btn-sm" onclick="repetirCompraCliente('${esc(c.nombre)}')">Repetir compra</button>
+        ${c.tel?`<button type="button" class="btn btn-wa btn-sm" onclick="window.open('https://web.whatsapp.com/send?phone=${telefonoWA(c.tel)}','_blank')">WhatsApp</button>`:''}
+      </div></td>
     </tr>`;
   }).join('');
+}
+function ultimaVentaDeCliente(nombre){
+  const key=clienteKey(nombre);
+  const fuente=(allVentasCache&&allVentasCache.length)?allVentasCache:ventasDelMes;
+  return fuente.filter(v=>clienteKey(v.cliente)===key).sort((a,b)=>String(b.fecha||'').localeCompare(String(a.fecha||'')))[0];
+}
+function repetirCompraCliente(nombre){
+  const venta=ultimaVentaDeCliente(nombre);
+  if(!venta){toast('No encontré compras anteriores de este cliente');return;}
+  const items=itemsVentaDesdeDetalle(venta.detalle);
+  const nuevoCarrito=[];
+  const noDisponibles=[];
+  items.forEach(item=>{
+    const p=productoPorNombre(item.nombre);
+    if(!p||p.estado==='Descontinuado'){noDisponibles.push(item.nombre);return;}
+    nuevoCarrito.push({codigo:p.codigo,nombre:p.nombre,precio:parseInt(p.precio_venta)||0,cant:item.cant||1});
+  });
+  if(!nuevoCarrito.length){toast('Ninguno de esos productos sigue disponible');return;}
+  carrito=nuevoCarrito;
+  const btn=[...document.querySelectorAll('.nav-item')].find(b=>b.textContent.includes('Registro de Ventas'));
+  navTo('registro',btn);
+  setTimeout(()=>{
+    if(gs('vCliente'))gs('vCliente').value=venta.cliente||nombre;
+    if(gs('vTel'))gs('vTel').value=venta.contacto||'';
+    if(venta.ciudad){
+      const sel=gs('vCiudad');
+      if(sel&&[...sel.options].some(o=>o.value===venta.ciudad))sel.value=venta.ciudad;
+    }
+    vRenderCarrito();
+    vCalcTotal();
+    if(noDisponibles.length)toast('Cargado. No disponibles: '+noDisponibles.join(', '));
+    else toast('Carrito cargado con la última compra');
+  },50);
 }
 function cClientesFiltrados(){
   const q=(gs('cBuscar')?gs('cBuscar').value:'').toLowerCase();
@@ -3789,6 +4208,51 @@ function labelPeriodoDelivery(){
   if(p==='semana')return 'Semana actual';
   return mes;
 }
+function renderRutaDelDia(){
+  const cont=gs('dRutaDelDia');if(!cont)return;
+  const hoyStr=fechaHoyLocal();
+  const fuente=(allVentasCache&&allVentasCache.length)?allVentasCache:ventasDelMes;
+  const entregasHoy=fuente.filter(r=>{
+    const dia=String(r.dia_entrega||r.fecha||'').slice(0,10);
+    return dia===hoyStr&&!['entregado','cancelado'].includes(String(r.estado_entrega||'').toLowerCase());
+  });
+  if(!entregasHoy.length){cont.innerHTML='<div class="empty">Sin entregas para hoy</div>';return;}
+  const porPersona={};
+  entregasHoy.forEach(r=>{
+    const persona=r.delivery_persona||'Sin asignar';
+    if(!porPersona[persona])porPersona[persona]=[];
+    porPersona[persona].push(r);
+  });
+  cont.innerHTML=Object.entries(porPersona).map(([persona,lista])=>{
+    const d=deliverysFijos.find(x=>x.nombre===persona);
+    const tel=d?telefonoWA(d.telefono):'';
+    return `<div class="cfg-item"><div><div class="cfg-item-name">${esc(persona)}</div><div class="cfg-item-meta">${lista.length} entrega${lista.length===1?'':'s'} hoy</div></div><div style="display:flex;gap:6px"><button type="button" class="btn btn-s btn-sm" onclick="copiarRutaDelDia('${esc(persona)}')">Copiar</button>${tel?`<button type="button" class="btn btn-wa btn-sm" onclick="enviarRutaDelDia('${esc(persona)}')">Enviar WhatsApp</button>`:''}</div></div>`;
+  }).join('');
+}
+function textoRutaDelDia(persona){
+  const hoyStr=fechaHoyLocal();
+  const fuente=(allVentasCache&&allVentasCache.length)?allVentasCache:ventasDelMes;
+  const lista=fuente.filter(r=>{
+    const dia=String(r.dia_entrega||r.fecha||'').slice(0,10);
+    return dia===hoyStr&&r.delivery_persona===persona&&!['entregado','cancelado'].includes(String(r.estado_entrega||'').toLowerCase());
+  }).sort((a,b)=>String(a.ciudad||'').localeCompare(String(b.ciudad||'')));
+  const lineas=lista.map((r,i)=>{
+    const cobrar=esPagado(r.estado_pago)?'Ya pagado ✅':'Cobrar '+fmtGs(totalVenta(r));
+    const ubic=(r.ubicacion||'').trim()?'\n   📍 '+r.ubicacion.trim():'';
+    return (i+1)+'. '+r.cliente+' — '+r.ciudad+ubic+'\n   '+cobrar;
+  });
+  return '🚚 Ruta de hoy para '+persona+'\n\n'+lineas.join('\n\n');
+}
+function copiarRutaDelDia(persona){
+  const txt=textoRutaDelDia(persona);
+  navigator.clipboard?.writeText(txt).then(()=>toast('Ruta copiada')).catch(()=>alert(txt));
+}
+function enviarRutaDelDia(persona){
+  const d=deliverysFijos.find(x=>x.nombre===persona);
+  const tel=d?telefonoWA(d.telefono):'';
+  if(!tel){toast('Ese delivery no tiene WhatsApp cargado');return;}
+  window.open('https://web.whatsapp.com/send?phone='+tel+'&text='+encodeURIComponent(textoRutaDelDia(persona)),'_blank');
+}
 function dRender(rows){
   if(gs('dPend'))gs('dPend').textContent=rows.filter(r=>r.estado_entrega==='Pendiente').length;
   if(gs('dCamino'))gs('dCamino').textContent=rows.filter(r=>r.estado_entrega==='En camino').length;
@@ -3798,7 +4262,20 @@ function dRender(rows){
   if(gs('dPagPend'))gs('dPagPend').textContent=fmtGs(rows.reduce((s,r)=>s+saldoPendienteVenta(r),0));
   const tbody=gs('dBody');if(!tbody)return;
   if(!rows.length){tbody.innerHTML='<tr><td colspan="7" class="empty">Sin datos</td></tr>';return;}
-  tbody.innerHTML=rows.map(r=>`<tr><td class="td-em">${esc(r.cliente)}</td><td class="td-mu">${esc(r.ciudad||'')}</td><td class="td-mu">${esc(r.delivery_persona||'Sin asignar')}</td><td class="td-m">${fmtGs(r.costo_delivery)}</td><td>${estadoSelectVenta(r,'estado_entrega')}</td><td>${estadoSelectVenta(r,'estado_pago')}</td><td class="td-mu">${formatoFecha(r.fecha)||''}</td></tr>`).join('');
+  const grupos={};
+  rows.forEach(r=>{
+    const ciudad=String(r.ciudad||'').trim()||'Sin ciudad';
+    if(!grupos[ciudad])grupos[ciudad]=[];
+    grupos[ciudad].push(r);
+  });
+  const ciudadesOrdenadas=Object.keys(grupos).sort((a,b)=>a==='Sin ciudad'?1:b==='Sin ciudad'?-1:a.localeCompare(b));
+  tbody.innerHTML=ciudadesOrdenadas.map(ciudad=>{
+    const filas=grupos[ciudad];
+    const header=`<tr class="group-row"><td colspan="7" style="font-weight:700;color:var(--text2)">${esc(ciudad)} · ${filas.length} pedido${filas.length===1?'':'s'}</td></tr>`;
+    const cuerpo=filas.map(r=>`<tr><td class="td-em">${esc(r.cliente)}</td><td class="td-mu">${esc(r.ciudad||'')}</td><td class="td-mu">${esc(r.delivery_persona||'Sin asignar')}</td><td class="td-m">${fmtGs(r.costo_delivery)}</td><td>${estadoSelectVenta(r,'estado_entrega')}</td><td>${estadoSelectVenta(r,'estado_pago')}</td><td class="td-mu">${formatoFecha(r.fecha)||''}</td></tr>`).join('');
+    return header+cuerpo;
+  }).join('');
+  renderRutaDelDia();
 }
 function generarRendicion(){
   const rows=ventasDelMes.filter(r=>r.tipo_envio==='Delivery');
@@ -3850,6 +4327,7 @@ function enviarRendicionDelivery(persona){
 async function fCargar(){
   const mes=gs('mesSelectFin')?gs('mesSelectFin').value:getMesActual();
   await Promise.all([cargarProductos().catch(()=>{}),cargarConfiguracion().catch(()=>{})]);
+  await aplicarGastosRecurrentes(mes).catch(e=>console.warn(e));
   const {data}=await SB.from('ventas').select('*').order('fecha',{ascending:false});
   allVentasCache=data||[];
   ventasDelMes=ventasDelMesPorFecha(data||[],mes);
@@ -3892,6 +4370,45 @@ function fRender(rows){
   cargarPublicidadForm();
   renderPublicidad(analisis,rows,gastosFinanzas);
   renderTicketIdeas(analisis,rows);
+  renderFRitmoComparativa(mes,analisis,metaV,metaG);
+}
+function mesAnterior(mesLabel){
+  const [nombre,anioStr]=String(mesLabel||'').split(' ');
+  let idx=MESES.indexOf(nombre);
+  let anio=parseInt(anioStr)||new Date().getFullYear();
+  if(idx<0)return getMesActual();
+  idx--;
+  if(idx<0){idx=11;anio--;}
+  return MESES[idx]+' '+anio;
+}
+function renderFRitmoComparativa(mes,analisis,metaV,metaG){
+  const cont=gs('fRitmoGrid');if(!cont)return;
+  const esMesActual=mes===getMesActual();
+  const hoy=new Date(fechaHoyLocal()+'T12:00:00');
+  const diasDelMes=new Date(hoy.getFullYear(),hoy.getMonth()+1,0).getDate();
+  const diasTranscurridos=esMesActual?hoy.getDate():diasDelMes;
+  const ritmoActual=Math.round((analisis.cob||0)/Math.max(1,diasTranscurridos));
+  const ritmoNecesario=metaV>0?Math.round(metaV/diasDelMes):0;
+  const tiles=[];
+  tiles.push({m:'Ritmo diario actual',v:fmtGs(ritmoActual)});
+  if(metaV>0)tiles.push({m:'Ritmo necesario p/meta',v:fmtGs(ritmoNecesario)});
+  if(esMesActual&&diasTranscurridos<diasDelMes){
+    const proyeccionVentas=Math.round(ritmoActual*diasDelMes);
+    const ritmoNeta=Math.round((analisis.neta||0)/Math.max(1,diasTranscurridos));
+    const proyeccionNeta=Math.round(ritmoNeta*diasDelMes);
+    tiles.push({m:'Proyección ventas fin de mes',v:fmtGs(proyeccionVentas)});
+    tiles.push({m:'Proyección ganancia fin de mes',v:fmtGs(proyeccionNeta)});
+  }
+  const mesPrev=mesAnterior(mes);
+  const ventasPrev=ventasDelMesPorFecha(allVentasCache||[],mesPrev);
+  if(ventasPrev.length||analisis.fact>0){
+    const analisisPrev=analizarFinanzas(ventasPrev,parseJSONSafe(appConfig['gastos_'+mesPrev],[]));
+    const diffFact=analisisPrev.fact>0?Math.round((analisis.fact-analisisPrev.fact)*100/analisisPrev.fact):(analisis.fact>0?100:0);
+    const diffNeta=analisisPrev.neta!==0?Math.round((analisis.neta-analisisPrev.neta)*100/Math.abs(analisisPrev.neta)):(analisis.neta>0?100:0);
+    tiles.push({m:'Facturado vs '+mesPrev,v:(diffFact>=0?'+':'')+diffFact+'%'});
+    tiles.push({m:'Ganancia vs '+mesPrev,v:(diffNeta>=0?'+':'')+diffNeta+'%'});
+  }
+  cont.innerHTML=tiles.map(t=>`<div class="dc"><div class="dc-m">${esc(t.m)}</div><div class="dc-v">${esc(t.v)}</div></div>`).join('');
 }
 function fGuardarMetas(){
   const mes=gs('mesSelectFin')?gs('mesSelectFin').value:getMesActual();
@@ -4202,18 +4719,54 @@ function renderTicketIdeas(a,rows){
 function renderGastos(mes){
   if(gs('gFecha')&&!gs('gFecha').value)gs('gFecha').value=fechaHoyLocal();
   const el=gs('gLista');if(!el)return;
-  if(!gastosFinanzas.length){el.innerHTML='<div class="empty">Sin gastos cargados</div>';return;}
-  el.innerHTML=gastosFinanzas.map((g,i)=>`<div class="expense-row"><div><div class="td-em">${esc(g.categoria)} · ${esc(g.desc||'')}</div><div class="td-mu">${formatoFecha(g.fecha)}</div></div><div style="display:flex;gap:8px;align-items:center"><span class="td-m">${fmtGs(g.monto)}</span><button type="button" class="btn btn-g btn-sm" style="color:var(--err)" onclick="gEliminar(${i})">✕</button></div></div>`).join('');
+  if(!gastosFinanzas.length){el.innerHTML='<div class="empty">Sin gastos cargados</div>';}
+  else{
+    el.innerHTML=gastosFinanzas.map((g,i)=>`<div class="expense-row"><div><div class="td-em">${esc(g.categoria)} · ${esc(g.desc||'')}${g.recurrente?' <span class="badge b-info">Recurrente</span>':''}</div><div class="td-mu">${formatoFecha(g.fecha)}</div></div><div style="display:flex;gap:8px;align-items:center"><span class="td-m">${fmtGs(g.monto)}</span><button type="button" class="btn btn-g btn-sm" style="color:var(--err)" onclick="gEliminar(${i})">✕</button></div></div>`).join('');
+  }
+  renderGraficoCategorias();
+}
+function renderGraficoCategorias(){
+  const el=gs('gGraficoCategorias');if(!el)return;
+  if(!gastosFinanzas.length){el.innerHTML='';return;}
+  const porCat={};
+  gastosFinanzas.forEach(g=>{porCat[g.categoria]=(porCat[g.categoria]||0)+(parseInt(g.monto)||0);});
+  const total=Object.values(porCat).reduce((s,v)=>s+v,0)||1;
+  const filas=Object.entries(porCat).sort((a,b)=>b[1]-a[1]);
+  el.innerHTML='<div class="card-hdr" style="border:0;padding:0;margin-bottom:10px">Gastos por categoría</div>'+
+    filas.map(([cat,monto])=>{
+      const pct=Math.round(monto*100/total);
+      return `<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>${esc(cat)}</span><span class="td-mu">${fmtGs(monto)} · ${pct}%</span></div><div class="prog-track" style="height:8px"><div class="prog-bar" style="width:${pct}%;background:var(--olive1,var(--primary))"></div></div></div>`;
+    }).join('');
 }
 async function gAgregar(){
   const mes=gs('mesSelectFin')?gs('mesSelectFin').value:getMesActual();
-  const gasto={fecha:gs('gFecha').value||fechaHoyLocal(),categoria:gs('gCategoria').value,desc:gs('gDesc').value,monto:moneyVal('gMonto')};
+  const recurrente=!!gs('gRecurrente')?.checked;
+  const gasto={fecha:gs('gFecha').value||fechaHoyLocal(),categoria:gs('gCategoria').value,desc:gs('gDesc').value,monto:moneyVal('gMonto'),recurrente};
   if(!gasto.monto){showAlert('gMsg','Carga un monto','err');return;}
   gastosFinanzas.push(gasto);
   await guardarConfigClave('gastos_'+mes,JSON.stringify(gastosFinanzas));
+  if(recurrente){
+    const recurrentes=parseJSONSafe(appConfig.gastos_recurrentes,[]);
+    recurrentes.push({categoria:gasto.categoria,desc:gasto.desc,monto:gasto.monto});
+    await guardarConfigClave('gastos_recurrentes',JSON.stringify(recurrentes));
+  }
   gs('gDesc').value='';gs('gMonto').value='';
+  if(gs('gRecurrente'))gs('gRecurrente').checked=false;
   showAlert('gMsg','Gasto agregado','ok');
   fCargar();
+}
+async function aplicarGastosRecurrentes(mes){
+  const recurrentes=parseJSONSafe(appConfig.gastos_recurrentes,[]);
+  if(!recurrentes.length)return;
+  const yaAplicados=parseJSONSafe(appConfig['gastos_recurrentes_aplicados_'+mes],false);
+  if(yaAplicados)return;
+  const actuales=parseJSONSafe(appConfig['gastos_'+mes],[]);
+  recurrentes.forEach(r=>{
+    actuales.push({fecha:mes===getMesActual()?fechaHoyLocal():mes,categoria:r.categoria,desc:r.desc,monto:r.monto,recurrente:true});
+  });
+  await guardarConfigClave('gastos_'+mes,JSON.stringify(actuales));
+  await guardarConfigClave('gastos_recurrentes_aplicados_'+mes,'true');
+  gastosFinanzas=actuales;
 }
 async function gEliminar(i){
   const mes=gs('mesSelectFin')?gs('mesSelectFin').value:getMesActual();
@@ -4240,6 +4793,107 @@ async function cfgGuardarNegocio(){
   for(const u of updates)await guardarConfigClave(u.clave,u.valor);
   showAlert('cfgNegMsg','Guardado','ok');
 }
+async function cfgGuardarMontoRegalo(){
+  const monto=moneyVal('cfgMontoRegalo')||0;
+  const {error}=await guardarConfigClave('monto_regalo',String(monto));
+  if(error){showAlert('cfgRegaloMsg','Error: '+error.message,'err');return;}
+  vPintarLabelRegalo();
+  showAlert('cfgRegaloMsg','Guardado','ok');
+}
+
+// ═══ COMBOS RÁPIDOS ═══
+async function cfgAddCombo(){
+  const nombre=(gs('cfgComboNombre')?.value||'').trim();
+  const codigosRaw=(gs('cfgComboCodigos')?.value||'').trim();
+  const descuento=parseFloat(gs('cfgComboDescuento')?.value)||0;
+  if(!nombre||!codigosRaw){showAlert('cfgComboMsg','Completá nombre y códigos','err');return;}
+  const codigos=codigosRaw.split(',').map(c=>c.trim()).filter(Boolean);
+  const items=[];
+  const noEncontrados=[];
+  codigos.forEach(cod=>{
+    const p=productoPorCodigo(cod);
+    if(!p){noEncontrados.push(cod);return;}
+    items.push({codigo:cod,cant:1});
+  });
+  if(noEncontrados.length){showAlert('cfgComboMsg','No encontré estos códigos: '+noEncontrados.join(', '),'err');return;}
+  if(!items.length){showAlert('cfgComboMsg','Agregá al menos un código válido','err');return;}
+  const lista=combosRapidosGet();
+  lista.push({nombre,items,descuentoPct:descuento});
+  await combosRapidosGuardar(lista);
+  if(gs('cfgComboNombre'))gs('cfgComboNombre').value='';
+  if(gs('cfgComboCodigos'))gs('cfgComboCodigos').value='';
+  if(gs('cfgComboDescuento'))gs('cfgComboDescuento').value='';
+  showAlert('cfgComboMsg','Combo agregado','ok');
+  cfgCargarCombos();
+  poblarCombosRapidos();
+}
+async function cfgDelCombo(idx){
+  const lista=combosRapidosGet();
+  lista.splice(idx,1);
+  await combosRapidosGuardar(lista);
+  cfgCargarCombos();
+  poblarCombosRapidos();
+}
+function cfgCargarCombos(){
+  const el=gs('cfgComboList');if(!el)return;
+  const lista=combosRapidosGet();
+  if(!lista.length){el.innerHTML='<div class="td-mu" style="font-size:12px;padding:8px">Sin combos configurados</div>';return;}
+  el.innerHTML=lista.map((c,i)=>`<div class="cfg-item"><div><div class="cfg-item-name">${esc(c.nombre)}</div><div class="cfg-item-meta">${c.items.length} producto(s)${c.descuentoPct?' · '+c.descuentoPct+'% off':''}</div></div><button type="button" class="btn btn-g btn-sm" onclick="cfgDelCombo(${i})" style="color:var(--err)">✕</button></div>`).join('');
+}
+function poblarCombosRapidos(){
+  const el=gs('vCombosBar');if(!el)return;
+  const lista=combosRapidosGet();
+  if(!lista.length){el.innerHTML='';return;}
+  el.innerHTML='<span style="font-size:11px;color:var(--text3);align-self:center;margin-right:2px">⚡ Combos:</span>'+
+    lista.map((c,i)=>`<button type="button" class="chip" onclick="vAplicarCombo(${i})">${esc(c.nombre)}${c.descuentoPct?' -'+c.descuentoPct+'%':''}</button>`).join('');
+}
+function vAplicarCombo(idx){
+  const combo=combosRapidosGet()[idx];
+  if(!combo){toast('Ese combo ya no existe');return;}
+  const noDisponibles=[];
+  combo.items.forEach(item=>{
+    const p=productoPorCodigo(item.codigo);
+    if(!p||p.estado==='Descontinuado'||p.estado==='Pausado'||(parseFloat(p.stock_actual)||0)<=0){noDisponibles.push(item.codigo);return;}
+    const precioBase=parseInt(p.precio_venta)||0;
+    const precio=combo.descuentoPct?Math.round(precioBase*(1-combo.descuentoPct/100)):precioBase;
+    const existente=carrito.find(c=>c.codigo===item.codigo&&c.precio===precio);
+    if(existente)existente.cant+=(item.cant||1);
+    else carrito.push({codigo:p.codigo,nombre:p.nombre,precio,cant:item.cant||1});
+  });
+  vRenderCarrito();
+  vCalcTotal();
+  if(noDisponibles.length)toast('Combo agregado. Sin stock: '+noDisponibles.join(', '));
+  else toast('Combo "'+combo.nombre+'" agregado al carrito');
+}
+
+// ═══ FECHAS ESPECIALES ═══
+async function cfgAddFechaEspecial(){
+  const nombre=(gs('cfgFechaNombre')?.value||'').trim();
+  const valor=gs('cfgFechaValor')?.value||'';
+  if(!nombre||!valor){showAlert('cfgFechaMsg','Completá nombre y fecha','err');return;}
+  const fecha=valor.slice(5,10);
+  const lista=parseJSONSafe(appConfig.fechas_especiales_custom,[]);
+  lista.push({nombre,fecha});
+  await guardarConfigClave('fechas_especiales_custom',JSON.stringify(lista));
+  if(gs('cfgFechaNombre'))gs('cfgFechaNombre').value='';
+  if(gs('cfgFechaValor'))gs('cfgFechaValor').value='';
+  showAlert('cfgFechaMsg','Fecha agregada','ok');
+  cfgCargarFechasEspeciales();
+}
+async function cfgDelFechaEspecial(idx){
+  const lista=parseJSONSafe(appConfig.fechas_especiales_custom,[]);
+  lista.splice(idx,1);
+  await guardarConfigClave('fechas_especiales_custom',JSON.stringify(lista));
+  cfgCargarFechasEspeciales();
+}
+function cfgCargarFechasEspeciales(){
+  const el=gs('cfgFechaList');if(!el)return;
+  const custom=parseJSONSafe(appConfig.fechas_especiales_custom,[]);
+  const base=FECHAS_ESPECIALES_BASE.map(f=>`<div class="cfg-item"><div><div class="cfg-item-name">${esc(f.nombre)}</div><div class="cfg-item-meta">${f.fecha.split('-')[1]}/${f.fecha.split('-')[0]} · predeterminada</div></div></div>`).join('');
+  const propias=custom.map((f,i)=>`<div class="cfg-item"><div><div class="cfg-item-name">${esc(f.nombre)}</div><div class="cfg-item-meta">${f.fecha.split('-')[1]}/${f.fecha.split('-')[0]}</div></div><button type="button" class="btn btn-g btn-sm" onclick="cfgDelFechaEspecial(${i})" style="color:var(--err)">✕</button></div>`).join('');
+  el.innerHTML=base+propias;
+}
+
 function colorPair(txt,pick){
   if(gs(txt)&&gs(pick)){
     gs(pick).value=gs(txt).value||DEFAULT_THEME.sidebar;
@@ -4478,7 +5132,7 @@ function cfgRenderDiagnostico(items){
   ultimoDiagnostico=items||[];
   const el=gs('cfgDiagList');if(!el)return;
   if(!items.length){el.innerHTML='<div class="empty">Sin resultados</div>';return;}
-  el.innerHTML=items.map(i=>`<div class="price-alert ${i.tipo}"><div><strong>${esc(i.titulo)}</strong>${i.detalle?`<div class="td-mu">${esc(i.detalle)}</div>`:''}</div></div>`).join('');
+  el.innerHTML=items.map(i=>`<div class="price-alert ${i.tipo}"><div class="alert-main"><strong>${esc(i.titulo)}</strong>${i.detalle?`<div class="td-mu">${esc(i.detalle)}</div>`:''}</div></div>`).join('');
 }
 async function cfgDiagnosticar(){
   const out=[];
@@ -5168,6 +5822,27 @@ function pActualizarPreciosBase(){
   });
   mvRenderOpciones();
   pActualizarPreviewVariantes();
+  pActualizarMargenIndicador();
+}
+function pActualizarMargenIndicador(){
+  const el=gs('pMargenIndicador');if(!el)return;
+  const precio=moneyVal('pPrecio');
+  const costo=moneyVal('pCosto');
+  if(!precio||!costo){el.innerHTML='';return;}
+  const margen=Math.round((precio-costo)*100/precio);
+  const precioSugerido=Math.ceil((costo/0.6)/500)*500;
+  let tipo='ok',mensaje='Precio saludable (margen '+margen+'%).';
+  if(margen<20){
+    tipo='err';
+    mensaje='Margen muy ajustado ('+margen+'%). Para un margen del 40%, el precio debería rondar '+fmtGs(precioSugerido)+'.';
+  }else if(margen<35){
+    tipo='warn';
+    mensaje='Margen algo bajo ('+margen+'%). Podrías subir a '+fmtGs(precioSugerido)+' para llegar a un 40%.';
+  }else if(margen>65){
+    tipo='warn';
+    mensaje='Margen muy alto ('+margen+'%). Revisá que el precio no esté espantando ventas (o es un producto premium, todo bien igual).';
+  }
+  el.innerHTML=`<div class="price-alert ${tipo}" style="margin:0"><div class="alert-main"><strong>Margen: ${margen}%</strong><div class="td-mu">${esc(mensaje)}</div></div></div>`;
 }
 function pActualizarCostosBase(){
   formatMoneyInput(gs('pCosto'));
@@ -5177,6 +5852,7 @@ function pActualizarCostosBase(){
   });
   mvRenderOpciones();
   pActualizarPreviewVariantes();
+  pActualizarMargenIndicador();
 }
 function pActualizarMinimosBase(){
   const min=parseInt(gs('pStockMin')?.value)||0;
@@ -5232,7 +5908,7 @@ function mvRenderTags() {
     '<span style="display:inline-flex;align-items:center;gap:6px;background:color-mix(in srgb, var(--olive1,var(--primary)) 12%, #fff);border:1px solid var(--line);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--olive1,var(--primary))">'+
     '<button type="button" onclick="mvMoverValor('+i+',-1)" class="btn btn-g btn-sm" style="padding:0 3px" '+(i===0?'disabled':'')+'>↑</button>'+
     '<button type="button" onclick="mvMoverValor('+i+',1)" class="btn btn-g btn-sm" style="padding:0 3px" '+(i===mvValoresActuales.length-1?'disabled':'')+'>↓</button>'+
-    esc(o.valor)+' <button type="button" onclick="mvRemoverValor('+i+')" style="border:none;background:none;color:var(--err);cursor:pointer">✕</button></span>'
+    esc(o.valor)+' <span style="opacity:.65;font-family:var(--fm)">· '+esc(o.sku||'')+'</span> <button type="button" onclick="mvRemoverValor('+i+')" style="border:none;background:none;color:var(--err);cursor:pointer">✕</button></span>'
   ).join('');
   mvRenderOpciones();
 }
@@ -5473,6 +6149,7 @@ function pLimpiar() {
   pRenderVariantesList();
   const prev = gs('pVariantesPreview');
   if(prev) prev.style.display='none';
+  if(gs('pMargenIndicador'))gs('pMargenIndicador').innerHTML='';
 }
 
 // ═══ ELIMINAR PRODUCTO (Stock) ═══
@@ -5794,6 +6471,8 @@ async function cfgMostrar() {
   await cargarCiudades().catch(()=>{});
   cfgCargarCiudades();
   cfgCargarDeliverys();
+  cfgCargarCombos();
+  cfgCargarFechasEspeciales();
   cfgPintarApariencia();
   cfgCargarColores();
   cfgCargarVisual();
