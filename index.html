@@ -1066,6 +1066,44 @@ html.dark table,html.dark thead,html.dark tbody{background:transparent!important
 html.dark thead th{background:rgba(255,255,255,.04)!important;color:#98989d!important;border-color:rgba(255,255,255,.08)!important}
 html.dark .group-row{background:rgba(255,255,255,.03)!important}
 html.dark .group-child{background:transparent!important}
+
+/* ── Stock Actual: burbujas colapsables ── */
+.stock-groups{display:flex;flex-direction:column;gap:10px}
+.stock-bubble{border:1px solid var(--border);border-radius:16px;background:#fff;overflow:hidden;transition:box-shadow .2s ease}
+.stock-bubble:hover{box-shadow:0 6px 18px rgba(31,26,12,.06)}
+.stock-bubble-head{display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer}
+.stock-bubble-head:hover{background:#fbf8f1}
+.stock-bubble-title{flex:1 1 auto;min-width:150px;display:flex;flex-direction:column;gap:2px}
+.stock-bubble-name{font-weight:800;font-size:13.5px;color:var(--text)}
+.stock-bubble-sub{font-size:11px;color:var(--text3)}
+.stock-bubble-stats{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.stock-bubble-chevron{width:30px;height:30px;border-radius:10px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;transition:transform .25s ease;background:#fff;flex:0 0 auto;color:var(--olive1);font-weight:900}
+.stock-bubble.open .stock-bubble-chevron{transform:rotate(180deg)}
+.stock-bubble-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .28s ease}
+.stock-bubble.open .stock-bubble-body{grid-template-rows:1fr}
+.stock-bubble-body-inner{overflow:hidden}
+.stock-bubble-actions{display:flex;gap:8px;flex-wrap:wrap;padding:10px 14px;border-top:1px solid var(--border)}
+.stock-variant-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;padding:0 14px 14px}
+.stock-variant-card{border:1px solid var(--border);border-radius:14px;padding:10px 12px;background:#fdfcf9;display:flex;flex-direction:column;gap:8px}
+.svc-top{display:flex;align-items:flex-start;gap:8px}
+.svc-name{flex:1;font-size:12.5px;font-weight:700;line-height:1.3;color:var(--text)}
+.svc-name small{display:block;font-weight:500;color:var(--text3);font-size:10px;margin-top:2px}
+.svc-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;font-size:11px}
+.svc-grid label{display:block;color:var(--text3);font-size:9.5px;text-transform:uppercase;letter-spacing:.03em}
+.svc-grid span{font-weight:700;color:var(--text)}
+.svc-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.stock-variant-card.row-selected{background:#fff7e7;border-color:#f0dfa8}
+.stock-variant-card.row-muted{opacity:.28}
+.stock-bubble.row-selected .stock-bubble-head{background:#fff7e7}
+.stock-bubble.row-muted{opacity:.4}
+html.dark .stock-variant-card.row-selected{background:rgba(255,214,110,.12)!important;border-color:rgba(255,214,110,.3)!important}
+html.dark .stock-bubble.row-selected .stock-bubble-head{background:rgba(255,214,110,.1)!important}
+html.dark .stock-bubble{background:#232325!important;border-color:rgba(255,255,255,.09)!important}
+html.dark .stock-bubble-head:hover{background:rgba(255,255,255,.05)!important}
+html.dark .stock-bubble-actions{border-color:rgba(255,255,255,.08)!important}
+html.dark .stock-variant-card{background:rgba(255,255,255,.04)!important;border-color:rgba(255,255,255,.09)!important}
+html.dark .stock-bubble-chevron{background:rgba(255,255,255,.06)!important;border-color:rgba(255,255,255,.12)!important;color:#f2f2f7!important}
+html.dark .svc-grid span,html.dark .stock-bubble-name,html.dark .svc-name{color:#f2f2f7!important}
 </style>
 </head>
 <body>
@@ -1487,11 +1525,11 @@ document.addEventListener('DOMContentLoaded', function(){
               </button>
               <input type="hidden" id="pUnidad" value="unidad">
             </div>
-            <div class="field"><label>Precio de venta (Gs)</label><input type="text" inputmode="numeric" id="pPrecio" placeholder="0" oninput="formatMoneyInput(this);pActualizarPreciosBase()"></div>
+            <div class="field"><label id="pPrecioLabel">Precio de venta (Gs)</label><input type="text" inputmode="numeric" id="pPrecio" placeholder="0" oninput="formatMoneyInput(this);pActualizarPreciosBase()"></div>
             <div class="field"><label>Precio promocional (Gs) <span style="color:var(--text3);font-weight:400">opcional</span></label><input type="text" inputmode="numeric" id="pPrecioPromo" placeholder="0" oninput="formatMoneyInput(this);pActualizarPreciosBase()"></div>
-            <div class="field"><label>Costo (Gs)</label><input type="text" inputmode="numeric" id="pCosto" placeholder="0" oninput="formatMoneyInput(this);pActualizarCostosBase()"></div>
-            <div class="field"><label>Stock mínimo</label><input type="number" id="pStockMin" value="0" oninput="pActualizarMinimosBase()"></div>
-            <div class="field"><label>Stock inicial</label><input type="number" id="pStockInicial" value="0"></div>
+            <div class="field"><label id="pCostoLabel">Costo (Gs)</label><input type="text" inputmode="numeric" id="pCosto" placeholder="0" oninput="formatMoneyInput(this);pActualizarCostosBase()"></div>
+            <div class="field"><label id="pStockMinLabel">Stock mínimo</label><input type="number" id="pStockMin" value="0" oninput="pActualizarMinimosBase()"></div>
+            <div class="field"><label id="pStockInicialLabel">Stock inicial</label><input type="number" id="pStockInicial" value="0"></div>
             <div class="field" style="grid-column:span 2" id="pMargenIndicador"></div>
           </div>
 
@@ -1595,6 +1633,15 @@ document.addEventListener('DOMContentLoaded', function(){
           <div><div class="finance-k">Ganancia neta</div><div class="finance-v" id="fHeroNeta">Gs 0</div></div>
           <div><div class="finance-k">Margen</div><div class="finance-v" id="fHeroMargen">0%</div></div>
           <div><div class="finance-k">Pendiente</div><div class="finance-v" id="fHeroPendiente">Gs 0</div></div>
+        </div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-hdr">Reporte del Mes</div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:12px">Generá un reporte completo de este periodo para guardarlo como PDF o pegarlo en ChatGPT/Claude y pedir consejos de estrategia.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <button type="button" class="btn btn-p btn-sm" onclick="fDescargarReportePDF()">Descargar reporte (PDF)</button>
+            <button type="button" class="btn btn-g btn-sm" onclick="fCopiarReporteTexto()">Copiar para IA</button>
+            <div id="fReporteMsg"></div>
+          </div>
         </div>
         <div class="card" style="margin-bottom:14px">
           <div class="card-hdr">Ritmo y comparativa</div>
@@ -2160,6 +2207,32 @@ document.addEventListener('DOMContentLoaded', function(){
     <div class="modal-ftr">
       <button type="button" class="btn btn-s" onclick="cerrarModal('modalStockVariante')">Cancelar</button>
       <button type="button" class="btn btn-p" onclick="svGuardar()">Guardar variante</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalStockEditar">
+  <div class="modal" style="max-width:620px;">
+    <div class="modal-hdr">
+      <div class="modal-title">Editar producto</div>
+      <button type="button" class="btn btn-g btn-sm" onclick="cerrarModal('modalStockEditar')">✕</button>
+    </div>
+    <div class="fg fg2">
+      <div class="field"><label>Código</label><input class="stock-edit" id="stCodigo"></div>
+      <div class="field"><label>Nombre</label><input class="stock-edit stock-edit-name" id="stNombre"></div>
+      <div class="field"><label>Stock actual</label><input class="stock-edit" id="stStock" type="number"></div>
+      <div class="field"><label>Unidad</label><select class="select-s stock-edit" id="stUnidad"></select></div>
+      <div class="field"><label>Categoría</label><select class="select-s stock-edit" id="stGrupo"></select></div>
+      <div class="field"><label>Stock mínimo</label><input class="stock-edit" id="stMin" type="number"></div>
+      <div class="field"><label>Precio (Gs)</label><input class="stock-edit" id="stPrecio" type="text" inputmode="numeric" oninput="formatMoneyInput(this)"></div>
+      <div class="field"><label>Promoción (Gs)</label><input class="stock-edit" id="stPromo" type="text" inputmode="numeric" oninput="formatMoneyInput(this)"></div>
+      <div class="field"><label>Costo (Gs)</label><input class="stock-edit" id="stCosto" type="text" inputmode="numeric" oninput="formatMoneyInput(this)"></div>
+      <div class="field"><label>Estado</label><select class="select-s stock-edit" id="stEstado"><option>En venta</option><option>Pausado</option><option>Descontinuado</option></select></div>
+    </div>
+    <div id="stMsg"></div>
+    <div class="modal-ftr">
+      <button type="button" class="btn btn-s" onclick="cerrarModal('modalStockEditar')">Cancelar</button>
+      <button type="button" class="btn btn-p" id="stGuardarBtn" onclick="guardarStockEdit(stockEditCodigo)">Guardar</button>
     </div>
   </div>
 </div>
@@ -3701,9 +3774,7 @@ async function cargarStock(){
   if(!data.length){gs('stockContent').innerHTML='<div class="empty">Sin productos registrados</div>';return;}
   allProductos=data||[];
   stockSeleccionados=new Set([...stockSeleccionados].filter(cod=>allProductos.some(p=>String(p.codigo)===String(cod))));
-  gs('stockContent').innerHTML=`<div class="tw"><table><thead><tr><th></th><th>Codigo</th><th>Nombre</th><th>Stock</th><th>Unidad</th><th>Categoría</th><th>Min</th><th>Precio</th><th>Promo</th><th>Costo</th><th>Estado venta</th><th>Nivel stock</th><th>Acciones</th></tr></thead><tbody>
-  ${stockRowsAgrupadas(data)}
-  </tbody></table></div>`;
+  gs('stockContent').innerHTML=`<div class="stock-groups">${stockRowsAgrupadas(data)}</div>`;
   stockActualizarSeleccion();
 }
 function stockBaseCodigo(codigo){
@@ -3751,67 +3822,74 @@ function stockRowsAgrupadas(data){
     if(!grupos[key])grupos[key]=[];
     grupos[key].push(p);
   });
-  return Object.entries(grupos).map(([key,items])=>{
-    if(items.length===1)return stockRow(items[0]);
-    const abierto=stockGruposAbiertos[key]!==false;
-    const totalStock=items.reduce((s,p)=>s+(parseFloat(p.stock_actual)||0),0);
-    const bajo=items.filter(p=>(parseFloat(p.stock_actual)||0)<=(parseFloat(p.stock_minimo)||0)).length;
-    const nombre=stockBaseNombre(items[0].nombre,key);
-    const selectedCount=items.filter(p=>stockSeleccionados.has(String(p.codigo))).length;
-    const header=`<tr class="group-row" data-stock-group="${esc(key)}">
-      <td><input type="checkbox" class="row-check" ${selectedCount===items.length?'checked':''} onchange="stockToggleGrupo('${esc(key)}',this.checked)"></td>
-      <td class="td-m">${esc(key)}</td>
-      <td colspan="11" class="stock-group-cell">
-        <div class="stock-group-card">
-          <div class="stock-group-main">
-            <button type="button" class="group-toggle" onclick="stockToggleGrupoAbierto('${esc(key)}')" title="${abierto?'Cerrar':'Abrir'} grupo">${abierto?'−':'+'}</button>
-            <div class="group-title"><span>${esc(nombre)}</span><span class="group-meta">Código madre ${esc(key)}</span></div>
-          </div>
-          <div class="stock-group-stats">
-            <span class="stock-pill">${items.length} variantes</span>
-            <span class="stock-pill">Stock ${totalStock}</span>
-            ${bajo?`<span class="stock-pill warn">${bajo} bajo mínimo</span>`:''}
-            ${selectedCount?`<span class="stock-pill">${selectedCount} seleccionados</span>`:''}
-            <button type="button" class="btn btn-s btn-sm" onclick="stockEditarNombreGrupo('${esc(key)}')">Editar nombre</button>
-            <button type="button" class="btn btn-s btn-sm" onclick="svAbrir('${esc(key)}')">Nueva variante</button>
-          </div>
-        </div>
-      </td>
-    </tr>`;
-    const children=abierto?items.map(p=>stockRow(p,true)).join(''):'';
-    return header+children;
-  }).join('');
+  return Object.entries(grupos).map(([key,items])=>stockBubble(key,items)).join('');
 }
-function stockRow(p){
-  return stockRow(p,false);
+function stockBubble(key,items){
+  const abierto=stockGruposAbiertos[key]===true;
+  const multi=items.length>1;
+  const totalStock=items.reduce((s,p)=>s+(parseFloat(p.stock_actual)||0),0);
+  const bajo=items.filter(p=>(parseFloat(p.stock_actual)||0)<=(parseFloat(p.stock_minimo)||0)).length;
+  const nombre=multi?stockBaseNombre(items[0].nombre,key):(items[0].nombre||'Producto');
+  const categoria=items[0].grupo||'Sin categoría';
+  const selectedCount=items.filter(p=>stockSeleccionados.has(String(p.codigo))).length;
+  const precios=items.map(p=>parseInt(p.precio_venta)||0).filter(v=>v>0);
+  const precioTxt=precios.length?(Math.min(...precios)===Math.max(...precios)?fmtGs(precios[0]):fmtGs(Math.min(...precios))+' – '+fmtGs(Math.max(...precios))):'-';
+  const head=`<div class="stock-bubble-head" onclick="stockToggleGrupoAbierto('${esc(key)}')">
+    <input type="checkbox" class="row-check" onclick="event.stopPropagation()" ${selectedCount===items.length&&items.length?'checked':''} onchange="stockToggleGrupo('${esc(key)}',this.checked)">
+    <div class="stock-bubble-title">
+      <span class="stock-bubble-name">${esc(nombre)}</span>
+      <span class="stock-bubble-sub">${esc(categoria)} · Código ${esc(key)}${multi?' · '+items.length+' variantes':''}</span>
+    </div>
+    <div class="stock-bubble-stats">
+      <span class="stock-pill">Stock ${totalStock}</span>
+      <span class="stock-pill">${precioTxt}</span>
+      ${bajo?`<span class="stock-pill warn">${bajo} bajo mínimo</span>`:''}
+      ${selectedCount?`<span class="stock-pill">${selectedCount} sel.</span>`:''}
+    </div>
+    <div class="stock-bubble-chevron">⌄</div>
+  </div>`;
+  const body=`<div class="stock-bubble-body"><div class="stock-bubble-body-inner">
+    <div class="stock-bubble-actions">
+      ${multi?`<button type="button" class="btn btn-s btn-sm" onclick="stockEditarNombreGrupo('${esc(key)}')">Editar nombre del grupo</button>`:''}
+      <button type="button" class="btn btn-s btn-sm" onclick="svAbrir('${esc(key)}')">+ Nueva variante</button>
+    </div>
+    <div class="stock-variant-grid">
+      ${items.map(p=>stockVariantCard(p,multi)).join('')}
+    </div>
+  </div></div>`;
+  return `<div class="stock-bubble${abierto?' open':''}" data-stock-group="${esc(key)}">${head}${body}</div>`;
 }
-function stockRow(p,child){
-  const ok=(p.stock_actual||0)>(p.stock_minimo||0);
-  const editing=stockEditCodigo===p.codigo;
-  if(editing){
-    return `<tr>
-      <td></td>
-      <td><input class="stock-edit" id="stCodigo" value="${esc(p.codigo)}"></td>
-      <td><input class="stock-edit stock-edit-name" id="stNombre" value="${esc(p.nombre)}"></td>
-      <td><input class="stock-edit" id="stStock" type="number" value="${parseFloat(p.stock_actual)||0}"></td>
-      <td><select class="select-s stock-edit" id="stUnidad">${UNIDADES_STOCK.map(u=>`<option ${u===(p.unidad||'')?'selected':''}>${u}</option>`).join('')}</select></td>
-      <td><select class="select-s stock-edit" id="stGrupo">${CATEGORIAS_PRODUCTO.map(g=>`<option ${g===(p.grupo||'')?'selected':''}>${g}</option>`).join('')}</select></td>
-      <td><input class="stock-edit" id="stMin" type="number" value="${parseFloat(p.stock_minimo)||0}"></td>
-      <td><input class="stock-edit" id="stPrecio" type="text" inputmode="numeric" value="${fmtInputGs(p.precio_venta)}" oninput="formatMoneyInput(this)"></td>
-      <td><input class="stock-edit" id="stPromo" type="text" inputmode="numeric" value="${fmtInputGs(p.precio_promo)}" oninput="formatMoneyInput(this)"></td>
-      <td><input class="stock-edit" id="stCosto" type="text" inputmode="numeric" value="${fmtInputGs(p.costo)}" oninput="formatMoneyInput(this)"></td>
-      <td><select class="select-s stock-edit" id="stEstado">${['En venta','Pausado','Descontinuado'].map(e=>`<option value="${e}" ${e===(p.estado||'En venta')?'selected':''}>${e}</option>`).join('')}</select></td>
-      <td><span class="badge ${ok?'b-ok':'b-err'}">${ok?'OK':'Bajo'}</span></td>
-      <td><div class="vm-actions"><button type="button" class="btn btn-p btn-sm" onclick="guardarStockEdit('${esc(p.codigo)}')">Guardar</button><button type="button" class="btn btn-g btn-sm" onclick="cancelarStockEdit()">Cancelar</button></div></td>
-    </tr>`;
-  }
+function stockVariantCard(p,child){
+  const stock=parseFloat(p.stock_actual)||0;
+  const min=parseFloat(p.stock_minimo)||0;
+  const ok=stock>min;
   const estado=p.estado||'En venta';
   const estadoCls=estado==='En venta'?'b-ok':(estado==='Pausado'?'b-warn':'b-err');
-  return `<tr class="${child?'group-child':''}" data-stock-row="${esc(p.codigo)}">
-    <td><input type="checkbox" class="row-check stock-row-check" data-codigo="${esc(p.codigo)}" ${stockSeleccionados.has(String(p.codigo))?'checked':''} onchange="stockToggleSeleccion('${esc(p.codigo)}',this.checked)"></td>
-    <td class="td-m">${esc(p.codigo)}</td>
-    <td class="td-em"><span class="stock-name-cell">${esc(p.nombre)}${child?'<small>Variante de '+esc(stockBaseCodigo(p.codigo))+'</small>':''}</span></td>
-    <td class="td-m" style="color:${ok?'var(--ok)':'var(--err)'}">${p.stock_actual||0}</td><td class="td-mu">${esc(p.unidad||'')}</td><td class="td-mu">${esc(p.grupo||'')}</td><td class="td-m td-mu">${p.stock_minimo||0}</td><td class="td-m">${fmtGs(p.precio_venta)}</td><td class="td-m">${p.precio_promo?fmtGs(p.precio_promo):'-'}</td><td class="td-m">${fmtGs(p.costo)}</td><td><span class="badge ${estadoCls}">${esc(estado)}</span></td><td><span class="badge ${ok?'b-ok':'b-err'}">${ok?'OK':'Bajo'}</span></td><td><div style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn btn-s btn-sm" onclick="editarStock('${esc(p.codigo)}')">Editar</button><button type="button" class="btn btn-s btn-sm" onclick="duplicarProducto('${esc(p.codigo)}')">Duplicar</button><button type="button" class="btn btn-s btn-sm" onclick="svAbrir('${esc(stockBaseCodigo(p.codigo))}')">Variante</button>${(parseFloat(p.stock_actual)||0)<=0?`<button type="button" class="btn btn-s btn-sm" onclick="avisarStockAbrir('${esc(p.codigo)}','${esc(p.nombre)}')" title="Anotar clientes esperando este producto">🔔 Avisar${(esperaStockGet()[p.codigo]||[]).length?' ('+esperaStockGet()[p.codigo].length+')':''}</button>`:''}<button type="button" class="btn btn-d btn-sm" onclick="eliminarProducto('${esc(p.codigo)}','${esc(p.nombre)}')">Eliminar</button></div></td></tr>`;
+  const precio=parseInt(p.precio_venta)||0;
+  const costo=parseInt(p.costo)||0;
+  const margen=precio>0?Math.round((precio-costo)*100/precio):0;
+  const esperando=(esperaStockGet()[p.codigo]||[]).length;
+  return `<div class="stock-variant-card" data-stock-row="${esc(p.codigo)}">
+    <div class="svc-top">
+      <input type="checkbox" class="row-check stock-row-check" data-codigo="${esc(p.codigo)}" ${stockSeleccionados.has(String(p.codigo))?'checked':''} onchange="stockToggleSeleccion('${esc(p.codigo)}',this.checked)">
+      <div class="svc-name">${esc(p.nombre)}<small>${esc(p.codigo)}</small></div>
+      <span class="badge ${estadoCls}">${esc(estado)}</span>
+    </div>
+    <div class="svc-grid">
+      <div><label>Stock</label><span style="color:${ok?'var(--ok)':'var(--err)'}">${stock} ${esc(p.unidad||'')}</span></div>
+      <div><label>Mínimo</label><span>${min}</span></div>
+      <div><label>Precio</label><span>${fmtGs(precio)}</span></div>
+      <div><label>Promo</label><span>${p.precio_promo?fmtGs(p.precio_promo):'-'}</span></div>
+      <div><label>Costo</label><span>${fmtGs(costo)}</span></div>
+      <div><label>Margen</label><span>${margen}%</span></div>
+    </div>
+    <div class="svc-actions">
+      <button type="button" class="btn btn-s btn-sm" onclick="editarStock('${esc(p.codigo)}')">Editar</button>
+      <button type="button" class="btn btn-s btn-sm" onclick="duplicarProducto('${esc(p.codigo)}')">Duplicar</button>
+      ${stock<=0?`<button type="button" class="btn btn-s btn-sm" onclick="avisarStockAbrir('${esc(p.codigo)}','${esc(p.nombre)}')" title="Anotar clientes esperando este producto">🔔 Avisar${esperando?' ('+esperando+')':''}</button>`:''}
+      <button type="button" class="btn btn-d btn-sm" onclick="eliminarProducto('${esc(p.codigo)}','${esc(p.nombre)}')">Eliminar</button>
+    </div>
+  </div>`;
 }
 async function duplicarProducto(codigo){
   const p=productoPorCodigo(codigo);
@@ -3848,13 +3926,14 @@ async function avisarStockAbrir(codigo,nombre){
   await cargarStock();
 }
 function stockToggleGrupoAbierto(key){
-  stockGruposAbiertos[key]=stockGruposAbiertos[key]===false;
-  cargarStock();
+  stockGruposAbiertos[key]=!(stockGruposAbiertos[key]===true);
+  const el=document.querySelector('.stock-bubble[data-stock-group="'+String(key).replace(/"/g,'\\"')+'"]');
+  if(el)el.classList.toggle('open',stockGruposAbiertos[key]===true);
 }
 function stockExpandirTodo(open){
   const keys=[...new Set(allProductos.map(p=>stockBaseCodigo(p.codigo)))];
   keys.forEach(k=>stockGruposAbiertos[k]=!!open);
-  cargarStock();
+  document.querySelectorAll('#stockContent .stock-bubble').forEach(el=>el.classList.toggle('open',!!open));
 }
 function stockToggleSeleccion(codigo,checked){
   codigo=String(codigo);
@@ -3869,7 +3948,7 @@ function stockToggleGrupo(key,checked){
   cargarStock();
 }
 function stockFilasVisibles(){
-  return [...document.querySelectorAll('#stockContent tr[data-stock-row]')].filter(row=>row.style.display!=='none');
+  return [...document.querySelectorAll('#stockContent [data-stock-row]')].filter(row=>row.style.display!=='none');
 }
 function stockToggleSelectAll(checked){
   stockFilasVisibles().forEach(row=>{
@@ -3889,13 +3968,13 @@ function stockActualizarSeleccion(){
   const all=gs('stockSelectAll');
   const visibles=stockFilasVisibles();
   if(all)all.checked=!!visibles.length&&visibles.every(row=>stockSeleccionados.has(String(row.dataset.stockRow||'')));
-  document.querySelectorAll('#stockContent tr[data-stock-row]').forEach(row=>{
+  document.querySelectorAll('#stockContent [data-stock-row]').forEach(row=>{
     const cod=String(row.dataset.stockRow||'');
     const selected=stockSeleccionados.has(cod);
     row.classList.toggle('row-selected',selected);
     row.classList.toggle('row-muted',stockAislarSeleccionados&&n&&!selected);
   });
-  document.querySelectorAll('#stockContent tr[data-stock-group]').forEach(row=>{
+  document.querySelectorAll('#stockContent [data-stock-group]').forEach(row=>{
     const key=row.dataset.stockGroup;
     const items=allProductos.filter(p=>stockBaseCodigo(p.codigo)===key);
     const selected=items.some(p=>stockSeleccionados.has(String(p.codigo)));
@@ -3915,8 +3994,24 @@ async function stockEliminarSeleccionados(){
   await cargarProductos();
   await cargarStock();
 }
-function editarStock(codigo){stockEditCodigo=codigo;cargarStock();}
-function cancelarStockEdit(){stockEditCodigo=null;cargarStock();}
+function editarStock(codigo){
+  const p=allProductos.find(x=>String(x.codigo)===String(codigo));
+  if(!p){toast('No encontré ese producto');return;}
+  stockEditCodigo=codigo;
+  if(gs('stCodigo'))gs('stCodigo').value=p.codigo;
+  if(gs('stNombre'))gs('stNombre').value=p.nombre;
+  if(gs('stStock'))gs('stStock').value=parseFloat(p.stock_actual)||0;
+  if(gs('stUnidad'))gs('stUnidad').innerHTML=UNIDADES_STOCK.map(u=>`<option ${u===(p.unidad||'')?'selected':''}>${u}</option>`).join('');
+  if(gs('stGrupo'))gs('stGrupo').innerHTML=CATEGORIAS_PRODUCTO.map(g=>`<option ${g===(p.grupo||'')?'selected':''}>${g}</option>`).join('');
+  if(gs('stMin'))gs('stMin').value=parseFloat(p.stock_minimo)||0;
+  setMoneyValue('stPrecio',p.precio_venta||0);
+  setMoneyValue('stPromo',p.precio_promo||0);
+  setMoneyValue('stCosto',p.costo||0);
+  if(gs('stEstado'))gs('stEstado').value=p.estado||'En venta';
+  if(gs('stMsg'))gs('stMsg').innerHTML='';
+  gs('modalStockEditar').classList.add('open');
+}
+function cancelarStockEdit(){stockEditCodigo=null;cerrarModal('modalStockEditar');}
 async function guardarStockEdit(codigoOriginal){
   const original=allProductos.find(p=>String(p.codigo)===String(codigoOriginal));
   const nuevoStock=parseFloat(gs('stStock').value)||0;
@@ -3932,13 +4027,14 @@ async function guardarStockEdit(codigoOriginal){
     costo:moneyVal('stCosto'),
     estado:gs('stEstado').value
   };
-  if(!row.codigo||!row.nombre){alert('Codigo y nombre son obligatorios');return;}
+  if(!row.codigo||!row.nombre){showAlert('stMsg','Codigo y nombre son obligatorios','err');return;}
   const {error}=await SB.from('productos').update(row).eq('codigo',codigoOriginal);
-  if(error){alert('No se pudo guardar: '+error.message);return;}
+  if(error){showAlert('stMsg','No se pudo guardar: '+error.message,'err');return;}
   if(original && nuevoStock!==parseFloat(original.stock_actual||0)){
     await SB.from('movimientos').insert([{fecha:fechaHoyLocal(),codigo_producto:row.codigo,tipo:'ajuste',cantidad:nuevoStock-(parseFloat(original.stock_actual)||0),costo_unitario:0,proveedor:'',observaciones:'Editado desde Stock Actual'}]).catch?.(()=>{});
   }
   stockEditCodigo=null;
+  cerrarModal('modalStockEditar');
   toast('Producto actualizado');
   if(original&&(parseFloat(original.stock_actual)||0)<=0&&nuevoStock>0){
     const esperando=esperaStockGet()[row.codigo]||[];
@@ -4208,40 +4304,72 @@ function labelPeriodoDelivery(){
   if(p==='semana')return 'Semana actual';
   return mes;
 }
+let rutaPeriodo='dia'; // 'dia' | 'semana'
+function esDeliveryAsignado(r){
+  const persona=String(r.delivery_persona||'').trim();
+  if(!persona)return false;
+  if(DELIVERY_EXTERNOS.includes(persona))return false;
+  if(String(r.tipo_envio||'')!=='Delivery')return false;
+  return true;
+}
+function rangoSemanaActualLocal(){
+  const hoy=new Date();
+  const inicio=new Date(hoy);inicio.setDate(hoy.getDate()-((hoy.getDay()+6)%7));
+  const fin=new Date(inicio);fin.setDate(inicio.getDate()+6);
+  return {ini:fechaLocalDesdeDate(inicio),fin:fechaLocalDesdeDate(fin)};
+}
+function entregasParaRuta(personaFiltro){
+  const fuente=(allVentasCache&&allVentasCache.length)?allVentasCache:ventasDelMes;
+  const hoyStr=fechaHoyLocal();
+  const {ini,fin}=rangoSemanaActualLocal();
+  return fuente.filter(r=>{
+    if(!esDeliveryAsignado(r))return false;
+    if(['entregado','cancelado'].includes(String(r.estado_entrega||'').toLowerCase()))return false;
+    const dia=String(r.dia_entrega||r.fecha||'').slice(0,10);
+    if(rutaPeriodo==='dia'){if(dia!==hoyStr)return false;}
+    else{if(!(dia>=ini&&dia<=fin))return false;}
+    if(personaFiltro&&r.delivery_persona!==personaFiltro)return false;
+    return true;
+  }).sort((a,b)=>String(a.ciudad||'').localeCompare(String(b.ciudad||''))||String(a.delivery_persona||'').localeCompare(String(b.delivery_persona||'')));
+}
+function rutaSetPeriodo(p){
+  rutaPeriodo=p;
+  renderRutaDelDia();
+}
 function renderRutaDelDia(){
   const cont=gs('dRutaDelDia');if(!cont)return;
-  const hoyStr=fechaHoyLocal();
-  const fuente=(allVentasCache&&allVentasCache.length)?allVentasCache:ventasDelMes;
-  const entregasHoy=fuente.filter(r=>{
-    const dia=String(r.dia_entrega||r.fecha||'').slice(0,10);
-    return dia===hoyStr&&!['entregado','cancelado'].includes(String(r.estado_entrega||'').toLowerCase());
-  });
-  if(!entregasHoy.length){cont.innerHTML='<div class="empty">Sin entregas para hoy</div>';return;}
+  const entregas=entregasParaRuta();
+  const selector=`<div style="display:flex;gap:8px;margin-bottom:12px">
+    <button type="button" class="btn btn-sm ${rutaPeriodo==='dia'?'btn-p':'btn-s'}" onclick="rutaSetPeriodo('dia')">Ruta de hoy</button>
+    <button type="button" class="btn btn-sm ${rutaPeriodo==='semana'?'btn-p':'btn-s'}" onclick="rutaSetPeriodo('semana')">Ruta de la semana</button>
+  </div>`;
+  if(!entregas.length){cont.innerHTML=selector+'<div class="empty">Sin entregas con delivery asignado para este periodo (no incluye Uber Moto, transportadora ni retiro del local)</div>';return;}
   const porPersona={};
-  entregasHoy.forEach(r=>{
-    const persona=r.delivery_persona||'Sin asignar';
+  entregas.forEach(r=>{
+    const persona=r.delivery_persona;
     if(!porPersona[persona])porPersona[persona]=[];
     porPersona[persona].push(r);
   });
-  cont.innerHTML=Object.entries(porPersona).map(([persona,lista])=>{
+  cont.innerHTML=selector+Object.entries(porPersona).map(([persona,lista])=>{
     const d=deliverysFijos.find(x=>x.nombre===persona);
     const tel=d?telefonoWA(d.telefono):'';
-    return `<div class="cfg-item"><div><div class="cfg-item-name">${esc(persona)}</div><div class="cfg-item-meta">${lista.length} entrega${lista.length===1?'':'s'} hoy</div></div><div style="display:flex;gap:6px"><button type="button" class="btn btn-s btn-sm" onclick="copiarRutaDelDia('${esc(persona)}')">Copiar</button>${tel?`<button type="button" class="btn btn-wa btn-sm" onclick="enviarRutaDelDia('${esc(persona)}')">Enviar WhatsApp</button>`:''}</div></div>`;
+    const ciudades=[...new Set(lista.map(r=>r.ciudad||'Sin ciudad'))];
+    return `<div class="cfg-item"><div><div class="cfg-item-name">${esc(persona)}</div><div class="cfg-item-meta">${lista.length} entrega${lista.length===1?'':'s'} · ${esc(ciudades.join(', '))}</div></div><div style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn btn-s btn-sm" onclick="copiarRutaDelDia('${esc(persona)}')">Copiar</button><button type="button" class="btn btn-s btn-sm" onclick="descargarRutaPDF('${esc(persona)}')">PDF</button>${tel?`<button type="button" class="btn btn-wa btn-sm" onclick="enviarRutaDelDia('${esc(persona)}')">Enviar WhatsApp</button>`:''}</div></div>`;
   }).join('');
 }
 function textoRutaDelDia(persona){
-  const hoyStr=fechaHoyLocal();
-  const fuente=(allVentasCache&&allVentasCache.length)?allVentasCache:ventasDelMes;
-  const lista=fuente.filter(r=>{
-    const dia=String(r.dia_entrega||r.fecha||'').slice(0,10);
-    return dia===hoyStr&&r.delivery_persona===persona&&!['entregado','cancelado'].includes(String(r.estado_entrega||'').toLowerCase());
-  }).sort((a,b)=>String(a.ciudad||'').localeCompare(String(b.ciudad||'')));
-  const lineas=lista.map((r,i)=>{
+  const lista=entregasParaRuta(persona);
+  const tituloPeriodo=rutaPeriodo==='dia'?'de hoy':'de la semana';
+  let ciudadActual=null;
+  const lineas=[];
+  lista.forEach((r,i)=>{
+    const ciudad=r.ciudad||'Sin ciudad';
+    if(ciudad!==ciudadActual){lineas.push('📍 '+ciudad.toUpperCase());ciudadActual=ciudad;}
     const cobrar=esPagado(r.estado_pago)?'Ya pagado ✅':'Cobrar '+fmtGs(totalVenta(r));
-    const ubic=(r.ubicacion||'').trim()?'\n   📍 '+r.ubicacion.trim():'';
-    return (i+1)+'. '+r.cliente+' — '+r.ciudad+ubic+'\n   '+cobrar;
+    const ubic=(r.ubicacion||'').trim()?'\n   '+r.ubicacion.trim():'';
+    lineas.push((i+1)+'. '+r.cliente+ubic+'\n   '+cobrar);
   });
-  return '🚚 Ruta de hoy para '+persona+'\n\n'+lineas.join('\n\n');
+  return '🚚 Ruta '+tituloPeriodo+' para '+persona+'\n\n'+lineas.join('\n');
 }
 function copiarRutaDelDia(persona){
   const txt=textoRutaDelDia(persona);
@@ -4252,6 +4380,17 @@ function enviarRutaDelDia(persona){
   const tel=d?telefonoWA(d.telefono):'';
   if(!tel){toast('Ese delivery no tiene WhatsApp cargado');return;}
   window.open('https://web.whatsapp.com/send?phone='+tel+'&text='+encodeURIComponent(textoRutaDelDia(persona)),'_blank');
+}
+function descargarRutaPDF(persona){
+  const texto=textoRutaDelDia(persona);
+  const win=window.open('','_blank');
+  if(!win){toast('Habilitá las ventanas emergentes para generar el PDF');return;}
+  const html='<!doctype html><html><head><meta charset="utf-8"><title>Ruta - '+esc(persona)+'</title>'+
+    '<style>body{font-family:-apple-system,Segoe UI,Arial,sans-serif;padding:32px;color:#222;max-width:640px;margin:0 auto}h1{font-size:18px;margin-bottom:4px}pre{white-space:pre-wrap;font-family:inherit;font-size:13px;line-height:1.7}</style></head>'+
+    '<body><h1>Ritual Ancestral — Ruta de entregas</h1><pre>'+esc(texto)+'</pre>'+
+    '<script>window.onload=function(){setTimeout(function(){window.print();},300);};<\/script></body></html>';
+  win.document.write(html);
+  win.document.close();
 }
 function dRender(rows){
   if(gs('dPend'))gs('dPend').textContent=rows.filter(r=>r.estado_entrega==='Pendiente').length;
@@ -4737,6 +4876,99 @@ function renderGraficoCategorias(){
       const pct=Math.round(monto*100/total);
       return `<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>${esc(cat)}</span><span class="td-mu">${fmtGs(monto)} · ${pct}%</span></div><div class="prog-track" style="height:8px"><div class="prog-bar" style="width:${pct}%;background:var(--olive1,var(--primary))"></div></div></div>`;
     }).join('');
+}
+function construirReporteFinanzasTexto(){
+  const mes=gs('mesSelectFin')?gs('mesSelectFin').value:getMesActual();
+  const rows=ventasDelMes||[];
+  const metaV=parseInt(localStorage.getItem('meta_v_'+mes)||'0');
+  const metaG=parseInt(localStorage.getItem('meta_g_'+mes)||'0');
+  const a=analizarFinanzas(rows,gastosFinanzas);
+  const cfgAds=publicidadConfig();
+  const dias=diasPeriodoFinanzas(rows);
+  const L=[];
+  L.push('REPORTE FINANCIERO — RITUAL ANCESTRAL');
+  L.push('Periodo: '+mes);
+  L.push('Generado: '+new Date().toLocaleString('es-PY'));
+  L.push('');
+  L.push('== RESUMEN GENERAL ==');
+  L.push('Facturado: '+fmtGs(a.fact));
+  L.push('Cobrado: '+fmtGs(a.cob));
+  L.push('Pendiente de cobro: '+fmtGs(a.pendiente));
+  L.push('Costo de productos: '+fmtGs(a.costoProductos));
+  L.push('Ganancia bruta: '+fmtGs(a.gananciaBruta));
+  L.push('Gastos: '+fmtGs(a.gastos));
+  L.push('Ganancia neta: '+fmtGs(a.neta));
+  L.push('Margen neto: '+a.margen+'%');
+  L.push('');
+  L.push('== METAS Y PROGRESO ==');
+  L.push('Meta ventas: '+fmtGs(metaV)+' | Cobrado: '+fmtGs(a.cob)+' ('+(metaV>0?Math.round(a.cob*100/metaV):0)+'%)');
+  L.push('Meta ganancia: '+fmtGs(metaG)+' | Ganancia neta: '+fmtGs(a.neta)+' ('+(metaG>0?Math.round(a.neta*100/metaG):0)+'%)');
+  L.push('');
+  const porMet={};
+  rows.filter(r=>esPagado(r.estado_pago)).forEach(r=>{const m=r.metodo_pago||'Sin metodo';porMet[m]=(porMet[m]||0)+(r.total_productos||0)+(r.costo_delivery||0);});
+  L.push('== DINERO COBRADO POR MÉTODO DE PAGO ==');
+  if(Object.keys(porMet).length)Object.entries(porMet).forEach(([m,v])=>L.push('- '+m+': '+fmtGs(v)));
+  else L.push('Sin datos');
+  L.push('');
+  L.push('== PUBLICIDAD ==');
+  const metaAds=cfgAds.diario*dias;
+  const gastadoAds=(gastosFinanzas||[]).filter(g=>String(g.categoria||'').toLowerCase().includes('public')).reduce((s,g)=>s+(parseInt(g.monto)||0),0);
+  L.push('Meta pauta del periodo: '+fmtGs(metaAds));
+  L.push('Publicidad cargada: '+fmtGs(gastadoAds));
+  L.push('');
+  L.push('== GASTOS POR CATEGORÍA ==');
+  if(gastosFinanzas.length){
+    const porCat={};
+    gastosFinanzas.forEach(g=>{porCat[g.categoria]=(porCat[g.categoria]||0)+(parseInt(g.monto)||0);});
+    Object.entries(porCat).sort((x,y)=>y[1]-x[1]).forEach(([cat,monto])=>L.push('- '+cat+': '+fmtGs(monto)));
+  } else L.push('Sin gastos cargados');
+  L.push('');
+  L.push('== TOP PRODUCTOS POR GANANCIA ==');
+  if(a.topGanancia?.length)a.topGanancia.forEach((p,i)=>L.push((i+1)+'. '+p.nombre+' — '+p.cant+' vendidos — Ganancia '+fmtGs(p.ganancia)+' (margen '+p.margen+'%)'));
+  else L.push('Sin datos');
+  L.push('');
+  L.push('== TOP PRODUCTOS POR VENTAS ==');
+  if(a.topVentas?.length)a.topVentas.forEach((p,i)=>L.push((i+1)+'. '+p.nombre+' — '+p.cant+' vendidos — '+fmtGs(p.ventas)));
+  else L.push('Sin datos');
+  L.push('');
+  L.push('== ALERTAS DE PRECIO (margen bajo) ==');
+  if(a.alertas?.length)a.alertas.forEach(p=>L.push('- '+p.nombre+': margen '+p.margen+'% (precio '+fmtGs(p.precio)+', costo '+fmtGs(p.costoUnit)+')'));
+  else L.push('Sin alertas');
+  L.push('');
+  L.push('== TICKET MEDIO ==');
+  const ticket=rows.length?Math.round(a.fact/rows.length):0;
+  L.push('Ticket promedio: '+fmtGs(ticket)+' ('+rows.length+' ventas en el periodo)');
+  L.push('');
+  L.push('---');
+  L.push('Reporte generado automáticamente por el Panel Ritual Ancestral. Podés pegar este texto en ChatGPT o Claude y pedir consejos de estrategia, precios o publicidad.');
+  return L.join('\n');
+}
+function fDescargarReportePDF(){
+  const texto=construirReporteFinanzasTexto();
+  const mes=gs('mesSelectFin')?gs('mesSelectFin').value:getMesActual();
+  const win=window.open('','_blank');
+  if(!win){showAlert('fReporteMsg','Habilitá las ventanas emergentes para generar el PDF','err');return;}
+  const html='<!doctype html><html><head><meta charset="utf-8"><title>Reporte Finanzas - '+esc(mes)+'</title>'+
+    '<style>body{font-family:-apple-system,Segoe UI,Arial,sans-serif;padding:32px;color:#222;max-width:720px;margin:0 auto}h1{font-size:20px;margin-bottom:4px}pre{white-space:pre-wrap;font-family:inherit;font-size:13px;line-height:1.6}</style></head>'+
+    '<body><h1>Ritual Ancestral — Reporte Financiero</h1><pre>'+esc(texto)+'</pre>'+
+    '<script>window.onload=function(){setTimeout(function(){window.print();},300);};<\/script></body></html>';
+  win.document.write(html);
+  win.document.close();
+  showAlert('fReporteMsg','Se abrió una ventana lista para guardar como PDF (Ctrl/Cmd + P)','ok');
+}
+async function fCopiarReporteTexto(){
+  const texto=construirReporteFinanzasTexto();
+  try{
+    await navigator.clipboard.writeText(texto);
+    showAlert('fReporteMsg','Reporte copiado. Pegalo en ChatGPT o Claude.','ok');
+  }catch(e){
+    const ta=document.createElement('textarea');
+    ta.value=texto;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');showAlert('fReporteMsg','Reporte copiado. Pegalo en ChatGPT o Claude.','ok');}
+    catch(e2){showAlert('fReporteMsg','No se pudo copiar automáticamente','err');}
+    document.body.removeChild(ta);
+  }
 }
 async function gAgregar(){
   const mes=gs('mesSelectFin')?gs('mesSelectFin').value:getMesActual();
@@ -5984,7 +6216,16 @@ function mvGuardar() {
   pActualizarPreviewVariantes();
 }
 
+function pActualizarEtiquetasVariantes(){
+  const conVariantes=pVariantesData.length>0;
+  const sufijo=' <span style="color:var(--text3);font-weight:400">'+(conVariantes?'(opcional, se usa el de cada variante)':'')+'</span>';
+  if(gs('pPrecioLabel'))gs('pPrecioLabel').innerHTML='Precio de venta (Gs)'+(conVariantes?sufijo:'');
+  if(gs('pCostoLabel'))gs('pCostoLabel').innerHTML='Costo (Gs)'+(conVariantes?sufijo:'');
+  if(gs('pStockMinLabel'))gs('pStockMinLabel').innerHTML='Stock mínimo'+(conVariantes?sufijo:'');
+  if(gs('pStockInicialLabel'))gs('pStockInicialLabel').innerHTML='Stock inicial'+(conVariantes?sufijo:'');
+}
 function pRenderVariantesList() {
+  pActualizarEtiquetasVariantes();
   const cont = gs('pVariantesList');
   if (!pVariantesData.length) { cont.innerHTML = ''; return; }
   cont.innerHTML = pVariantesData.map((vt, vi) =>
@@ -6082,7 +6323,7 @@ async function pGuardar() {
     stock_minimo: parseInt(gs('pStockMin').value)||0,
     stock_actual: parseInt(gs('pStockInicial').value)||0
   };
-  if(baseRow.precio_venta<=0){showAlert('pMsg','Cargá el precio de venta del producto.','err');return;}
+  if(!pVariantesData.length && baseRow.precio_venta<=0){showAlert('pMsg','Cargá el precio de venta del producto.','err');return;}
   if(baseRow.costo<0){showAlert('pMsg','El costo no puede ser negativo.','err');return;}
 
   if (!pVariantesData.length) {
@@ -6147,6 +6388,7 @@ function pLimpiar() {
   if(gs('pEstado'))gs('pEstado').selectedIndex=0;
   pVariantesData = [];
   pRenderVariantesList();
+  pActualizarEtiquetasVariantes();
   const prev = gs('pVariantesPreview');
   if(prev) prev.style.display='none';
   if(gs('pMargenIndicador'))gs('pMargenIndicador').innerHTML='';
