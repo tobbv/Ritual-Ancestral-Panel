@@ -1071,13 +1071,14 @@ html.dark .group-child{background:transparent!important}
 .stock-groups{display:flex;flex-direction:column;gap:10px}
 .stock-bubble{border:1px solid var(--border);border-radius:16px;background:#fff;overflow:hidden;transition:box-shadow .2s ease}
 .stock-bubble:hover{box-shadow:0 6px 18px rgba(31,26,12,.06)}
-.stock-bubble-head{display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer}
+.stock-bubble-head{display:grid;grid-template-columns:20px minmax(160px,1fr) 92px 168px 148px 30px;align-items:center;gap:12px;padding:12px 14px;cursor:pointer}
 .stock-bubble-head:hover{background:#fbf8f1}
-.stock-bubble-title{flex:1 1 auto;min-width:150px;display:flex;flex-direction:column;gap:2px}
-.stock-bubble-name{font-weight:800;font-size:13.5px;color:var(--text)}
-.stock-bubble-sub{font-size:11px;color:var(--text3)}
-.stock-bubble-stats{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
-.stock-bubble-chevron{width:30px;height:30px;border-radius:10px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;transition:transform .25s ease;background:#fff;flex:0 0 auto;color:var(--olive1);font-weight:900}
+.stock-bubble-title{min-width:0;display:flex;flex-direction:column;gap:2px;overflow:hidden}
+.stock-bubble-name{font-weight:800;font-size:13.5px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stock-bubble-sub{font-size:11px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-col{font-size:12px;font-weight:700;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-col-badge{display:flex;justify-content:flex-start}
+.stock-bubble-chevron{width:28px;height:28px;border-radius:10px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;transition:transform .25s ease;background:#fff;color:var(--olive1);font-weight:900;justify-self:end}
 .stock-bubble.open .stock-bubble-chevron{transform:rotate(180deg)}
 .stock-bubble-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .28s ease}
 .stock-bubble.open .stock-bubble-body{grid-template-rows:1fr}
@@ -1092,6 +1093,14 @@ html.dark .group-child{background:transparent!important}
 .svc-grid label{display:block;color:var(--text3);font-size:9.5px;text-transform:uppercase;letter-spacing:.03em}
 .svc-grid span{font-weight:700;color:var(--text)}
 .svc-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.sb-drag-handle{cursor:grab;color:var(--text3);font-size:16px;line-height:1;user-select:none;text-align:center;padding:2px 0}
+.sb-drag-handle:active{cursor:grabbing}
+.stock-bubble.drag-over{outline:2px dashed var(--olive1);outline-offset:-2px}
+.stock-code-group{display:flex;align-items:stretch;border:1px solid var(--border2);border-radius:var(--r);overflow:hidden}
+.stock-code-group .stock-code-base{padding:8px 2px 8px 10px;color:var(--text3);font-weight:700;background:#f5f3ee;display:flex;align-items:center;white-space:nowrap}
+.stock-code-group input{border:none!important;flex:1;padding:8px 10px 8px 2px;border-radius:0!important}
+html.dark .stock-code-group{border-color:rgba(255,255,255,.14)!important}
+html.dark .stock-code-group .stock-code-base{background:rgba(255,255,255,.06)!important;color:#e9e9ee!important}
 .stock-variant-card.row-selected{background:#fff7e7;border-color:#f0dfa8}
 .stock-variant-card.row-muted{opacity:.28}
 .stock-bubble.row-selected .stock-bubble-head{background:#fff7e7}
@@ -2218,7 +2227,7 @@ document.addEventListener('DOMContentLoaded', function(){
       <button type="button" class="btn btn-g btn-sm" onclick="cerrarModal('modalStockEditar')">✕</button>
     </div>
     <div class="fg fg2">
-      <div class="field"><label>Código</label><input class="stock-edit" id="stCodigo"></div>
+      <div class="field" id="stCodigoWrap"><label>Código</label><input class="stock-edit" id="stCodigo"></div>
       <div class="field"><label>Nombre</label><input class="stock-edit stock-edit-name" id="stNombre"></div>
       <div class="field"><label>Stock actual</label><input class="stock-edit" id="stStock" type="number"></div>
       <div class="field"><label>Unidad</label><select class="select-s stock-edit" id="stUnidad"></select></div>
@@ -2261,6 +2270,7 @@ let mesFiltro = '';
 let vmFiltroActivo = 'todos';
 let mAutocompleteData = [];
 let stockEditCodigo = null;
+let stockEditBaseKey = null;
 let stockSeleccionados = new Set();
 let stockGruposAbiertos = {};
 let stockAislarSeleccionados = false;
@@ -3815,6 +3825,69 @@ async function stockEditarNombreGrupo(key){
   await cargarProductos();
   await cargarStock();
 }
+function stockCodigoSufijo(codigo,baseKey){
+  const c=String(codigo||'');
+  const b=String(baseKey||'');
+  if(c===b)return '';
+  if(c.startsWith(b+'-'))return c.slice(b.length+1);
+  const parts=c.split('-').filter(Boolean);
+  return parts.length>=3?parts.slice(2).join('-'):'';
+}
+async function stockEditarCodigoGrupo(key){
+  const items=allProductos.filter(p=>stockBaseCodigo(p.codigo)===key);
+  if(!items.length)return;
+  const nuevo=prompt('Nuevo código madre del grupo (los sufijos de cada variante se mantienen, ej: '+key+'-ROS pasa a NUEVO-ROS)',key);
+  if(!nuevo||!nuevo.trim())return;
+  const nuevoBase=nuevo.trim().toUpperCase();
+  if(nuevoBase===key)return;
+  const yaExiste=allProductos.some(p=>stockBaseCodigo(p.codigo)!==key&&(String(p.codigo).toUpperCase()===nuevoBase||stockBaseCodigo(p.codigo).toUpperCase()===nuevoBase));
+  if(yaExiste){toast('Ese código ya está en uso por otro producto o grupo');return;}
+  const updates=items.map(p=>{
+    const sufijo=stockCodigoSufijo(p.codigo,key);
+    const nuevoCodigo=sufijo?nuevoBase+'-'+sufijo:nuevoBase;
+    return SB.from('productos').update({codigo:nuevoCodigo}).eq('codigo',p.codigo);
+  });
+  const results=await Promise.all(updates);
+  const err=results.find(r=>r.error)?.error;
+  if(err){toast('No se pudo editar el código del grupo: '+err.message);return;}
+  const orden=parseJSONSafe(appConfig.stock_orden_grupos,[]);
+  const idx=orden.indexOf(key);
+  if(idx!==-1){orden[idx]=nuevoBase;await guardarConfigClave('stock_orden_grupos',JSON.stringify(orden));}
+  toast('Código del grupo actualizado');
+  await cargarProductos();
+  await cargarStock();
+}
+function stockOrdenAplicar(keysOriginal){
+  const orden=parseJSONSafe(appConfig.stock_orden_grupos,[]);
+  return [...keysOriginal].sort((a,b)=>{
+    const ia=orden.indexOf(a),ib=orden.indexOf(b);
+    if(ia!==-1&&ib!==-1)return ia-ib;
+    if(ia!==-1)return -1;
+    if(ib!==-1)return 1;
+    return keysOriginal.indexOf(a)-keysOriginal.indexOf(b);
+  });
+}
+let stockDragKey=null;
+function stockDragStart(ev,key){
+  stockDragKey=key;
+  ev.dataTransfer.effectAllowed='move';
+  try{ev.dataTransfer.setData('text/plain',key);}catch(e){}
+}
+async function stockDropOn(ev,targetKey){
+  ev.preventDefault();
+  if(!stockDragKey||stockDragKey===targetKey){stockDragKey=null;return;}
+  const keysOriginal=[...new Set(allProductos.map(p=>stockBaseCodigo(p.codigo)))];
+  const ordenActual=stockOrdenAplicar(keysOriginal);
+  const from=ordenActual.indexOf(stockDragKey);
+  const to=ordenActual.indexOf(targetKey);
+  if(from===-1||to===-1){stockDragKey=null;return;}
+  ordenActual.splice(from,1);
+  const to2=ordenActual.indexOf(targetKey);
+  ordenActual.splice(to2,0,stockDragKey);
+  stockDragKey=null;
+  await guardarConfigClave('stock_orden_grupos',JSON.stringify(ordenActual));
+  await cargarStock();
+}
 function stockRowsAgrupadas(data){
   const grupos={};
   data.forEach(p=>{
@@ -3822,7 +3895,8 @@ function stockRowsAgrupadas(data){
     if(!grupos[key])grupos[key]=[];
     grupos[key].push(p);
   });
-  return Object.entries(grupos).map(([key,items])=>stockBubble(key,items)).join('');
+  const keysOrdenados=stockOrdenAplicar(Object.keys(grupos));
+  return keysOrdenados.map(key=>stockBubble(key,grupos[key])).join('');
 }
 function stockBubble(key,items){
   const abierto=stockGruposAbiertos[key]===true;
@@ -3834,23 +3908,22 @@ function stockBubble(key,items){
   const selectedCount=items.filter(p=>stockSeleccionados.has(String(p.codigo))).length;
   const precios=items.map(p=>parseInt(p.precio_venta)||0).filter(v=>v>0);
   const precioTxt=precios.length?(Math.min(...precios)===Math.max(...precios)?fmtGs(precios[0]):fmtGs(Math.min(...precios))+' – '+fmtGs(Math.max(...precios))):'-';
-  const head=`<div class="stock-bubble-head" onclick="stockToggleGrupoAbierto('${esc(key)}')">
-    <input type="checkbox" class="row-check" onclick="event.stopPropagation()" ${selectedCount===items.length&&items.length?'checked':''} onchange="stockToggleGrupo('${esc(key)}',this.checked)">
+  const head=`<div class="stock-bubble-head" onclick="stockToggleGrupoAbierto('${esc(key)}')" ondragover="event.preventDefault()" ondrop="stockDropOn(event,'${esc(key)}')">
+    <span class="sb-drag-handle" draggable="true" ondragstart="stockDragStart(event,'${esc(key)}')" onclick="event.stopPropagation()" title="Arrastrar para reordenar">⠿</span>
     <div class="stock-bubble-title">
       <span class="stock-bubble-name">${esc(nombre)}</span>
       <span class="stock-bubble-sub">${esc(categoria)} · Código ${esc(key)}${multi?' · '+items.length+' variantes':''}</span>
     </div>
-    <div class="stock-bubble-stats">
-      <span class="stock-pill">Stock ${totalStock}</span>
-      <span class="stock-pill">${precioTxt}</span>
-      ${bajo?`<span class="stock-pill warn">${bajo} bajo mínimo</span>`:''}
-      ${selectedCount?`<span class="stock-pill">${selectedCount} sel.</span>`:''}
-    </div>
+    <div class="sb-col sb-col-stock">Stock ${totalStock}</div>
+    <div class="sb-col sb-col-price" title="${esc(precioTxt)}">${precioTxt}</div>
+    <div class="sb-col sb-col-badge">${bajo?`<span class="stock-pill warn">${bajo} bajo mínimo</span>`:(selectedCount?`<span class="stock-pill">${selectedCount} sel.</span>`:'')}</div>
     <div class="stock-bubble-chevron">⌄</div>
   </div>`;
   const body=`<div class="stock-bubble-body"><div class="stock-bubble-body-inner">
     <div class="stock-bubble-actions">
+      <label class="bulk-check" style="margin-right:6px" onclick="event.stopPropagation()"><input type="checkbox" ${selectedCount===items.length&&items.length?'checked':''} onchange="stockToggleGrupo('${esc(key)}',this.checked)"> Seleccionar todo el grupo</label>
       ${multi?`<button type="button" class="btn btn-s btn-sm" onclick="stockEditarNombreGrupo('${esc(key)}')">Editar nombre del grupo</button>`:''}
+      <button type="button" class="btn btn-s btn-sm" onclick="stockEditarCodigoGrupo('${esc(key)}')">Editar código del grupo</button>
       <button type="button" class="btn btn-s btn-sm" onclick="svAbrir('${esc(key)}')">+ Nueva variante</button>
     </div>
     <div class="stock-variant-grid">
@@ -3998,7 +4071,19 @@ function editarStock(codigo){
   const p=allProductos.find(x=>String(x.codigo)===String(codigo));
   if(!p){toast('No encontré ese producto');return;}
   stockEditCodigo=codigo;
-  if(gs('stCodigo'))gs('stCodigo').value=p.codigo;
+  const baseKey=stockBaseCodigo(codigo);
+  const hermanos=allProductos.filter(x=>stockBaseCodigo(x.codigo)===baseKey);
+  const esGrupo=hermanos.length>1;
+  stockEditBaseKey=esGrupo?baseKey:null;
+  const wrap=gs('stCodigoWrap');
+  if(wrap){
+    if(esGrupo){
+      const sufijo=stockCodigoSufijo(codigo,baseKey);
+      wrap.innerHTML=`<label>Código</label><div class="stock-code-group"><span class="stock-code-base">${esc(baseKey)}-</span><input class="stock-edit" id="stCodigo" value="${esc(sufijo)}" placeholder="ROS"></div><div style="font-size:10px;color:var(--text3);margin-top:4px">Producto del grupo ${esc(baseKey)}. Solo se edita el sufijo de esta variante.</div>`;
+    } else {
+      wrap.innerHTML=`<label>Código</label><input class="stock-edit" id="stCodigo" value="${esc(p.codigo)}">`;
+    }
+  }
   if(gs('stNombre'))gs('stNombre').value=p.nombre;
   if(gs('stStock'))gs('stStock').value=parseFloat(p.stock_actual)||0;
   if(gs('stUnidad'))gs('stUnidad').innerHTML=UNIDADES_STOCK.map(u=>`<option ${u===(p.unidad||'')?'selected':''}>${u}</option>`).join('');
@@ -4011,12 +4096,14 @@ function editarStock(codigo){
   if(gs('stMsg'))gs('stMsg').innerHTML='';
   gs('modalStockEditar').classList.add('open');
 }
-function cancelarStockEdit(){stockEditCodigo=null;cerrarModal('modalStockEditar');}
+function cancelarStockEdit(){stockEditCodigo=null;stockEditBaseKey=null;cerrarModal('modalStockEditar');}
 async function guardarStockEdit(codigoOriginal){
   const original=allProductos.find(p=>String(p.codigo)===String(codigoOriginal));
   const nuevoStock=parseFloat(gs('stStock').value)||0;
+  let codigoIngresado=gs('stCodigo').value.trim();
+  const nuevoCodigo=stockEditBaseKey?(stockEditBaseKey+'-'+codigoIngresado.replace(/^-+/,'').toUpperCase()):codigoIngresado;
   const row={
-    codigo:gs('stCodigo').value.trim(),
+    codigo:nuevoCodigo,
     nombre:gs('stNombre').value.trim(),
     stock_actual:nuevoStock,
     unidad:gs('stUnidad').value,
@@ -4027,13 +4114,14 @@ async function guardarStockEdit(codigoOriginal){
     costo:moneyVal('stCosto'),
     estado:gs('stEstado').value
   };
-  if(!row.codigo||!row.nombre){showAlert('stMsg','Codigo y nombre son obligatorios','err');return;}
+  if(!row.codigo||!row.nombre||(stockEditBaseKey&&!codigoIngresado)){showAlert('stMsg','Codigo y nombre son obligatorios','err');return;}
   const {error}=await SB.from('productos').update(row).eq('codigo',codigoOriginal);
   if(error){showAlert('stMsg','No se pudo guardar: '+error.message,'err');return;}
   if(original && nuevoStock!==parseFloat(original.stock_actual||0)){
     await SB.from('movimientos').insert([{fecha:fechaHoyLocal(),codigo_producto:row.codigo,tipo:'ajuste',cantidad:nuevoStock-(parseFloat(original.stock_actual)||0),costo_unitario:0,proveedor:'',observaciones:'Editado desde Stock Actual'}]).catch?.(()=>{});
   }
   stockEditCodigo=null;
+  stockEditBaseKey=null;
   cerrarModal('modalStockEditar');
   toast('Producto actualizado');
   if(original&&(parseFloat(original.stock_actual)||0)<=0&&nuevoStock>0){
@@ -4839,20 +4927,50 @@ function renderPublicidad(a,rows,gastosLista){
   el.innerHTML='<div class="ads-row head"><span>Producto</span><span>Cant.</span><span>Vendido</span><span>Apartar</span></div>'+
     prods.map(p=>`<div class="ads-row"><strong>${esc(p.nombre)}</strong><span>${p.cant}</span><span class="td-m">${fmtGs(p.ventas)}</span><span class="td-m">${fmtGs(Math.round(p.ventas*cfg.pct/100))}</span></div>`).join('');
 }
+function analizarCombosFrecuentes(rows){
+  const pares={};
+  rows.forEach(r=>{
+    const nombres=[...new Set(itemsVentaDesdeDetalle(r.detalle).map(i=>i.nombre))];
+    for(let i=0;i<nombres.length;i++){
+      for(let j=i+1;j<nombres.length;j++){
+        const key=[nombres[i],nombres[j]].sort().join(' + ');
+        pares[key]=(pares[key]||0)+1;
+      }
+    }
+  });
+  return Object.entries(pares).map(([combo,veces])=>({combo,veces})).sort((a,b)=>b.veces-a.veces);
+}
 function renderTicketIdeas(a,rows){
   const el=gs('fTicketIdeas');if(!el)return;
   const ticket=arguments.length>2?arguments[2]:(rows.length?Math.round(a.fact/rows.length):0);
   if(!rows.length){el.innerHTML='<div class="empty">Sin ventas este mes</div>';return;}
   const ideas=[];
-  const top=a.topVentas?.[0];
-  const bajo=[...(a.topVentas||[])].reverse().find(p=>p.cant>0);
-  const rentable=[...(a.productos||[])].filter(p=>p.margen>=35).sort((x,y)=>y.margen-x.margen)[0];
-  ideas.push({tipo:'ok',txt:'Objetivo sugerido: intentá que cada pedido supere '+fmtGs(Math.round(ticket*1.15))+' con un agregado simple.'});
-  if(top&&bajo&&top.nombre!==bajo.nombre)ideas.push({tipo:'warn',txt:'Combo express: '+top.nombre+' + '+bajo.nombre+'. Usá el producto fuerte para mover el lento.'});
-  if(top&&rentable&&top.nombre!==rentable.nombre)ideas.push({tipo:'ok',txt:'Upsell recomendado: cuando pidan '+top.nombre+', ofrecé '+rentable.nombre+' porque deja mejor margen.'});
-  if(a.alertas?.length)ideas.push({tipo:'err',txt:'Antes de promocionar, revisa margen bajo en '+a.alertas[0].nombre+'.'});
-  if(ticket<70000)ideas.push({tipo:'warn',txt:'Para subir ticket: ofrece pack de 2 unidades, envío bonificado desde cierto monto o accesorio complementario.'});
-  else ideas.push({tipo:'ok',txt:'Mensaje sugerido: “Por '+fmtGs(Math.max(10000,Math.round(ticket*.12)))+' más podés sumar un complemento y aprovechar el envío”.'});
+  const productosMap={};
+  (a.productos||[]).forEach(p=>productosMap[p.nombre]=p);
+  const combosFrecuentes=analizarCombosFrecuentes(rows).filter(c=>c.veces>=2).slice(0,3);
+
+  combosFrecuentes.forEach(c=>{
+    const [n1,n2]=c.combo.split(' + ');
+    const p1=productosMap[n1],p2=productosMap[n2];
+    if(!p1||!p2)return;
+    const precioJunto=(p1.precio||0)+(p2.precio||0);
+    const precioSugerido=Math.max(0,Math.round(precioJunto*0.95/1000)*1000);
+    const ahorroCliente=precioJunto-precioSugerido;
+    const marginCombo=precioSugerido-((p1.costoUnit||0)+(p2.costoUnit||0));
+    ideas.push({tipo:'ok',txt:c.veces+' clientes ya compraron juntos "'+n1+'" + "'+n2+'" este periodo. Armá un combo fijo a '+fmtGs(precioSugerido)+' (el cliente ahorra '+fmtGs(ahorroCliente)+' vs. comprar separado, y a vos te deja '+fmtGs(marginCombo)+' de margen por combo) y ofrecelo directo en el checkout.'});
+  });
+  if(!combosFrecuentes.length){
+    const top=a.topVentas?.[0];
+    const rentable=[...(a.productos||[])].filter(p=>p.margen>=35&&(!top||p.nombre!==top.nombre)).sort((x,y)=>y.margen-x.margen)[0];
+    if(top&&rentable)ideas.push({tipo:'ok',txt:'Todavía no hay combos que se repitan seguido. Empezá probando: cada vez que vendas "'+top.nombre+'" (tu más vendido, '+top.cant+' unidades), ofrecé sumar "'+rentable.nombre+'" — deja '+rentable.margen+'% de margen y casi no se está vendiendo junto con el producto estrella.'});
+  }
+  const bajo=[...(a.productos||[])].filter(p=>p.cant>0).sort((x,y)=>x.cant-y.cant)[0];
+  const top1=a.topVentas?.[0];
+  if(bajo&&top1&&bajo.nombre!==top1.nombre&&!combosFrecuentes.some(c=>c.combo.includes(bajo.nombre)))ideas.push({tipo:'warn',txt:'"'+bajo.nombre+'" es de los que menos rotan ('+bajo.cant+' vendidos este periodo). En vez de bajarle el precio, metelo como "regalo sorpresa" o segunda opción dentro de un combo con "'+top1.nombre+'" para moverlo sin resignar margen.'});
+  const metaTicket=Math.round(ticket*1.15/1000)*1000;
+  const incremento=metaTicket-ticket;
+  if(ticket>0)ideas.push({tipo:'warn',txt:'Ticket promedio actual: '+fmtGs(ticket)+'. Para llegar a '+fmtGs(metaTicket)+' (+15%) alcanza con que cada pedido sume '+fmtGs(incremento)+' más — un combo chico o el costo de envío ya cubren esa diferencia.'});
+  if(a.alertas?.length)ideas.push({tipo:'err',txt:'Ojo antes de armar combos: "'+a.alertas[0].nombre+'" tiene margen bajo ('+a.alertas[0].margen+'%). Metido en un combo con descuento, ese margen puede terminar en pérdida — revisá su precio o costo primero.'});
   el.innerHTML=ideas.map(i=>`<div class="price-alert ${i.tipo}"><strong>${esc(i.txt)}</strong></div>`).join('');
 }
 function renderGastos(mes){
