@@ -21,7 +21,7 @@
 <div class="section-title"><h2 id="listTitle">Ruta de hoy</h2><span id="routeCount"></span></div><main id="list"><div class="empty"><div class="empty-icon">⌛</div>Cargando entregas…</div></main></div><div class="toast" id="toast"></div>
 <script>
 const SB_URL='https://nadxjmlbtvrdvigqynzx.supabase.co';
-const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXAiLCJyZWYiOiJuYWR4am1sYnR2cmR2aWdxeW56eCIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzgyMzk3MzI4LCJleHAiOjIwOTc5NzMzMjh9.wEmd5Q0XjlCpO2SKd-GwBAO46fS1tGFFKg1ue8-LXAo';
+const SB_KEY='sb_publishable_JEOwMs7GmXuzLACv3xrh1A_EBDA7pBy';
 const MENSAJE_WHATSAPP=encodeURIComponent('Hola, soy el delivery de Ritual Ancestral. Estoy en camino con tu pedido 😊');
 const sb=supabase.createClient(SB_URL,SB_KEY),token=new URLSearchParams(location.search).get('token');let rows=[],filtro='hoy',soloSinUbicacion=false;
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
