@@ -2986,6 +2986,7 @@ function poblarSelectCiudad(){
   sel.innerHTML='<option value="">— Seleccionar ciudad —</option>'+
     allCiudades.map(c=>`<option value="${c.nombre}" data-costo="${c.costo_delivery}">${c.nombre} · ${fmtGs(c.costo_delivery)}</option>`).join('')+
     '<option value="_otra">Otra ciudad...</option>';
+  setTimeout(()=>{if(typeof vBorradorIntentarRestaurar==='function')vBorradorIntentarRestaurar();},0);
 }
 
 // ═══ REGISTRO DE VENTAS ═══
@@ -3156,6 +3157,16 @@ async function vGuardar(){
   if(!row.fecha){showAlert('vMsg','Elegí la fecha de compra.','err');return;}
   if(!row.cliente){showAlert('vMsg','Escribí el nombre del cliente.','err');return;}
   if(!row.ciudad&&!esRetiroLocal){showAlert('vMsg','Elegí o escribí la ciudad del cliente.','err');return;}
+  if(!esRetiroLocal){
+    const telLimpio=String(row.contacto||'').replace(/\D/g,'');
+    if(!telLimpio){showAlert('vMsg','Agregá el teléfono del cliente para poder coordinar la entrega.','err');return;}
+    const faltantes=[];
+    if(!row.ubicacion)faltantes.push('ubicación de Google Maps');
+    if(!row.dia_entrega)faltantes.push('fecha de entrega');
+    if(!row.delivery_persona)faltantes.push('delivery asignado');
+    if(faltantes.length&&!confirm('Antes de guardar falta: '+faltantes.join(', ')+'.\n\n¿Querés registrar la venta igualmente y completarlo después?'))return;
+  }
+  if(!await vConfirmarPosibleDuplicado(row))return;
   const stockActualPorCodigo={};
   const carritoProductos=carrito.filter(item=>item.codigo!==REGALO_CODIGO);
   for(const item of carritoProductos){
@@ -3192,8 +3203,8 @@ async function vGuardar(){
     return;
   }
   await refrescarInventarioYVistas();
-  showAlert('vMsg','✓ Venta registrada','ok');
   vLimpiar();
+  showAlert('vMsg','✓ Venta registrada. Ya podés cargar la siguiente.','ok');
   }catch(e){
     showAlert('vMsg','No se pudo guardar la venta: '+(e?.message||e),'err');
   }finally{
@@ -3226,7 +3237,53 @@ function vLimpiar(){
   ppSelectedCodigo=null;
   vRenderCarrito();
   vCalcTotal();
+  vBorradorBorrar();
 }
+
+function vNormalizarTexto(s){return String(s||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ');}
+function vNormalizarTelefono(s){return String(s||'').replace(/\D/g,'').replace(/^595/,'0');}
+async function vConfirmarPosibleDuplicado(row){
+  const desde=new Date();desde.setDate(desde.getDate()-7);
+  const {data,error}=await SB.from('ventas').select('id,fecha,cliente,contacto,total_productos,costo_delivery,detalle').gte('fecha',desde.toISOString().slice(0,10)).order('fecha',{ascending:false}).limit(100);
+  if(error)return true;
+  const tel=vNormalizarTelefono(row.contacto), cliente=vNormalizarTexto(row.cliente), total=totalVenta(row);
+  const similar=(data||[]).find(v=>{
+    const mismoCliente=(tel&&vNormalizarTelefono(v.contacto)===tel)||(!tel&&cliente&&vNormalizarTexto(v.cliente)===cliente);
+    return mismoCliente&&totalVenta(v)===total&&vNormalizarTexto(v.detalle)===vNormalizarTexto(row.detalle);
+  });
+  if(!similar)return true;
+  return confirm('⚠ Posible venta duplicada\n\nYa existe una venta similar de '+(similar.cliente||'este cliente')+' del '+(similar.fecha||'')+' por '+fmtGs(total)+'.\n\n¿Guardar de todos modos?');
+}
+
+const VENTA_BORRADOR_KEY='ritual_venta_borrador_v1';
+let vBorradorTimer=null,vBorradorRestaurando=false,vBorradorConsultado=false;
+const VENTA_BORRADOR_CAMPOS=['vFecha','vCliente','vTel','vRuc','vCiudad','vOtraCiudad','vTipoEnvio','vCostoEnvio','vMetodo','vTipoPago','vEstadoPago','vMontoPagado','vDelivery','vUbicacion','vDiaEntrega','vComprobante','vObs','vRegaloCant'];
+function vBorradorProgramar(){
+  if(vBorradorRestaurando)return;
+  clearTimeout(vBorradorTimer);vBorradorTimer=setTimeout(vBorradorGuardar,500);
+}
+function vBorradorGuardar(){
+  if(vBorradorRestaurando)return;
+  const campos={};VENTA_BORRADOR_CAMPOS.forEach(id=>{if(gs(id))campos[id]=gs(id).value;});
+  const tieneDatos=carrito.length||String(campos.vCliente||'').trim()||String(campos.vTel||'').trim();
+  if(!tieneDatos){vBorradorBorrar();return;}
+  localStorage.setItem(VENTA_BORRADOR_KEY,JSON.stringify({guardadoEn:new Date().toISOString(),campos,carrito}));
+}
+function vBorradorBorrar(){clearTimeout(vBorradorTimer);localStorage.removeItem(VENTA_BORRADOR_KEY);}
+function vBorradorIntentarRestaurar(){
+  if(vBorradorConsultado)return;vBorradorConsultado=true;
+  let b=null;try{b=JSON.parse(localStorage.getItem(VENTA_BORRADOR_KEY)||'null');}catch(e){vBorradorBorrar();}
+  if(!b?.campos||(!b.carrito?.length&&!b.campos.vCliente))return;
+  if(!confirm('Encontré una venta que quedó sin guardar.\n\n¿Querés recuperar el borrador?')){vBorradorBorrar();return;}
+  vBorradorRestaurando=true;
+  Object.entries(b.campos).forEach(([id,valor])=>{if(gs(id))gs(id).value=valor??'';});
+  carrito=Array.isArray(b.carrito)?b.carrito:[];
+  if(gs('vCiudad')&&b.campos.vCiudad&&![...gs('vCiudad').options].some(o=>o.value===b.campos.vCiudad))gs('vCiudad').value='_otra';
+  vCiudadChange();vRenderCarrito();vCalcTotal();vValidarTel();
+  vBorradorRestaurando=false;toast('Borrador recuperado');
+}
+document.addEventListener('input',e=>{if(e.target?.closest?.('#pv-registro'))vBorradorProgramar();});
+document.addEventListener('change',e=>{if(e.target?.closest?.('#pv-registro'))vBorradorProgramar();});
 
 // ═══ VENTAS DEL MES ═══
 async function vmCargar(){
@@ -3279,7 +3336,28 @@ function vmSelect(r,campo,opciones,extra=''){
 function vmCiudadSelect(r){
   const valor=r.ciudad||'';
   const opts=[valor,...allCiudades.map(c=>c.nombre).filter(n=>n!==valor)].filter(Boolean);
-  return `<select class="select-s status-select vm-edit-md" onchange="actualizarCiudadVenta('${esc(r.id)}',this.value,this)">${opts.map(n=>`<option value="${esc(n)}" ${n===valor?'selected':''}>${esc(n)}</option>`).join('')}</select>`;
+  return `<select class="select-s status-select vm-edit-md" onchange="vmCiudadElegir('${esc(r.id)}',this)">${opts.map(n=>`<option value="${esc(n)}" ${n===valor?'selected':''}>${esc(n)}</option>`).join('')}<option value="_otra">＋ Otra ciudad…</option></select>`;
+}
+function vmCiudadElegir(id,el){
+  if(el.value!=='_otra'){actualizarCiudadVenta(id,el.value,el);return;}
+  const item=ventasDelMes.find(v=>String(v.id)===String(id));
+  const costo=parseInt(item?.costo_delivery)||0;
+  el.outerHTML=`<div class="vm-city-custom"><input id="vmCityName-${esc(id)}" class="vm-edit" placeholder="Nueva ciudad"><input id="vmCityCost-${esc(id)}" class="vm-edit vm-edit-sm" inputmode="numeric" value="${fmtInputGs(costo)}" placeholder="Costo" oninput="formatMoneyInput(this)"><button class="btn btn-p btn-sm" onclick="vmGuardarOtraCiudad('${esc(id)}')">Guardar</button><button class="btn btn-g btn-sm" onclick="vmRender(ventasDelMes)">Cancelar</button></div>`;
+  setTimeout(()=>gs('vmCityName-'+id)?.focus(),0);
+}
+async function vmGuardarOtraCiudad(id){
+  const nombre=String(gs('vmCityName-'+id)?.value||'').trim().replace(/\s+/g,' ');
+  const costo=parseGs(gs('vmCityCost-'+id)?.value||0);
+  if(!nombre){alert('Escribí el nombre de la ciudad.');return;}
+  const btn=gs('vmCityName-'+id)?.parentElement?.querySelector('button');if(btn)btn.disabled=true;
+  let ciudad=allCiudades.find(c=>vNormalizarTexto(c.nombre)===vNormalizarTexto(nombre));
+  if(!ciudad){
+    const {data,error}=await SB.from('ciudades').insert([{nombre,costo_delivery:costo}]).select().single();
+    if(error){if(btn)btn.disabled=false;alert('No se pudo agregar la ciudad al catálogo: '+error.message);return;}
+    ciudad=data;allCiudades.push(data);allCiudades.sort((a,b)=>String(a.nombre).localeCompare(String(b.nombre),'es'));
+    poblarSelectCiudad();
+  }
+  await actualizarCiudadVenta(id,ciudad.nombre,null,parseInt(ciudad.costo_delivery)||costo);
 }
 function saldoBadge(r){
   const saldo=saldoPendienteVenta(r);
@@ -3320,11 +3398,12 @@ async function actualizarCampoVenta(id,campo,valor,el){
   dRender(ventasDelMes);
   fRender(ventasDelMes);
 }
-async function actualizarCiudadVenta(id,nombre,el){
+async function actualizarCiudadVenta(id,nombre,el,costoManual=null){
   const c=allCiudades.find(x=>String(x.nombre)===String(nombre));
   const item=ventasDelMes.find(v=>String(v.id)===String(id));
   const update={ciudad:nombre};
-  if(c)update.costo_delivery=parseInt(c.costo_delivery)||0;
+  if(costoManual!==null)update.costo_delivery=parseInt(costoManual)||0;
+  else if(c)update.costo_delivery=parseInt(c.costo_delivery)||0;
   if(item){
     const temp={...item,...update};
     update.saldo_pendiente=saldoPendienteVenta(temp);
@@ -6877,6 +6956,9 @@ window.addEventListener('DOMContentLoaded', async ()=>{
 </script>
 <style>
 /* Mejoras funcionales 2026-08: reordenamiento, combos y modales auxiliares */
+.vm-city-custom{display:grid;grid-template-columns:minmax(140px,1fr) 100px auto auto;gap:6px;align-items:center;min-width:430px}
+.vm-city-custom .vm-edit{min-width:0}
+@media(max-width:760px){.vm-city-custom{grid-template-columns:1fr 90px;min-width:280px}.vm-city-custom .btn{width:100%}}
 .stock-bubble{transition:transform .22s ease,box-shadow .22s ease,opacity .18s ease}
 .stock-bubble.ra-dragging{opacity:.55;transform:scale(.985);box-shadow:0 18px 40px rgba(31,26,12,.18);outline:2px solid var(--gold);outline-offset:2px}
 .stock-bubble.ra-drag-target{transform:translateY(3px)}
