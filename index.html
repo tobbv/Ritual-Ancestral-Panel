@@ -35,9 +35,9 @@
 </style>
 <style>
 :root{
-  --bg:#faf8f4; --surface:#fff; --card:#fff;
-  --border:#ede5d6; --border2:#ddd0b8;
-  --olive1:#444417; --olive2:#807a31; --gold:#c58c49;
+  --bg:#f5f5f7; --surface:#fff; --card:#fff;
+  --border:#d1d1d6; --border2:#c7c7cc;
+  --olive1:#454711; --olive2:#6f7227; --gold:#8d8336;
   --sand:#e1caa1; --terra:#994d26; --brown:#8e5013;
   --text:#1a1a1a; --text2:#555; --text3:#999;
   --ok:#2e7d32; --err:#c62828; --warn:#e65100; --info:#1565c0;
@@ -1420,6 +1420,10 @@ document.addEventListener('DOMContentLoaded', function(){
           <div class="stat"><div class="stat-v" id="vmPend" style="color:var(--warn)">Gs 0</div><div class="stat-l">Pendiente</div></div>
           <div class="stat"><div class="stat-v" id="vmCant" style="color:var(--gold)">0</div><div class="stat-l">Pedidos</div></div>
         </div>
+        <div class="vm-toolbar-main">
+          <div class="vm-search"><span>⌕</span><input id="vmBuscar" type="search" placeholder="Buscar cliente, teléfono, producto o ciudad…" oninput="vmBuscarVentas()"></div>
+          <div class="vm-view-switch"><button type="button" id="vmVistaTarjetasBtn" class="active" onclick="vmCambiarVista('cards')">▦ Tarjetas</button><button type="button" id="vmVistaTablaBtn" onclick="vmCambiarVista('table')">☷ Tabla</button></div>
+        </div>
         <!-- Sort + Filter bar -->
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
           <div class="chips" id="vmChips" style="margin-bottom:0;flex:1">
@@ -1488,7 +1492,8 @@ document.addEventListener('DOMContentLoaded', function(){
           <button type="button" class="btn btn-d btn-sm" onclick="vmEliminarSeleccionadas()">Eliminar seleccionadas</button>
         </div>
         <div id="vmMsg"></div>
-        <div class="tw">
+        <div id="vmCards" class="vm-cards"></div>
+        <div class="tw" id="vmTableWrap" style="display:none">
           <table><thead><tr><th></th><th>Fecha de compra</th><th>Cliente</th><th>Nro de contacto</th><th>RUC</th><th>Producto</th><th>Ciudad</th><th>Ubicacion</th><th>Tipo de Envio</th><th>Delivery asignado</th><th>Total Productos</th><th>Delivery</th><th>Total a pagar</th><th>Metodo</th><th>Tipo de pago</th><th>Estado de Pago</th><th>Saldo</th><th>Estado de entrega</th><th>Preparación</th><th>Dia de entrega</th><th>Obs</th><th>Historial</th><th>Resumen Cliente</th><th>Resumen Delivery</th><th>Eliminar</th></tr></thead>
           <tbody id="vmBody"><tr><td colspan="25" class="empty">Selecciona un mes</td></tr></tbody></table>
         </div>
@@ -2284,6 +2289,8 @@ let stockGruposAbiertos = {};
 let stockAislarSeleccionados = false;
 let vmSeleccionadas = new Set();
 let vmAislarSeleccionadas = false;
+let vmVistaActual = localStorage.getItem('ritual_vm_vista')||'cards';
+let vmTarjetasAbiertas = new Set();
 let cfgEditDeliveryIndex = null;
 let cfgEditCiudadId = null;
 
@@ -2291,6 +2298,21 @@ const CATEGORIAS_PRODUCTO = ['Accesorios','Mixes','Kits','Combos'];
 const UNIDADES_STOCK = ['unidad','kit','pack','bolsa','sobre','paquete','caja','g','kg','ml','lt'];
 
 const gs = id => document.getElementById(id);
+function uiIcon(name,cls='ui-icon'){
+  const paths={
+    user:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+    package:'<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/>',
+    card:'<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/>',
+    truck:'<path d="M3 6h11v10H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/>',
+    pin:'<path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0z"/><circle cx="12" cy="10" r="2.5"/>',
+    clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    alert:'<path d="M10.3 3.5 2.4 18a2 2 0 0 0 1.8 3h15.6a2 2 0 0 0 1.8-3L13.7 3.5a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',
+    bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>',
+    bulb:'<path d="M9 18h6M10 22h4M8.5 14.5a6 6 0 1 1 7 0c-1 .8-1.5 1.7-1.5 3.5h-4c0-1.8-.5-2.7-1.5-3.5z"/>',
+    gift:'<rect x="3" y="9" width="18" height="12" rx="2"/><path d="M12 9v12M3 13h18M7.5 9A2.5 2.5 0 1 1 12 7c0-2.8 4.5-4.2 4.5-.5C16.5 8 15 9 12 9"/>'
+  };
+  return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name]||paths.package}</svg>`;
+}
 const fmtGs = n => 'Gs ' + (parseInt(n)||0).toLocaleString('es-PY');
 function parseGs(v){return parseInt(String(v??'').replace(/\D/g,''))||0;}
 function fmtInputGs(v){const n=parseGs(v);return n?n.toLocaleString('es-PY'):'';}
@@ -2300,18 +2322,18 @@ function setMoneyValue(id,val){const el=gs(id);if(el)el.value=fmtInputGs(val);}
 const esc = v => (v==null?'':String(v)).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const DEFAULT_THEME = {
-  sidebar:'#3a3a12',
-  sidebartext:'rgba(225,202,161,.65)',
-  primary:'#444417',
-  gold:'#c58c49',
-  bg:'#faf8f4',
+  sidebar:'#f5f5f5',
+  sidebartext:'#3c3c43',
+  primary:'#454711',
+  gold:'#8d8336',
+  bg:'#f5f5f7',
   card:'#ffffff',
   text:'#1a1a1a',
-  border:'#ede5d6',
-  ok:'#2e7d32',
-  warn:'#e65100',
-  err:'#c62828',
-  info:'#1565c0',
+  border:'#d1d1d6',
+  ok:'#248a3d',
+  warn:'#ff9500',
+  err:'#ff3b30',
+  info:'#007aff',
   font:'SF Pro',
   logo:''
 };
@@ -3094,7 +3116,7 @@ function vValidarTel(){
   const limpio=val.replace(/\D/g,'');
   const pareceValido=/^0?9\d{8}$/.test(limpio)||/^595\d{9}$/.test(limpio);
   if(pareceValido){aviso.innerHTML='<span style="color:var(--ok)">✓ Formato válido</span>';}
-  else{aviso.innerHTML='<span style="color:var(--warn)">⚠ Revisá el número (ej: 0981123456)</span>';}
+  else{aviso.innerHTML='<span class="ui-inline-warning">'+uiIcon('alert')+' Revisá el número (ej: 0981123456)</span>';}
 }
 let vTelTimer=null;
 function vTelInput(){vValidarTel();clearTimeout(vTelTimer);vTelTimer=setTimeout(vBuscarClienteTelefono,350);}
@@ -3137,7 +3159,7 @@ function vActualizarRegalo(){
   const cant=Math.max(0,parseInt(gs('vRegaloCant')?.value)||0);
   carrito=carrito.filter(item=>item.codigo!==REGALO_CODIGO);
   if(cant>0){
-    carrito.push({codigo:REGALO_CODIGO,nombre:'🎁 Envoltorio de regalo',precio:montoRegaloActual(),cant});
+    carrito.push({codigo:REGALO_CODIGO,nombre:'Envoltorio de regalo',precio:montoRegaloActual(),cant});
   }
   vRenderCarrito();
   vCalcTotal();
@@ -3315,7 +3337,7 @@ async function vConfirmarPosibleDuplicado(row){
     return mismoCliente&&totalVenta(v)===total&&vNormalizarTexto(v.detalle)===vNormalizarTexto(row.detalle);
   });
   if(!similar)return true;
-  return confirm('⚠ Posible venta duplicada\n\nYa existe una venta similar de '+(similar.cliente||'este cliente')+' del '+(similar.fecha||'')+' por '+fmtGs(total)+'.\n\n¿Guardar de todos modos?');
+  return confirm('Posible venta duplicada\n\nYa existe una venta similar de '+(similar.cliente||'este cliente')+' del '+(similar.fecha||'')+' por '+fmtGs(total)+'.\n\n¿Guardar de todos modos?');
 }
 function vMostrarResumenVenta(row,subtotalBruto){
   const modal=gs('vResumenModal'),cont=gs('vResumenContenido');if(!modal||!cont)return;
@@ -3447,7 +3469,7 @@ function saldoBadge(r){
   return `<span class="saldo-pill ${saldo>0?'warn':'ok'}">${saldo>0?fmtGs(saldo):'Sin saldo'}</span>`;
 }
 async function actualizarCampoVenta(id,campo,valor,el){
-  const permitidos=['fecha','cliente','contacto','ruc','detalle','ciudad','ubicacion','tipo_envio','delivery_persona','total_productos','costo_delivery','metodo_pago','tipo_pago','estado_pago','monto_pagado','saldo_pendiente','estado_entrega','preparacion_estado','dia_entrega','observaciones','comprobante'];
+  const permitidos=['fecha','cliente','contacto','ruc','detalle','ciudad','ubicacion','direccion_referencia','tipo_envio','delivery_persona','total_productos','costo_delivery','descuento','metodo_pago','tipo_pago','estado_pago','monto_pagado','saldo_pendiente','estado_entrega','preparacion_estado','dia_entrega','observaciones','comprobante'];
   if(!permitidos.includes(campo))return;
   const item=ventasDelMes.find(v=>String(v.id)===String(id));
   const anterior=item ? item[campo] : undefined;
@@ -3541,6 +3563,39 @@ async function cargarDatosDependientesVenta(){
 }
 
 function badgeMetodo(s){if(!s)return'';const v=esc(s);if(s.includes('Transf'))return`<span class="badge b-pur">${v}</span>`;if(s==='Efectivo')return`<span class="badge b-pend">${v}</span>`;return`<span class="badge b-info">${v}</span>`;}
+function vmAlertasVenta(r){
+  const a=[];if(!String(r.contacto||'').trim())a.push('Sin teléfono');if(/delivery/i.test(r.tipo_envio||'')&&!String(r.ubicacion||'').trim())a.push('Sin ubicación');if(/delivery/i.test(r.tipo_envio||'')&&!String(r.delivery_persona||'').trim())a.push('Sin delivery');if(r.dia_entrega&&r.dia_entrega<fechaHoyLocal()&&!['Entregado','Cancelado'].includes(r.estado_entrega))a.push('Entrega atrasada');return a;
+}
+function actionMenu(items,label='Más acciones',danger=false){
+  return `<details class="action-menu"><summary class="btn ${danger?'btn-d':'btn-s'} btn-sm">${esc(label)} <span class="action-menu-chevron">⌄</span></summary><div class="action-menu-pop">${items.join('')}</div></details>`;
+}
+function vmCardVenta(r){
+  const id=esc(r.id),abierta=vmTarjetasAbiertas.has(String(r.id)),saldo=saldoPendienteVenta(r),total=totalVenta(r),alertas=vmAlertasVenta(r);const tel=telefonoWA(r.contacto);const entrega=r.dia_entrega?formatoFecha(r.dia_entrega):'Sin fecha';
+  const pagoCls=saldo<=0?'is-ok':'is-warn',entregaCls=r.estado_entrega==='Entregado'?'is-ok':r.estado_entrega==='Cancelado'?'is-error':r.estado_entrega==='En camino'?'is-info':'is-neutral';
+  return `<article class="vm-sale-card${abierta?' open':''}${vmSeleccionadas.has(String(r.id))?' selected':''}${vmAislarSeleccionadas&&vmSeleccionadas.size&&!vmSeleccionadas.has(String(r.id))?' muted':''}" data-vm-card data-id="${id}" data-pago="${esc(r.estado_pago||'')}" data-entrega="${esc(r.estado_entrega||'')}" data-saldo="${saldo}" data-search="${esc([r.cliente,r.contacto,r.detalle,r.ciudad,r.delivery_persona].join(' ').toLowerCase())}">
+    <div class="vm-sale-head" onclick="vmToggleCard('${id}')">
+      <label class="vm-sale-check" onclick="event.stopPropagation()"><input type="checkbox" class="vm-card-check" data-id="${id}" ${vmSeleccionadas.has(String(r.id))?'checked':''} onchange="vmToggleSeleccion('${id}',this.checked)"></label>
+      <div class="vm-sale-main"><div class="vm-sale-name">${esc(r.cliente||'Sin cliente')}</div><div class="vm-sale-product">${esc(r.detalle||'Sin productos')}</div><div class="vm-sale-meta"><span>${uiIcon('pin')} ${esc(r.ciudad||'Sin ciudad')}</span><span>${uiIcon('clock')} ${esc(entrega)}</span>${r.delivery_persona?`<span>${uiIcon('truck')} ${esc(r.delivery_persona)}</span>`:''}</div></div>
+      <div class="vm-sale-money"><strong>${fmtGs(total)}</strong><span class="${saldo>0?'due':''}">${saldo>0?'Saldo '+fmtGs(saldo):'Sin saldo'}</span></div>
+      <div class="vm-sale-status"><span class="vm-status ${pagoCls}">${esc(r.estado_pago||'Pendiente')}</span><span class="vm-status ${entregaCls}">${esc(r.estado_entrega||'Pendiente')}</span></div>
+      <div class="vm-sale-chevron">⌄</div>
+      ${alertas.length?`<div class="vm-sale-alerts">${alertas.map(a=>`<span>${uiIcon('alert')} ${esc(a)}</span>`).join('')}</div>`:''}
+    </div>
+    <div class="vm-sale-body"><div class="vm-sale-sections">
+      <section class="vm-sale-section"><h4>${uiIcon('user')} Cliente</h4><div class="vm-detail-grid"><label>Nombre${vmInput(r,'cliente','text')}</label><label>WhatsApp${vmInput(r,'contacto','text')}</label><label>RUC / CI${vmInput(r,'ruc','text')}</label><label>Ciudad${vmCiudadSelect(r)}</label><label class="wide">Dirección / referencia${vmInput(r,'direccion_referencia','text','vm-edit-lg')}</label></div><div class="vm-section-actions">${tel?`<button class="btn btn-wa btn-sm" onclick="enviarWAId('${id}')">WhatsApp</button>`:''}${actionMenu([tel?`<a class="action-menu-item" href="tel:${esc(tel)}">Llamar</a>`:'',r.ubicacion?`<button class="action-menu-item" onclick="vmAbrirUbicacion('${id}')">Abrir Google Maps</button>`:''].filter(Boolean))}</div></section>
+      <section class="vm-sale-section"><h4>${uiIcon('package')} Pedido</h4><button type="button" class="vm-product-edit" onclick="vpAbrir('${id}')"><span>${esc(r.detalle||'Sin productos')}</span><small>Editar productos y cantidades ›</small></button><div class="vm-detail-grid"><label>Preparación${vmSelect(r,'preparacion_estado',['Nuevo','Preparando','Listo'])}</label><label>Fecha de compra${vmInput(r,'fecha','date')}</label><label class="wide">Observaciones${vmInput(r,'observaciones','text','vm-edit-lg')}</label></div></section>
+      <section class="vm-sale-section"><h4>${uiIcon('card')} Pago</h4><div class="vm-money-breakdown"><div><span>Productos</span><strong>${fmtGs(r.total_productos)}</strong></div>${r.descuento?`<div><span>Descuento aplicado</span><strong>−${fmtGs(r.descuento)}</strong></div>`:''}<div><span>Delivery</span><strong>${fmtGs(r.costo_delivery)}</strong></div><div class="total"><span>Total</span><strong>${fmtGs(total)}</strong></div><div><span>Abonado</span><strong>${fmtGs(r.monto_pagado)}</strong></div><div class="balance"><span>Saldo</span><strong>${fmtGs(saldo)}</strong></div></div><div class="vm-detail-grid"><label>Estado${estadoSelectVenta(r,'estado_pago')}</label><label>Método${vmSelect(r,'metodo_pago',listaGet('metodos_pago'))}</label></div><div class="vm-section-actions"><button class="btn btn-p btn-sm" onclick="vmRegistrarAbono('${id}')" ${saldo>0?'':'disabled'}>+ Registrar abono</button>${actionMenu([`<button class="action-menu-item" onclick="enviarRecordatorioPagoId('${id}')" ${saldo>0?'':'disabled'}>Recordar cobro</button>`,`<button class="action-menu-item" onclick="verHistorialVenta('${id}')">Ver historial</button>`])}</div></section>
+      <section class="vm-sale-section"><h4>${uiIcon('truck')} Entrega</h4><div class="vm-detail-grid"><label>Estado${estadoSelectVenta(r,'estado_entrega')}</label><label>Delivery${vmSelect(r,'delivery_persona',['Sin asignar',...deliverysFijos.filter(d=>d.activo!==false).map(d=>d.nombre),'Uber Moto','Otro externo'])}</label><label>Fecha${vmInput(r,'dia_entrega','date')}</label><label>Tipo${vmSelect(r,'tipo_envio',listaGet('tipos_envio'))}</label><label class="wide">Ubicación${vmInput(r,'ubicacion','url','vm-edit-lg')}</label></div><div class="vm-section-actions">${r.ubicacion?`<button class="btn btn-s btn-sm" onclick="vmAbrirUbicacion('${id}')">Abrir Maps</button>`:''}${actionMenu([`<button class="action-menu-item" onclick="copiarResumenId('${id}')">Copiar resumen para delivery</button>`])}</div></section>
+    </div><div class="vm-sale-footer">${actionMenu([`<button class="action-menu-item" onclick="previsualizarWAId('${id}')">Vista previa de WhatsApp</button>`,`<button class="action-menu-item" onclick="vmDuplicarVenta('${id}')">Duplicar pedido</button>`,`<button class="action-menu-item" onclick="vmImprimirVenta('${id}')">Imprimir</button>`,`<button class="action-menu-item danger" onclick="vmEliminarVenta('${id}')">Eliminar venta</button>`],'Acciones')}</div></div>
+  </article>`;
+}
+function vmRenderCards(rows){const box=gs('vmCards');if(!box)return;box.innerHTML=rows.length?rows.map(vmCardVenta).join(''):`<div class="empty">Sin ventas para ${esc(mesFiltro)}</div>`;vmAplicarFiltro();}
+function vmToggleCard(id){id=String(id);if(vmTarjetasAbiertas.has(id))vmTarjetasAbiertas.delete(id);else vmTarjetasAbiertas.add(id);document.querySelector(`[data-vm-card][data-id="${id}"]`)?.classList.toggle('open',vmTarjetasAbiertas.has(id));}
+function vmCambiarVista(vista){vmVistaActual=vista;localStorage.setItem('ritual_vm_vista',vista);if(gs('vmCards'))gs('vmCards').style.display=vista==='cards'?'':'none';if(gs('vmTableWrap'))gs('vmTableWrap').style.display=vista==='table'?'':'none';gs('vmVistaTarjetasBtn')?.classList.toggle('active',vista==='cards');gs('vmVistaTablaBtn')?.classList.toggle('active',vista==='table');vmActualizarSeleccion();}
+function vmBuscarVentas(){vmAplicarFiltro();}
+function vmAbrirUbicacion(id){const r=ventaPorId(id),u=String(r?.ubicacion||'').trim();if(u)window.open(u,'_blank','noopener');}
+function vmDuplicarVenta(id){const r=ventaPorId(id);if(!r)return;vUltimaVentaGuardada=r;irARegistroVentas();setTimeout(vPostDuplicar,100);}
+function vmImprimirVenta(id){const r=ventaPorId(id);if(!r)return;const w=window.open('','_blank','width=760,height=850');if(!w)return;w.document.write(`<html><head><title>Pedido ${esc(r.id)}</title><style>body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:34px;color:#1d1d1f}h1{font-size:24px}.box{border:1px solid #ddd;border-radius:14px;padding:18px;margin:14px 0}.row{display:flex;justify-content:space-between;padding:6px 0}.total{font-size:20px;font-weight:700;border-top:1px solid #ddd;margin-top:8px;padding-top:12px}@media print{button{display:none}}</style></head><body><h1>Ritual Ancestral</h1><p>Comprobante de pedido</p><div class="box"><strong>${esc(r.cliente)}</strong><p>${esc(r.contacto||'')} · ${esc(r.ciudad||'')}</p><p>${esc(r.detalle||'')}</p></div><div class="box"><div class="row"><span>Productos</span><strong>${fmtGs(r.total_productos)}</strong></div><div class="row"><span>Delivery</span><strong>${fmtGs(r.costo_delivery)}</strong></div><div class="row total"><span>Total</span><strong>${fmtGs(totalVenta(r))}</strong></div><div class="row"><span>Pagado</span><strong>${fmtGs(r.monto_pagado)}</strong></div><div class="row"><span>Saldo</span><strong>${fmtGs(saldoPendienteVenta(r))}</strong></div></div><p>Entrega: ${esc(formatoFecha(r.dia_entrega)||'A coordinar')}</p><button onclick="print()">Imprimir</button></body></html>`);w.document.close();}
 function vmRender(rows){
   const total=rows.reduce((s,r)=>s+(r.total_productos||0)+(r.costo_delivery||0),0);
   const pendiente=rows.reduce((s,r)=>s+saldoPendienteVenta(r),0);
@@ -3551,6 +3606,7 @@ function vmRender(rows){
   if(gs('vmCant'))gs('vmCant').textContent=rows.length;
   const tbody=gs('vmBody');if(!tbody)return;
   vmSeleccionadas=new Set([...vmSeleccionadas].filter(id=>rows.some(r=>String(r.id)===String(id))));
+  vmRenderCards(rows);vmCambiarVista(vmVistaActual);
   if(!rows.length){tbody.innerHTML='<tr><td colspan="25" class="empty">Sin ventas para '+mesFiltro+'</td></tr>';vmActualizarSeleccion();return;}
   tbody.innerHTML=rows.map((r,i)=>`<tr data-pago="${esc(r.estado_pago||'')}" data-entrega="${esc(r.estado_entrega||'')}" data-saldo="${saldoPendienteVenta(r)}">
     <td><input type="checkbox" class="row-check vm-row-check" data-id="${esc(r.id)}" ${vmSeleccionadas.has(String(r.id))?'checked':''} onchange="vmToggleSeleccion('${esc(r.id)}',this.checked)"></td>
@@ -3619,11 +3675,11 @@ function vmToggleSeleccion(id, checked){
   vmActualizarSeleccion();
 }
 function vmFilasVisibles(){
-  return [...document.querySelectorAll('#vmBody tr[data-pago]')].filter(row=>row.style.display!=='none');
+  const selector=vmVistaActual==='cards'?'#vmCards [data-vm-card]':'#vmBody tr[data-pago]';return [...document.querySelectorAll(selector)].filter(row=>row.style.display!=='none');
 }
 function vmToggleSelectAll(checked){
   vmFilasVisibles().forEach(row=>{
-    const cb=row.querySelector('.vm-row-check');
+    const cb=row.querySelector(vmVistaActual==='cards'?'.vm-card-check':'.vm-row-check');
     if(!cb)return;
     cb.checked=checked;
     const id=String(cb.dataset.id||'');
@@ -3671,12 +3727,13 @@ function vmActualizarSeleccion(){
   const label=gs('vmSelectedCount');if(label)label.textContent=n+' seleccionada'+(n===1?'':'s');
   const all=gs('vmSelectAll');
   const visibles=vmFilasVisibles();
-  if(all)all.checked=!!visibles.length&&visibles.every(row=>vmSeleccionadas.has(String(row.querySelector('.vm-row-check')?.dataset.id||'')));
+  if(all)all.checked=!!visibles.length&&visibles.every(row=>vmSeleccionadas.has(String(row.querySelector('.vm-row-check,.vm-card-check')?.dataset.id||'')));
   document.querySelectorAll('#vmBody tr[data-pago]').forEach(row=>{
     const id=String(row.querySelector('.vm-row-check')?.dataset.id||'');
     row.classList.toggle('row-selected',vmSeleccionadas.has(id));
     row.classList.toggle('row-muted',vmAislarSeleccionadas&&n&& !vmSeleccionadas.has(id));
   });
+  document.querySelectorAll('#vmCards [data-vm-card]').forEach(card=>{const id=String(card.dataset.id||'');card.classList.toggle('selected',vmSeleccionadas.has(id));card.classList.toggle('muted',vmAislarSeleccionadas&&n&&!vmSeleccionadas.has(id));const cb=card.querySelector('.vm-card-check');if(cb)cb.checked=vmSeleccionadas.has(id);});
 }
 function vmFiltrar(f,btn){
   vmFiltroActivo=f;
@@ -3685,7 +3742,8 @@ function vmFiltrar(f,btn){
   vmAplicarFiltro();
 }
 function vmAplicarFiltro(){
-  document.querySelectorAll('#vmBody tr[data-pago]').forEach(row=>{
+  const q=String(gs('vmBuscar')?.value||'').trim().toLowerCase();
+  document.querySelectorAll('#vmBody tr[data-pago],#vmCards [data-vm-card]').forEach(row=>{
     const pago=(row.dataset.pago||'').toLowerCase();
     const entr=(row.dataset.entrega||'').toLowerCase();
     let vis=true;
@@ -3694,8 +3752,10 @@ function vmAplicarFiltro(){
     else if(vmFiltroActivo==='falta')vis=saldo>0||pago!=='pagado'&&pago!=='';
     else if(vmFiltroActivo==='porEntregar')vis=entr!=='entregado'&&entr!=='cancelado'&&entr!=='';
     else if(vmFiltroActivo==='entregado')vis=entr==='entregado';
+    if(vis&&q){const id=String(row.dataset.id||row.querySelector('.vm-row-check')?.dataset.id||'');const venta=ventaPorId(id);vis=[venta?.cliente,venta?.contacto,venta?.detalle,venta?.ciudad,venta?.delivery_persona].some(x=>String(x||'').toLowerCase().includes(q));}
     row.style.display=vis?'':'none';
   });
+  const visiblesCards=[...document.querySelectorAll('#vmCards [data-vm-card]')].filter(x=>x.style.display!=='none').length;if(gs('vmCant'))gs('vmCant').textContent=visiblesCards;
   vmActualizarSeleccion();
 }
 function irARegistroVentas(){
@@ -3948,7 +4008,7 @@ function copiarResumenRow(r){
   const dia=r.dia_entrega?'\n📅 Día de entrega: '+formatoFecha(r.dia_entrega):'';
   const obs=r.observaciones?'\n📝 Obs: '+r.observaciones:'';
   const txt='📦 ORDEN DE ENTREGA - RITUAL ANCESTRAL\n------------------------------------------\n👤 Cliente: '+(r.cliente||'')+'\n📞 Contacto: '+(r.contacto||'')+'\n📍 Ciudad: '+(r.ciudad||'')+ubicacion+dia+'\n🚚 Tipo de envío: '+(r.tipo_envio||'')+'\n🛍️ Producto: ('+(r.detalle||'')+')'+obs+'\n------------------------------------------\n'+estLine+'\n------------------------------------------';
-  navigator.clipboard?.writeText(txt).then(()=>toast('📋 Resumen copiado — pegalo al delivery')).catch(()=>{const el=document.createElement('textarea');el.value=txt;document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el);toast('📋 Resumen copiado');});
+  navigator.clipboard?.writeText(txt).then(()=>toast('Resumen copiado — pegalo al delivery')).catch(()=>{const el=document.createElement('textarea');el.value=txt;document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el);toast('Resumen copiado');});
 }
 
 // ═══ STOCK ═══
@@ -4144,7 +4204,7 @@ function stockVariantCard(p,child){
     <div class="svc-actions">
       <button type="button" class="btn btn-s btn-sm" onclick="editarStock('${esc(p.codigo)}')">Editar</button>
       <button type="button" class="btn btn-s btn-sm" onclick="duplicarProducto('${esc(p.codigo)}')">Duplicar</button>
-      ${stock<=0?`<button type="button" class="btn btn-s btn-sm" onclick="avisarStockAbrir('${esc(p.codigo)}','${esc(p.nombre)}')" title="Anotar clientes esperando este producto">🔔 Avisar${esperando?' ('+esperando+')':''}</button>`:''}
+      ${stock<=0?`<button type="button" class="btn btn-s btn-sm btn-with-icon" onclick="avisarStockAbrir('${esc(p.codigo)}','${esc(p.nombre)}')" title="Anotar clientes esperando este producto">${uiIcon('bell')} Avisar${esperando?' ('+esperando+')':''}</button>`:''}
       <button type="button" class="btn btn-d btn-sm" onclick="eliminarProducto('${esc(p.codigo)}','${esc(p.nombre)}')">Eliminar</button>
     </div>
   </div>`;
@@ -4464,17 +4524,19 @@ function cFiltrar(){
       <td class="td-mu">${esc(c.tel||'-')}</td>
       <td class="td-mu">${esc(c.ciudad||'-')}</td>
       <td class="td-m"><span class="cliente-badge ${frecuente?'freq':''}">${c.compras}</span></td>
-      <td><span class="cliente-tipo ${frecuente?'freq':''}">${tipo}</span>${vip?' <span class="badge b-warn" title="5+ compras: considerá un descuento o regalo">💡 VIP</span>':''}</td>
+      <td><span class="cliente-tipo ${frecuente?'freq':''}">${tipo}</span>${vip?` <span class="badge b-warn badge-with-icon" title="5+ compras: considerá un descuento o regalo">${uiIcon('bulb')} VIP</span>`:''}</td>
       <td class="td-m">${fmtGs(c.total)}</td>
       <td class="td-mu">${formatoFecha(c.ultima)||'-'}</td>
       <td class="td-m" style="color:${c.pendiente>0?'var(--warn)':'var(--ok)'}">${c.pendiente>0?fmtGs(c.pendiente):'OK'}</td>
       <td><input type="text" class="vm-edit vm-edit-md" value="${esc(nota)}" placeholder="Agregar nota..." onchange="notasClienteGuardar('${esc(c.nombre)}',this.value);toast('Nota guardada')"></td>
-      <td><div style="display:flex;gap:6px;flex-wrap:wrap;min-width:170px">
-        <button type="button" class="btn btn-s btn-sm" onclick="repetirCompraCliente('${esc(c.nombre)}')">Repetir compra</button>
-        ${c.tel?`<button type="button" class="btn btn-wa btn-sm" onclick="window.open('https://web.whatsapp.com/send?phone=${telefonoWA(c.tel)}','_blank')">WhatsApp</button>`:''}
-      </div></td>
+      <td><select class="client-action-select" onchange="clienteAccionSeleccionar(this,'${esc(c.nombre)}','${esc(c.tel||'')}')"><option value="">Acciones…</option><option value="repetir">Repetir última compra</option>${c.tel?'<option value="whatsapp">Abrir WhatsApp</option>':''}</select></td>
     </tr>`;
   }).join('');
+}
+function clienteAccionSeleccionar(el,nombre,tel){
+  const accion=el.value;el.value='';
+  if(accion==='repetir')repetirCompraCliente(nombre);
+  if(accion==='whatsapp'&&tel)window.open('https://web.whatsapp.com/send?phone='+telefonoWA(tel),'_blank');
 }
 function ultimaVentaDeCliente(nombre){
   const key=clienteKey(nombre);
@@ -5829,6 +5891,15 @@ function cfgImportarRespaldo(input){
 // ═══ MODO LOCAL PARA PREVIEW ═══
 function crearClienteLocal(){
   const key='ritual_preview_db_v1';
+  const previewFecha=(dias=0)=>{const d=new Date();d.setDate(d.getDate()+dias);return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');};
+  const ventasDemo=[
+    {id:'demo-001',fecha:previewFecha(0),cliente:'Fernando Ramírez',contacto:'0985721467',ruc:'4.521.884-3',ciudad:'Asunción',direccion_referencia:'Barrio Villa Morra, portón negro',ubicacion:'https://www.google.com/maps/search/?api=1&query=Villa+Morra+Asuncion',detalle:'Yerbero Ritual Azul Marino ×2',total_productos:98000,descuento:0,costo_delivery:25000,total:123000,monto_pagado:123000,saldo:0,estado_pago:'Pagado',metodo_pago:'Transferencia',tipo_pago:'Pago adelantado',preparacion_estado:'Listo',tipo_envio:'Delivery',delivery_persona:'Jagia',dia_entrega:previewFecha(0),estado_entrega:'En camino',observaciones:'Avisar 10 minutos antes de llegar.',abonos:[{monto:123000,metodo:'Transferencia',fecha:previewFecha(-1)}]},
+    {id:'demo-002',fecha:previewFecha(0),cliente:'María González',contacto:'0971123456',ruc:'',ciudad:'Luque',direccion_referencia:'A dos cuadras de la Municipalidad',ubicacion:'https://www.google.com/maps/search/?api=1&query=Municipalidad+de+Luque',detalle:'Yerbero Beige ×1 · Mix Premium ×2',total_productos:98000,descuento:5000,costo_delivery:35000,total:128000,monto_pagado:50000,saldo:78000,estado_pago:'Parcial',metodo_pago:'Efectivo',tipo_pago:'Contra entrega',preparacion_estado:'Preparando',tipo_envio:'Delivery',delivery_persona:'Zoe',dia_entrega:previewFecha(1),estado_entrega:'Reprogramado',observaciones:'La clienta pidió recibir mañana por la tarde.',abonos:[{monto:50000,metodo:'Transferencia',fecha:previewFecha(0)}]},
+    {id:'demo-003',fecha:previewFecha(-1),cliente:'Lucas Benítez',contacto:'0981555777',ruc:'3.892.110-1',ciudad:'Capiatá',direccion_referencia:'Km 20, casa con muralla blanca',ubicacion:'',detalle:'Mix Premium ×3',total_productos:73500,descuento:0,costo_delivery:35000,total:108500,monto_pagado:0,saldo:108500,estado_pago:'Pendiente',metodo_pago:'Efectivo',tipo_pago:'Contra entrega',preparacion_estado:'Nuevo',tipo_envio:'Delivery',delivery_persona:'Sin asignar',dia_entrega:previewFecha(2),estado_entrega:'Pendiente',observaciones:'Confirmar ubicación por WhatsApp antes de salir.',abonos:[]},
+    {id:'demo-004',fecha:previewFecha(-2),cliente:'Ana Ferreira',contacto:'0994222333',ruc:'',ciudad:'Asunción',direccion_referencia:'Retira del showroom',ubicacion:'',detalle:'Yerbero Ritual Azul Marino ×1',total_productos:49000,descuento:0,costo_delivery:0,total:49000,monto_pagado:49000,saldo:0,estado_pago:'Pagado',metodo_pago:'QR',tipo_pago:'Pago adelantado',preparacion_estado:'Listo',tipo_envio:'Retiro',delivery_persona:'Sin asignar',dia_entrega:previewFecha(0),estado_entrega:'Entregado',observaciones:'Retiró personalmente.',abonos:[{monto:49000,metodo:'QR',fecha:previewFecha(-2)}]},
+    {id:'demo-005',fecha:previewFecha(-3),cliente:'Diego Ortiz',contacto:'0981666999',ruc:'',ciudad:'San Lorenzo',direccion_referencia:'Zona mercado, local 12',ubicacion:'https://www.google.com/maps/search/?api=1&query=Mercado+San+Lorenzo+Paraguay',detalle:'Yerbero Beige ×2',total_productos:98000,descuento:0,costo_delivery:30000,total:128000,monto_pagado:0,saldo:128000,estado_pago:'Pendiente',metodo_pago:'Transferencia',tipo_pago:'Pago adelantado',preparacion_estado:'Nuevo',tipo_envio:'Delivery',delivery_persona:'Jagia',dia_entrega:previewFecha(-1),estado_entrega:'Cancelado',observaciones:'Pedido cancelado por el cliente.',abonos:[]},
+    {id:'demo-prev-001',fecha:previewFecha(-10),cliente:'Sofía Acosta',contacto:'0982444555',ruc:'',ciudad:'Mariano Roque Alonso',direccion_referencia:'Frente a la plaza principal',ubicacion:'',detalle:'Yerbero Beige ×1',total_productos:49000,descuento:0,costo_delivery:30000,total:79000,monto_pagado:79000,saldo:0,estado_pago:'Pagado',metodo_pago:'Transferencia',tipo_pago:'Pago adelantado',preparacion_estado:'Listo',tipo_envio:'Delivery',delivery_persona:'Zoe',dia_entrega:previewFecha(-9),estado_entrega:'Entregado',observaciones:'Venta del mes anterior para probar el historial.',abonos:[{monto:79000,metodo:'Transferencia',fecha:previewFecha(-10)}]}
+  ];
   const seed={
     productos:[
       {id:1,codigo:'YER-002',nombre:'Yerbero Azul Marino',unidad:'unidad',grupo:'Accesorios',precio_venta:49000,costo:25000,stock_minimo:3,stock_actual:4},
@@ -5845,12 +5916,18 @@ function crearClienteLocal(){
       {clave:'moneda',valor:'Gs'},
       {clave:'deliverys_fijos',valor:'[]'}
     ],
-    ventas:[],
+    ventas:ventasDemo,
     movimientos:[]
   };
   const read=()=>JSON.parse(localStorage.getItem(key)||'null')||seed;
   const write=db=>localStorage.setItem(key,JSON.stringify(db));
   if(!localStorage.getItem(key))write(seed);
+  else{
+    const actual=read();actual.ventas=Array.isArray(actual.ventas)?actual.ventas:[];
+    const idsActuales=new Set(actual.ventas.map(v=>String(v.id)));
+    ventasDemo.forEach(v=>{if(!idsActuales.has(String(v.id)))actual.ventas.push(v);});
+    write(actual);
+  }
   class LocalQuery{
     constructor(table,action='select',payload=null){this.table=table;this.action=action;this.payload=payload;this.filters=[];this.orderBy=null;}
     select(){this.action='select';return this;}
@@ -7062,12 +7139,19 @@ window.addEventListener('DOMContentLoaded', async ()=>{
 </script>
 <style>
 /* Mejoras funcionales 2026-08: reordenamiento, combos y modales auxiliares */
+.ui-icon{width:15px;height:15px;display:inline-block;vertical-align:-2px;flex:0 0 auto;color:currentColor}.btn-with-icon,.badge-with-icon,.ui-inline-warning{display:inline-flex;align-items:center;gap:5px}.btn-with-icon .ui-icon,.badge-with-icon .ui-icon{width:13px;height:13px}.ui-inline-warning{color:var(--warn)}
+.action-menu{position:relative;display:inline-block}.action-menu>summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px}.action-menu>summary::-webkit-details-marker{display:none}.action-menu-chevron{font-size:13px;color:var(--text3);transition:transform .15s}.action-menu[open] .action-menu-chevron{transform:rotate(180deg)}.action-menu-pop{position:absolute;right:0;bottom:calc(100% + 7px);z-index:35;min-width:205px;padding:5px;background:#fff;border:1px solid rgba(60,60,67,.16);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.14)}.vm-section-actions .action-menu-pop{left:0;right:auto;bottom:auto;top:calc(100% + 7px)}.action-menu-item{display:block;width:100%;border:0;background:transparent;color:var(--text);font:inherit;font-size:12px;text-align:left;text-decoration:none;padding:9px 10px;border-radius:8px;cursor:pointer}.action-menu-item:hover{background:#f2f2f7}.action-menu-item.danger{color:var(--err)}.action-menu-item:disabled{opacity:.4;cursor:default}.client-action-select{min-width:128px;height:34px;border:1px solid var(--border);border-radius:10px;background:#f2f2f7;color:var(--text);padding:0 28px 0 10px;font:inherit;font-size:11px;font-weight:650}
 .vm-city-custom{display:grid;grid-template-columns:minmax(140px,1fr) 100px auto auto;gap:6px;align-items:center;min-width:430px}
 .vm-city-custom .vm-edit{min-width:0}
 .cart-step{width:28px;height:28px;border:1px solid var(--border);border-radius:999px;background:#fff;color:var(--text);font-size:18px;line-height:1;cursor:pointer}.cart-step:hover{border-color:var(--gold);color:var(--gold)}
 .ra-client-ficha{display:flex;flex-wrap:wrap;gap:6px 16px;padding:11px 13px;margin:-4px 0 14px;border:1px solid rgba(122,126,39,.2);border-radius:12px;background:rgba(122,126,39,.06);font-size:11px;color:var(--text2)}.ra-client-ficha strong{color:var(--olive1)}
 .ra-sale-summary{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:#fff}.ra-summary-client{display:flex;justify-content:space-between;gap:12px;padding:16px;background:var(--surface2)}.ra-summary-products,.ra-summary-totals{padding:12px 16px}.ra-summary-products>div,.ra-summary-totals>div{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--border)}.ra-summary-totals .total{font-size:17px;color:var(--olive1);border-bottom:0}.ra-postventa{margin-top:12px;padding:14px;border:1px solid rgba(52,199,89,.25);border-radius:14px;background:rgba(52,199,89,.06);display:flex;flex-direction:column;gap:8px}.ra-postventa>span{font-size:12px;color:var(--text3)}.ra-postventa>div{display:flex;gap:7px;flex-wrap:wrap}
+.vm-toolbar-main{display:flex;align-items:center;gap:10px;margin:0 0 12px}.vm-search{flex:1;display:flex;align-items:center;gap:8px;background:var(--card,#fff);border:1px solid var(--border);border-radius:12px;padding:0 12px;min-width:220px}.vm-search span{font-size:20px;color:var(--text3)}.vm-search input{border:0!important;background:transparent!important;box-shadow:none!important;width:100%;height:42px;padding:0!important}.vm-view-switch{display:flex;padding:3px;background:var(--surface2,#f2f2f7);border-radius:10px}.vm-view-switch button{border:0;background:transparent;padding:8px 12px;border-radius:8px;color:var(--text3);font-weight:650;cursor:pointer}.vm-view-switch button.active{background:#fff;color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.vm-cards{display:grid;gap:11px}.vm-sale-card{background:var(--card,#fff);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(24,24,20,.035);transition:border-color .2s,box-shadow .2s,opacity .2s}.vm-sale-card:hover{border-color:rgba(120,124,43,.35);box-shadow:0 8px 24px rgba(24,24,20,.07)}.vm-sale-card.selected{border-color:var(--gold);box-shadow:0 0 0 2px rgba(153,143,53,.12)}.vm-sale-card.muted{opacity:.32}.vm-sale-head{display:grid;grid-template-columns:28px minmax(220px,1fr) 150px 190px 28px;align-items:center;gap:14px;padding:15px 17px;cursor:pointer;position:relative}.vm-sale-check{display:flex;justify-content:center}.vm-sale-main{min-width:0}.vm-sale-name{font-size:15px;font-weight:750;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.vm-sale-product{font-size:12px;color:var(--text2);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.vm-sale-meta{display:flex;gap:12px;flex-wrap:wrap;margin-top:7px;font-size:10.5px;color:var(--text3)}.vm-sale-money{text-align:right;display:flex;flex-direction:column;gap:4px}.vm-sale-money strong{font-size:14px;color:var(--text)}.vm-sale-money span{font-size:10.5px;color:var(--ok)}.vm-sale-money span.due{color:var(--warn);font-weight:650}.vm-sale-status{display:flex;justify-content:flex-end;gap:6px;flex-wrap:wrap}.vm-status{font-size:10px;font-weight:700;padding:5px 8px;border-radius:999px;background:var(--surface2);color:var(--text2)}.vm-status.is-ok{background:rgba(52,199,89,.1);color:#1e8139}.vm-status.is-warn{background:rgba(255,149,0,.12);color:#a85f00}.vm-status.is-error{background:rgba(255,59,48,.1);color:#c62d24}.vm-status.is-info{background:rgba(0,122,255,.1);color:#176bb9}.vm-sale-chevron{font-size:20px;color:var(--text3);transition:transform .2s}.vm-sale-card.open .vm-sale-chevron{transform:rotate(180deg)}.vm-sale-alerts{grid-column:2/-1;display:flex;gap:6px;flex-wrap:wrap;margin-top:-5px}.vm-sale-alerts span{font-size:9.5px;color:#a85f00;background:rgba(255,149,0,.09);padding:3px 7px;border-radius:999px}.vm-sale-body{display:none;border-top:1px solid var(--border);background:linear-gradient(180deg,rgba(248,248,246,.7),rgba(255,255,255,.95))}.vm-sale-card.open .vm-sale-body{display:block}.vm-sale-sections{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:14px}.vm-sale-section{background:#fff;border:1px solid var(--border);border-radius:13px;padding:14px;min-width:0}.vm-sale-section h4{display:flex;align-items:center;gap:7px;font-size:12px;margin:0 0 12px;color:var(--text);text-transform:uppercase;letter-spacing:.35px}.vm-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.vm-detail-grid label{font-size:9px;text-transform:uppercase;letter-spacing:.35px;color:var(--text3);min-width:0}.vm-detail-grid label.wide{grid-column:1/-1}.vm-detail-grid input,.vm-detail-grid select{display:block;width:100%;margin-top:4px}.vm-section-actions,.vm-sale-footer{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.vm-product-edit{width:100%;text-align:left;border:1px solid var(--border);background:var(--surface2);border-radius:10px;padding:10px 11px;margin-bottom:10px;cursor:pointer}.vm-product-edit span{display:block;font-size:11px;color:var(--text)}.vm-product-edit small{display:block;color:var(--gold);margin-top:4px}.vm-money-breakdown{margin-bottom:10px}.vm-money-breakdown>div{display:flex;justify-content:space-between;padding:4px 0;font-size:11px;color:var(--text2)}.vm-money-breakdown .total{border-top:1px solid var(--border);margin-top:4px;padding-top:8px;font-size:13px;color:var(--text)}.vm-money-breakdown .balance{color:var(--warn);font-weight:700}.vm-sale-footer{justify-content:flex-end;border-top:1px solid var(--border);padding:12px 14px;margin:0;background:#fff}.vm-sale-section .vm-city-custom{min-width:0;grid-template-columns:minmax(0,1fr) 90px auto auto}
 @media(max-width:760px){.vm-city-custom{grid-template-columns:1fr 90px;min-width:280px}.vm-city-custom .btn{width:100%}}
+@media(max-width:760px){.vm-sale-section .vm-city-custom{min-width:0;grid-template-columns:minmax(0,1fr) 90px}.vm-sale-section .vm-city-custom .btn{width:100%}}
+@media(max-width:900px){.vm-sale-head{grid-template-columns:25px minmax(160px,1fr) 115px 26px}.vm-sale-status{grid-column:2/4;justify-content:flex-start}.vm-sale-chevron{grid-column:4;grid-row:1}.vm-sale-alerts{grid-column:2/-1}.vm-sale-sections{grid-template-columns:1fr}}
+@media(max-width:620px){.vm-toolbar-main{align-items:stretch;flex-direction:column}.vm-view-switch button{flex:1}.vm-sale-head{grid-template-columns:24px 1fr 24px;gap:9px;padding:13px}.vm-sale-money{grid-column:2;text-align:left;flex-direction:row;align-items:center;gap:10px}.vm-sale-status{grid-column:2;justify-content:flex-start}.vm-sale-chevron{grid-column:3;grid-row:1}.vm-sale-alerts{grid-column:2/-1}.vm-sale-meta{gap:7px}.vm-detail-grid{grid-template-columns:1fr}.vm-detail-grid label.wide{grid-column:auto}.vm-sale-footer{justify-content:flex-start}}
 .stock-bubble{transition:transform .22s ease,box-shadow .22s ease,opacity .18s ease}
 .stock-bubble.ra-dragging{opacity:.55;transform:scale(.985);box-shadow:0 18px 40px rgba(31,26,12,.18);outline:2px solid var(--gold);outline-offset:2px}
 .stock-bubble.ra-drag-target{transform:translateY(3px)}
