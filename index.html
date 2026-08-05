@@ -3171,6 +3171,9 @@ function vTipoEnvioChange(){
   }
   vCalcTotal();
 }
+function esDeliveryPropio(tipo){
+  return String(tipo||'').trim().toLowerCase()==='delivery';
+}
 function vMetodoChange(){
   const metodo=(gs('vMetodo')?.value||'').toLowerCase();
   const estado=gs('vEstadoPago');
@@ -3232,14 +3235,10 @@ async function vGuardar(confirmado=false){
     delivery_persona:gs('vDelivery').value,observaciones:gs('vObs').value,creado_por:sesion?.user?.id||null,actualizado_por:sesion?.user?.id||null,historial:[{fecha:ahora,accion:'Venta creada',usuario:actor}]};
   if(!row.fecha){showAlert('vMsg','Elegí la fecha de compra.','err');return;}
   if(!row.cliente){showAlert('vMsg','Escribí el nombre del cliente.','err');return;}
-  if(!row.ciudad&&!esRetiroLocal){showAlert('vMsg','Elegí o escribí la ciudad del cliente.','err');return;}
   const errores=[];
-  if(!esRetiroLocal){
-    const telLimpio=String(row.contacto||'').replace(/\D/g,'');
-    if(!(/^0?9\d{8}$/.test(telLimpio)||/^595\d{9}$/.test(telLimpio)))errores.push('teléfono válido');
-    if(!row.ciudad)errores.push('ciudad');if(!row.ubicacion)errores.push('ubicación de Google Maps');else{try{new URL(row.ubicacion);}catch(e){errores.push('un enlace de ubicación válido');}}if(!row.dia_entrega)errores.push('fecha de entrega');if(!row.delivery_persona)errores.push('delivery asignado');
-    if(row.dia_entrega&&row.dia_entrega<fechaHoyLocal())errores.push('una fecha de entrega que no sea anterior a hoy');
-  }
+  const telLimpio=String(row.contacto||'').replace(/\D/g,'');
+  if(telLimpio&&!(/^0?9\d{8}$/.test(telLimpio)||/^595\d{9}$/.test(telLimpio)))errores.push('teléfono válido o dejarlo vacío');
+  if(String(row.ubicacion||'').trim()){try{const u=new URL(row.ubicacion);if(!/^https?:$/.test(u.protocol))throw new Error();}catch(e){errores.push('un enlace de ubicación válido o dejarlo vacío');}}
   if(montoTotal>0&&!gs('vMetodo').value)errores.push('método del primer pago');
   if(abono2>0&&!gs('vMetodo2').value)errores.push('método del segundo pago');
   if(montoTotal>totalVentaForm)errores.push('un monto abonado que no supere el total');
@@ -3564,7 +3563,7 @@ async function cargarDatosDependientesVenta(){
 
 function badgeMetodo(s){if(!s)return'';const v=esc(s);if(s.includes('Transf'))return`<span class="badge b-pur">${v}</span>`;if(s==='Efectivo')return`<span class="badge b-pend">${v}</span>`;return`<span class="badge b-info">${v}</span>`;}
 function vmAlertasVenta(r){
-  const a=[];if(!String(r.contacto||'').trim())a.push('Sin teléfono');if(/delivery/i.test(r.tipo_envio||'')&&!String(r.ubicacion||'').trim())a.push('Sin ubicación');if(/delivery/i.test(r.tipo_envio||'')&&!String(r.delivery_persona||'').trim())a.push('Sin delivery');if(r.dia_entrega&&r.dia_entrega<fechaHoyLocal()&&!['Entregado','Cancelado'].includes(r.estado_entrega))a.push('Entrega atrasada');return a;
+  const a=[];if(!String(r.contacto||'').trim())a.push('Sin teléfono');if(esDeliveryPropio(r.tipo_envio)&&!String(r.ubicacion||'').trim())a.push('Sin ubicación');if(esDeliveryPropio(r.tipo_envio)&&(!String(r.delivery_persona||'').trim()||r.delivery_persona==='Sin asignar'))a.push('Sin delivery');if(r.dia_entrega&&r.dia_entrega<fechaHoyLocal()&&!['Entregado','Cancelado'].includes(r.estado_entrega))a.push('Entrega atrasada');return a;
 }
 function actionMenu(items,label='Más acciones',danger=false){
   return `<details class="action-menu"><summary class="btn ${danger?'btn-d':'btn-s'} btn-sm">${esc(label)} <span class="action-menu-chevron">⌄</span></summary><div class="action-menu-pop">${items.join('')}</div></details>`;
@@ -6203,7 +6202,8 @@ function listasPoblarTodos() {
       const sel = gs(selId); if(!sel) return;
       const prev = sel.value;
       const isFilter = cfg.filterTargets.includes(selId);
-      sel.innerHTML = (isFilter ? '<option value="">Todos</option>' : '') +
+      const pendienteEnvio=key==='tipos_envio'&&!isFilter?'<option value="">A definir</option>':'';
+      sel.innerHTML = (isFilter ? '<option value="">Todos</option>' : pendienteEnvio) +
         items.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
       // Restore selection if still valid
       if([...sel.options].some(o => o.value===prev)) sel.value = prev;
