@@ -1323,11 +1323,12 @@ document.addEventListener('DOMContentLoaded', function(){
             </div>
             <div class="field">
               <label>Contacto / WhatsApp</label>
-              <input type="text" id="vTel" placeholder="0981..." oninput="vValidarTel()">
+              <input type="text" id="vTel" placeholder="0981..." oninput="vTelInput()">
               <div id="vTelAviso" style="font-size:11px;margin-top:4px"></div>
             </div>
             <div class="field"><label>RUC / CI</label><input type="text" id="vRuc" placeholder="Opcional"></div>
           </div>
+          <div id="vClienteFicha" class="ra-client-ficha" style="display:none"></div>
           <div class="card-hdr" style="margin-top:4px;">Productos</div>
           <div id="vCombosBar" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px"></div>
           <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:10px;">
@@ -1372,7 +1373,10 @@ document.addEventListener('DOMContentLoaded', function(){
               <input type="number" id="vRegaloCant" min="0" value="0" style="width:64px" oninput="vActualizarRegalo()">
             </div>
           </div>
-          <div class="cart-total" id="vTotal">Total: Gs 0</div>
+          <div class="fg fg2" style="margin-top:10px">
+            <div class="field"><label>Descuento (Gs)</label><input type="text" inputmode="numeric" id="vDescuento" value="0" oninput="formatMoneyInput(this);vCalcTotal()"></div>
+            <div class="cart-total" id="vTotal">Total: Gs 0</div>
+          </div>
           <div class="fg fg2" style="margin:14px 0;">
             <div class="field"><label>Ciudad</label><select id="vCiudad" class="select-s" onchange="vCiudadChange()"><option value="">— Seleccionar —</option></select></div>
             <div class="field" id="vOtraCiudadWrap" style="display:none"><label>Otra ciudad</label><input type="text" id="vOtraCiudad"></div>
@@ -1382,9 +1386,12 @@ document.addEventListener('DOMContentLoaded', function(){
             <div class="field"><label>Tipo de Pago</label><select id="vTipoPago" class="select-s" onchange="vTipoPagoChange()"></select></div>
             <div class="field"><label>Estado de Pago</label><select id="vEstadoPago" class="select-s" onchange="vCalcTotal()"></select></div>
             <div class="field"><label>Monto abonado (Gs)</label><input type="text" inputmode="numeric" id="vMontoPagado" value="0" oninput="formatMoneyInput(this);vCalcTotal()"></div>
+            <div class="field"><label>Segundo método (opcional)</label><select id="vMetodo2" class="select-s"></select></div>
+            <div class="field"><label>Segundo abono (Gs)</label><input type="text" inputmode="numeric" id="vMontoPagado2" value="0" oninput="formatMoneyInput(this);vCalcTotal()"></div>
             <div class="field"><label>Saldo pendiente</label><input type="text" id="vSaldoPendiente" value="Gs 0" readonly></div>
             <div class="field"><label>Delivery asignado</label><select id="vDelivery" class="select-s"></select></div>
             <div class="field"><label>Ubicacion</label><input type="url" id="vUbicacion" placeholder="Link de ubicacion"></div>
+            <div class="field"><label>Dirección / referencia</label><input type="text" id="vReferencia" placeholder="Casa, portón, entre calles..."></div>
             <div class="field"><label>Dia de entrega</label><input type="date" id="vDiaEntrega"></div>
             <div class="field"><label>Comprobante / referencia</label><input type="text" id="vComprobante" placeholder="Opcional"></div>
           </div>
@@ -1401,6 +1408,7 @@ document.addEventListener('DOMContentLoaded', function(){
             <button type="button" class="btn btn-p" id="vGuardarBtn" onclick="vGuardar()">Guardar Venta</button>
           </div>
           <div id="vMsg"></div>
+          <div id="vPostVenta" class="ra-postventa" style="display:none"></div>
         </div>
       </div>
 
@@ -3003,9 +3011,13 @@ function vRenderCarrito(){
   if(!carrito.length){el.innerHTML='';return;}
   el.innerHTML=carrito.map((p,i)=>`<div class="cart-item">
     <div><div style="color:var(--text);font-weight:500">${p.nombre}</div><div style="font-size:11px;color:var(--text3)">${fmtGs(p.precio)} × ${p.cant}</div></div>
-    <div style="display:flex;align-items:center;gap:10px"><span style="font-family:var(--fm);color:var(--gold)">${fmtGs(p.precio*p.cant)}</span>
+    <div style="display:flex;align-items:center;gap:8px"><button type="button" class="cart-step" onclick="vCambiarCantidad(${i},-1)">−</button><strong style="min-width:20px;text-align:center">${p.cant}</strong><button type="button" class="cart-step" onclick="vCambiarCantidad(${i},1)">+</button><span style="font-family:var(--fm);color:var(--gold);min-width:86px;text-align:right">${fmtGs(p.precio*p.cant)}</span>
     <button type="button" class="btn btn-g btn-sm" onclick="if(carrito[${i}]?.codigo===REGALO_CODIGO&&gs('vRegaloCant'))gs('vRegaloCant').value=0;carrito.splice(${i},1);vRenderCarrito();vCalcTotal()">✕</button></div>
   </div>`).join('');
+}
+function vCambiarCantidad(i,delta){
+  if(!carrito[i])return;carrito[i].cant=Math.max(0,(parseFloat(carrito[i].cant)||0)+delta);
+  if(carrito[i].cant<=0)carrito.splice(i,1);vRenderCarrito();vCalcTotal();vBorradorProgramar();
 }
 function esPagado(valor){
   return String(valor||'').toLowerCase().includes('pagado');
@@ -3024,18 +3036,24 @@ function saldoPendienteVenta(r){
 }
 function calcularSaldoDesdeForm(){
   const sub=carrito.reduce((s,p)=>s+p.precio*p.cant,0);
+  const desc=Math.min(sub,moneyVal('vDescuento'));
   const env=moneyVal('vCostoEnvio');
-  const total=sub+env;
-  const estado=gs('vEstadoPago')?.value||'';
-  const abonado=moneyVal('vMontoPagado');
-  if(esPagado(estado))return 0;
+  const total=sub-desc+env;
+  const abonado=moneyVal('vMontoPagado')+moneyVal('vMontoPagado2');
   return Math.max(0,total-abonado);
 }
 function vCalcTotal(){
   const sub=carrito.reduce((s,p)=>s+p.precio*p.cant,0);
+  const desc=Math.min(sub,moneyVal('vDescuento'));
   const env=moneyVal('vCostoEnvio');
-  if(gs('vTotal'))gs('vTotal').textContent='Total: '+fmtGs(sub+env);
+  const total=sub-desc+env;
+  const abonado=moneyVal('vMontoPagado')+moneyVal('vMontoPagado2');
+  if(gs('vTotal'))gs('vTotal').innerHTML=`<small>Productos ${fmtGs(sub)}${desc?' · Descuento −'+fmtGs(desc):''}${env?' · Delivery '+fmtGs(env):''}</small><br>Total: ${fmtGs(total)}`;
   if(gs('vSaldoPendiente'))gs('vSaldoPendiente').value=fmtGs(calcularSaldoDesdeForm());
+  if(gs('vEstadoPago')){
+    const estado=abonado<=0?'Pendiente':abonado>=total?'Pagado':'Parcial';
+    if([...gs('vEstadoPago').options].some(o=>o.value===estado))gs('vEstadoPago').value=estado;
+  }
 }
 function vClienteBuscar(){
   const q=(gs('vCliente')?.value||'').trim().toLowerCase();
@@ -3056,6 +3074,15 @@ function vSeleccionarClienteExistente(nombre){
     const sel=gs('vCiudad');
     if([...sel.options].some(o=>o.value===c.ciudad)){sel.value=c.ciudad;vCiudadChange();}
   }
+  const ultima=ultimaVentaDeCliente(nombre);
+  if(ultima){
+    if(ultima.ubicacion&&gs('vUbicacion'))gs('vUbicacion').value=ultima.ubicacion;
+    if(ultima.direccion_referencia&&gs('vReferencia'))gs('vReferencia').value=ultima.direccion_referencia;
+    if(ultima.delivery_persona&&gs('vDelivery')&&[...gs('vDelivery').options].some(o=>o.value===ultima.delivery_persona))gs('vDelivery').value=ultima.delivery_persona;
+    if(ultima.ruc&&gs('vRuc'))gs('vRuc').value=ultima.ruc;
+    if(ultima.observaciones&&gs('vObs')&&!gs('vObs').value.trim())gs('vObs').value=ultima.observaciones;
+  }
+  vMostrarFichaCliente(nombre);
   const box=gs('vClienteResultados');
   if(box){box.classList.remove('open');box.innerHTML='';}
   toast('Datos de '+c.nombre+' cargados');
@@ -3068,6 +3095,23 @@ function vValidarTel(){
   const pareceValido=/^0?9\d{8}$/.test(limpio)||/^595\d{9}$/.test(limpio);
   if(pareceValido){aviso.innerHTML='<span style="color:var(--ok)">✓ Formato válido</span>';}
   else{aviso.innerHTML='<span style="color:var(--warn)">⚠ Revisá el número (ej: 0981123456)</span>';}
+}
+let vTelTimer=null;
+function vTelInput(){vValidarTel();clearTimeout(vTelTimer);vTelTimer=setTimeout(vBuscarClienteTelefono,350);}
+async function vBuscarClienteTelefono(){
+  const tel=vNormalizarTelefono(gs('vTel')?.value);if(tel.length<9)return;
+  if(!allVentasCache?.length){const {data}=await SB.from('ventas').select('*').order('fecha',{ascending:false}).limit(1000);allVentasCache=data||[];clientesResumen=cArmarResumen(allVentasCache);}
+  const venta=(allVentasCache||[]).find(v=>vNormalizarTelefono(v.contacto)===tel);
+  if(!venta){if(gs('vClienteFicha'))gs('vClienteFicha').style.display='none';return;}
+  if(!gs('vCliente').value.trim())vSeleccionarClienteExistente(venta.cliente);
+  else vMostrarFichaCliente(venta.cliente);
+}
+function vMostrarFichaCliente(nombre){
+  const box=gs('vClienteFicha');if(!box)return;const key=clienteKey(nombre);const ventas=(allVentasCache||[]).filter(v=>clienteKey(v.cliente)===key);if(!ventas.length)return;
+  const ultima=[...ventas].sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)))[0];const pendientes=ventas.filter(v=>!esPagado(v.estado_pago)&&v.estado_entrega!=='Cancelado');
+  const total=ventas.reduce((s,v)=>s+totalVenta(v),0);const canceladas=ventas.filter(v=>v.estado_entrega==='Cancelado').length;
+  const productos={};ventas.forEach(v=>itemsVentaDesdeDetalle(v.detalle).forEach(i=>productos[i.nombre]=(productos[i.nombre]||0)+i.cant));const habitual=Object.entries(productos).sort((a,b)=>b[1]-a[1])[0]?.[0]||'—';
+  box.style.display='';box.innerHTML=`<strong>Cliente existente</strong><span>${ventas.length} compras · ${fmtGs(total)} acumulado · Última ${formatoFecha(ultima.fecha)||ultima.fecha}</span><span>${pendientes.length?'<b style="color:var(--warn)">'+pendientes.length+' venta(s) pendiente(s)</b>':'Sin ventas pendientes'} · ${canceladas} cancelada(s) · Habitual: ${esc(habitual)}</span>`;
 }
 function vAgregarObsRapida(texto){
   const el=gs('vObs');if(!el)return;
@@ -3134,7 +3178,8 @@ function vTipoPagoChange(){
   else if(tipo.includes('seña')||tipo.includes('sena'))setIfExists('Pendiente');
   vCalcTotal();
 }
-async function vGuardar(){
+let vUltimaVentaGuardada=null;
+async function vGuardar(confirmado=false){
   if(!carrito.length){showAlert('vMsg','Agregá al menos un producto antes de guardar la venta.','err');return;}
   const btn=gs('vGuardarBtn');
   const btnTxt=btn?btn.textContent:'Guardar Venta';
@@ -3146,27 +3191,38 @@ async function vGuardar(){
   if(!ciudad&&esRetiroLocal)ciudad='Retiro en el local';
   const fechaStr=gs('vFecha').value;
   const mes=mesDesdeFecha(fechaStr);
-  const totalProds=carrito.reduce((s,p)=>s+p.precio*p.cant,0);
+  const subtotalBruto=carrito.reduce((s,p)=>s+p.precio*p.cant,0);
+  const descuento=Math.min(subtotalBruto,moneyVal('vDescuento'));
+  const totalProds=subtotalBruto-descuento;
+  const totalVentaForm=totalProds+moneyVal('vCostoEnvio');
+  const abono1=moneyVal('vMontoPagado'),abono2=moneyVal('vMontoPagado2');
+  const abonos=[];const ahora=new Date().toISOString();const sesion=leerSesionGuardada();const actor=sesion?.user?.email||'Usuario del panel';
+  if(abono1>0)abonos.push({monto:abono1,metodo:gs('vMetodo').value,fecha:ahora,usuario:actor});
+  if(abono2>0)abonos.push({monto:abono2,metodo:gs('vMetodo2').value,fecha:ahora,usuario:actor});
+  const montoTotal=abono1+abono2;
+  const estadoPago=montoTotal<=0?'Pendiente':montoTotal>=totalVentaForm?'Pagado':'Parcial';
   const row={fecha:fechaStr,mes,cliente:gs('vCliente').value,contacto:gs('vTel').value,ruc:gs('vRuc').value,
     detalle:carrito.map(p=>p.nombre+' x'+p.cant).join(', '),ciudad,tipo_envio:gs('vTipoEnvio').value,
-    costo_delivery:moneyVal('vCostoEnvio'),total_productos:totalProds,
-    ubicacion:gs('vUbicacion').value,dia_entrega:gs('vDiaEntrega').value||null,
-    metodo_pago:gs('vMetodo').value,tipo_pago:gs('vTipoPago')?.value||(listaGet('tipos_pago')[0]||'Pago adelantado'),estado_pago:gs('vEstadoPago')?.value||(listaGet('estados_pago')[0]||'Pendiente'),estado_entrega:listaGet('estados_entrega').includes('Pendiente')?'Pendiente':(listaGet('estados_entrega')[0]||'Pendiente'),estado_pedido:'Nuevo',
-    monto_pagado:moneyVal('vMontoPagado'),saldo_pendiente:calcularSaldoDesdeForm(),comprobante:gs('vComprobante')?.value||'',preparacion_estado:'Pendiente',
-    delivery_persona:gs('vDelivery').value,observaciones:gs('vObs').value,historial:[{fecha:new Date().toISOString(),accion:'Venta creada'}]};
+    costo_delivery:moneyVal('vCostoEnvio'),total_productos:totalProds,descuento,
+    ubicacion:gs('vUbicacion').value,direccion_referencia:gs('vReferencia')?.value||'',dia_entrega:gs('vDiaEntrega').value||null,
+    metodo_pago:abono2>0?gs('vMetodo').value+' + '+gs('vMetodo2').value:gs('vMetodo').value,tipo_pago:gs('vTipoPago')?.value||(listaGet('tipos_pago')[0]||'Pago adelantado'),estado_pago:estadoPago,estado_entrega:listaGet('estados_entrega').includes('Pendiente')?'Pendiente':(listaGet('estados_entrega')[0]||'Pendiente'),estado_pedido:'Nuevo',
+    monto_pagado:montoTotal,saldo_pendiente:Math.max(0,totalVentaForm-montoTotal),abonos,comprobante:gs('vComprobante')?.value||'',preparacion_estado:'Nuevo',
+    delivery_persona:gs('vDelivery').value,observaciones:gs('vObs').value,creado_por:sesion?.user?.id||null,actualizado_por:sesion?.user?.id||null,historial:[{fecha:ahora,accion:'Venta creada',usuario:actor}]};
   if(!row.fecha){showAlert('vMsg','Elegí la fecha de compra.','err');return;}
   if(!row.cliente){showAlert('vMsg','Escribí el nombre del cliente.','err');return;}
   if(!row.ciudad&&!esRetiroLocal){showAlert('vMsg','Elegí o escribí la ciudad del cliente.','err');return;}
+  const errores=[];
   if(!esRetiroLocal){
     const telLimpio=String(row.contacto||'').replace(/\D/g,'');
-    if(!telLimpio){showAlert('vMsg','Agregá el teléfono del cliente para poder coordinar la entrega.','err');return;}
-    const faltantes=[];
-    if(!row.ubicacion)faltantes.push('ubicación de Google Maps');
-    if(!row.dia_entrega)faltantes.push('fecha de entrega');
-    if(!row.delivery_persona)faltantes.push('delivery asignado');
-    if(faltantes.length&&!confirm('Antes de guardar falta: '+faltantes.join(', ')+'.\n\n¿Querés registrar la venta igualmente y completarlo después?'))return;
+    if(!(/^0?9\d{8}$/.test(telLimpio)||/^595\d{9}$/.test(telLimpio)))errores.push('teléfono válido');
+    if(!row.ciudad)errores.push('ciudad');if(!row.ubicacion)errores.push('ubicación de Google Maps');else{try{new URL(row.ubicacion);}catch(e){errores.push('un enlace de ubicación válido');}}if(!row.dia_entrega)errores.push('fecha de entrega');if(!row.delivery_persona)errores.push('delivery asignado');
+    if(row.dia_entrega&&row.dia_entrega<fechaHoyLocal())errores.push('una fecha de entrega que no sea anterior a hoy');
   }
-  if(!await vConfirmarPosibleDuplicado(row))return;
+  if(montoTotal>0&&!gs('vMetodo').value)errores.push('método del primer pago');
+  if(abono2>0&&!gs('vMetodo2').value)errores.push('método del segundo pago');
+  if(montoTotal>totalVentaForm)errores.push('un monto abonado que no supere el total');
+  if(errores.length){showAlert('vMsg','Falta corregir: '+errores.join(' · ')+'.','err');return;}
+  if(!confirmado){if(!await vConfirmarPosibleDuplicado(row))return;vMostrarResumenVenta(row,subtotalBruto);return;}
   const stockActualPorCodigo={};
   const carritoProductos=carrito.filter(item=>item.codigo!==REGALO_CODIGO);
   for(const item of carritoProductos){
@@ -3193,7 +3249,7 @@ async function vGuardar(){
     showAlert('vMsg','No se pudo descontar stock, la venta no se guardó: '+(e?.message||e),'err');
     return;
   }
-  const {error}=await SB.from('ventas').insert([row]);
+  const {data:ventaCreada,error}=await SB.from('ventas').insert([row]).select().single();
   if(error){
     for(const item of stockDescontado){
       await ajustarStockProducto(item.codigo,item.cant,'devolver por venta fallida').catch(()=>{});
@@ -3203,8 +3259,11 @@ async function vGuardar(){
     return;
   }
   await refrescarInventarioYVistas();
+  vUltimaVentaGuardada=ventaCreada||row;
+  vResumenCerrar();
   vLimpiar();
   showAlert('vMsg','✓ Venta registrada. Ya podés cargar la siguiente.','ok');
+  vPostVentaMostrar();
   }catch(e){
     showAlert('vMsg','No se pudo guardar la venta: '+(e?.message||e),'err');
   }finally{
@@ -3213,9 +3272,11 @@ async function vGuardar(){
 }
 function vLimpiar(){
   carrito=[];
-  ['vCliente','vTel','vRuc','vDelivery','vObs','vOtraCiudad','vUbicacion','vDiaEntrega','vProdSearch','vProdCodigo','vProdNombre','vProdPrecio','vComprobante'].forEach(id=>{const el=gs(id);if(el)el.value='';});
+  ['vCliente','vTel','vRuc','vDelivery','vObs','vOtraCiudad','vUbicacion','vReferencia','vDiaEntrega','vProdSearch','vProdCodigo','vProdNombre','vProdPrecio','vComprobante'].forEach(id=>{const el=gs(id);if(el)el.value='';});
   if(gs('vCostoEnvio'))gs('vCostoEnvio').value='0';
   if(gs('vMontoPagado'))gs('vMontoPagado').value='0';
+  if(gs('vMontoPagado2'))gs('vMontoPagado2').value='0';
+  if(gs('vDescuento'))gs('vDescuento').value='0';
   if(gs('vTelAviso'))gs('vTelAviso').innerHTML='';
   if(gs('vClienteResultados')){gs('vClienteResultados').innerHTML='';gs('vClienteResultados').classList.remove('open');}
   if(gs('vProd'))gs('vProd').selectedIndex=0;
@@ -3224,6 +3285,7 @@ function vLimpiar(){
   if(gs('vMetodo'))gs('vMetodo').selectedIndex=0;
   if(gs('vTipoPago'))gs('vTipoPago').selectedIndex=0;
   if(gs('vEstadoPago'))gs('vEstadoPago').selectedIndex=0;
+  if(gs('vMetodo2'))gs('vMetodo2').selectedIndex=0;
   vMetodoChange();
   if(gs('prodPickerValue'))gs('prodPickerValue').textContent='— Ningún producto seleccionado —';
   if(gs('variantePanel'))gs('variantePanel').classList.remove('open');
@@ -3234,6 +3296,7 @@ function vLimpiar(){
   if(gs('vOtraCiudadWrap'))gs('vOtraCiudadWrap').style.display='none';
   if(gs('vFecha'))gs('vFecha').value=fechaHoyLocal();
   if(gs('vRegaloCant'))gs('vRegaloCant').value=0;
+  if(gs('vClienteFicha'))gs('vClienteFicha').style.display='none';
   ppSelectedCodigo=null;
   vRenderCarrito();
   vCalcTotal();
@@ -3254,10 +3317,30 @@ async function vConfirmarPosibleDuplicado(row){
   if(!similar)return true;
   return confirm('⚠ Posible venta duplicada\n\nYa existe una venta similar de '+(similar.cliente||'este cliente')+' del '+(similar.fecha||'')+' por '+fmtGs(total)+'.\n\n¿Guardar de todos modos?');
 }
+function vMostrarResumenVenta(row,subtotalBruto){
+  const modal=gs('vResumenModal'),cont=gs('vResumenContenido');if(!modal||!cont)return;
+  cont.innerHTML=`<div class="ra-summary-client"><strong>${esc(row.cliente)}</strong><span>${esc(row.contacto||'')}</span></div>
+    <div class="ra-summary-products">${carrito.map(p=>`<div><span>${esc(p.nombre)} ×${p.cant}</span><strong>${fmtGs(p.precio*p.cant)}</strong></div>`).join('')}</div>
+    <div class="ra-summary-totals"><div><span>Productos</span><strong>${fmtGs(subtotalBruto)}</strong></div>${row.descuento?`<div><span>Descuento</span><strong>−${fmtGs(row.descuento)}</strong></div>`:''}<div><span>Delivery</span><strong>${fmtGs(row.costo_delivery)}</strong></div><div class="total"><span>Total</span><strong>${fmtGs(totalVenta(row))}</strong></div><div><span>Pago</span><strong>${esc(row.estado_pago)} · ${fmtGs(row.monto_pagado)}</strong></div><div><span>Entrega</span><strong>${formatoFecha(row.dia_entrega)||row.dia_entrega||'—'} · ${esc(row.ciudad)}</strong></div></div>`;
+  modal.classList.add('open');
+}
+function vResumenCerrar(){gs('vResumenModal')?.classList.remove('open');}
+function vTextoVenta(row){return `Hola ${row.cliente||''}, confirmamos tu pedido en Ritual Ancestral.\n\n${row.detalle||''}\nProductos: ${fmtGs(row.total_productos)}\nDelivery: ${fmtGs(row.costo_delivery)}\nTotal: ${fmtGs(totalVenta(row))}\nPago: ${row.estado_pago||''}\nEntrega: ${formatoFecha(row.dia_entrega)||row.dia_entrega||'A coordinar'}\n\n¡Gracias por tu compra!`;}
+function vPostVentaMostrar(){
+  const box=gs('vPostVenta'),r=vUltimaVentaGuardada;if(!box||!r)return;box.style.display='';
+  box.innerHTML=`<strong>Venta guardada</strong><span>¿Qué querés hacer ahora?</span><div><button class="btn btn-wa btn-sm" onclick="vPostWhatsApp()">Enviar WhatsApp</button><button class="btn btn-s btn-sm" onclick="vPostCopiar()">Copiar resumen</button>${r.comprobante?'<button class="btn btn-s btn-sm" onclick="vPostComprobante()">Abrir comprobante</button>':''}<button class="btn btn-s btn-sm" onclick="vPostDuplicar()">Duplicar pedido</button><button class="btn btn-p btn-sm" onclick="gs('vPostVenta').style.display='none';gs('vCliente').focus()">Crear otra venta</button></div>`;
+}
+function vPostWhatsApp(){const r=vUltimaVentaGuardada;if(!r)return;const tel=telefonoWA(r.contacto);if(!tel){toast('Falta un WhatsApp válido');return;}window.open('https://wa.me/'+tel+'?text='+encodeURIComponent(vTextoVenta(r)),'_blank');}
+function vPostCopiar(){const txt=vTextoVenta(vUltimaVentaGuardada);navigator.clipboard?.writeText(txt).then(()=>toast('Resumen copiado'));}
+function vPostComprobante(){const u=String(vUltimaVentaGuardada?.comprobante||'').trim();if(/^https?:\/\//i.test(u))window.open(u,'_blank');else navigator.clipboard?.writeText(u).then(()=>toast('Referencia copiada'));}
+function vPostDuplicar(){
+  const r=vUltimaVentaGuardada;if(!r)return;carrito=itemsEditablesDesdeVenta(r).filter(i=>i.codigo);gs('vCliente').value=r.cliente||'';gs('vTel').value=r.contacto||'';gs('vRuc').value=r.ruc||'';gs('vUbicacion').value=r.ubicacion||'';gs('vReferencia').value=r.direccion_referencia||'';gs('vObs').value=r.observaciones||'';
+  if([...gs('vCiudad').options].some(o=>o.value===r.ciudad))gs('vCiudad').value=r.ciudad;vCiudadChange();vRenderCarrito();vCalcTotal();gs('vPostVenta').style.display='none';toast('Pedido duplicado para editar');
+}
 
 const VENTA_BORRADOR_KEY='ritual_venta_borrador_v1';
 let vBorradorTimer=null,vBorradorRestaurando=false,vBorradorConsultado=false;
-const VENTA_BORRADOR_CAMPOS=['vFecha','vCliente','vTel','vRuc','vCiudad','vOtraCiudad','vTipoEnvio','vCostoEnvio','vMetodo','vTipoPago','vEstadoPago','vMontoPagado','vDelivery','vUbicacion','vDiaEntrega','vComprobante','vObs','vRegaloCant'];
+const VENTA_BORRADOR_CAMPOS=['vFecha','vCliente','vTel','vRuc','vCiudad','vOtraCiudad','vTipoEnvio','vCostoEnvio','vDescuento','vMetodo','vMetodo2','vTipoPago','vEstadoPago','vMontoPagado','vMontoPagado2','vDelivery','vUbicacion','vReferencia','vDiaEntrega','vComprobante','vObs','vRegaloCant'];
 function vBorradorProgramar(){
   if(vBorradorRestaurando)return;
   clearTimeout(vBorradorTimer);vBorradorTimer=setTimeout(vBorradorGuardar,500);
@@ -3315,7 +3398,7 @@ function estadoSelectVenta(r,campo){
   const id=esc(r.id);
   const valor=campo==='estado_pago'?(r.estado_pago||'Pendiente'):(r.estado_entrega||'Pendiente');
   const key=campo==='estado_pago'?'estados_pago':'estados_entrega';
-  const base=listaGet(key);
+  const base=[...listaGet(key)];if(campo==='estado_pago'&&!base.includes('Parcial'))base.splice(1,0,'Parcial');
   const opciones=[valor,...base.filter(o=>o!==valor)];
   return `<select class="select-s status-select ${estadoClass(valor)}" data-prev="${esc(valor)}" onchange="actualizarEstadoVenta('${id}','${campo}',this.value,this)">${opciones.map(o=>`<option value="${esc(o)}" ${o===valor?'selected':''}>${esc(o)}</option>`).join('')}</select>`;
 }
@@ -3378,6 +3461,7 @@ async function actualizarCampoVenta(id,campo,valor,el){
   if(item){
     update.historial=historialCon(item,`Cambio ${campo}: "${anterior??''}" → "${valor??''}"`);
   }
+  update.actualizado_por=leerSesionGuardada()?.user?.id||null;
   const {error}=await SB.from('ventas').update(update).eq('id',id);
   if(error){
     if(el)el.disabled=false;
@@ -3409,6 +3493,7 @@ async function actualizarCiudadVenta(id,nombre,el,costoManual=null){
     update.saldo_pendiente=saldoPendienteVenta(temp);
     update.historial=historialCon(item,`Cambio ciudad: "${item.ciudad||''}" → "${nombre}"`);
   }
+  update.actualizado_por=leerSesionGuardada()?.user?.id||null;
   if(el)el.disabled=true;
   const {error}=await SB.from('ventas').update(update).eq('id',id);
   if(error){if(el)el.disabled=false;alert('No se pudo actualizar ciudad: '+error.message);return;}
@@ -3420,13 +3505,23 @@ async function actualizarCiudadVenta(id,nombre,el,costoManual=null){
 }
 function historialCon(item,accion){
   const base=Array.isArray(item?.historial)?item.historial:parseJSONSafe(item?.historial,[]);
-  return [...base,{fecha:new Date().toISOString(),accion}].slice(-40);
+  return [...base,{fecha:new Date().toISOString(),accion,usuario:leerSesionGuardada()?.user?.email||'Usuario del panel'}].slice(-80);
 }
 function verHistorialVenta(id){
   const r=ventasDelMes.find(v=>String(v.id)===String(id));
   const hist=Array.isArray(r?.historial)?r.historial:parseJSONSafe(r?.historial,[]);
-  if(!hist.length){alert('Esta venta todavía no tiene historial.');return;}
-  alert(hist.map(h=>`${formatoFecha(String(h.fecha||'').slice(0,10)) || h.fecha}: ${h.accion}`).join('\n'));
+  const abonos=Array.isArray(r?.abonos)?r.abonos:parseJSONSafe(r?.abonos,[]);
+  if(!hist.length&&!abonos.length){alert('Esta venta todavía no tiene historial.');return;}
+  const cambios=hist.map(h=>`${formatoFecha(String(h.fecha||'').slice(0,10)) || h.fecha}: ${h.accion}${h.usuario?' · '+h.usuario:''}`);
+  const pagos=abonos.map(a=>`Abono ${fmtGs(a.monto)} · ${a.metodo||''} · ${formatoFecha(String(a.fecha||'').slice(0,10))||a.fecha}${a.usuario?' · '+a.usuario:''}`);
+  alert([...cambios,...pagos].join('\n'));
+}
+async function vmRegistrarAbono(id){
+  const r=ventasDelMes.find(v=>String(v.id)===String(id));if(!r)return;const saldo=saldoPendienteVenta(r);if(saldo<=0){toast('Esta venta no tiene saldo pendiente');return;}
+  const monto=parseGs(prompt('Monto del abono (saldo actual '+fmtGs(saldo)+'):',fmtInputGs(saldo))||'0');if(monto<=0)return;if(monto>saldo){alert('El abono no puede superar el saldo pendiente.');return;}
+  const opciones=listaGet('metodos_pago');const metodo=prompt('Método de pago:\n'+opciones.join(' · '),opciones[0]||'Transferencia');if(!metodo)return;
+  const actor=leerSesionGuardada()?.user?.email||'Usuario del panel',uid=leerSesionGuardada()?.user?.id||null;const abonos=[...(Array.isArray(r.abonos)?r.abonos:parseJSONSafe(r.abonos,[])),{monto,metodo,fecha:new Date().toISOString(),usuario:actor}];const pagado=(parseFloat(r.monto_pagado)||0)+monto;const nuevoSaldo=Math.max(0,totalVenta(r)-pagado);const update={abonos,monto_pagado:pagado,saldo_pendiente:nuevoSaldo,estado_pago:nuevoSaldo<=0?'Pagado':'Parcial',metodo_pago:[...new Set(abonos.map(a=>a.metodo).filter(Boolean))].join(' + '),actualizado_por:uid,historial:historialCon(r,'Abono registrado: '+fmtGs(monto)+' por '+metodo)};
+  const {error}=await SB.from('ventas').update(update).eq('id',id);if(error){alert('No se pudo registrar el abono: '+error.message);return;}Object.assign(r,update);toast('Abono registrado');vmRender(ventasDelMes);fRender(ventasDelMes);
 }
 async function actualizarEstadoPago(ventaId,nuevoValor,el){
   return actualizarEstadoVenta(ventaId,'estado_pago',nuevoValor,el);
@@ -3476,7 +3571,7 @@ function vmRender(rows){
     <td>${estadoSelectVenta(r,'estado_pago')}</td>
     <td>${saldoBadge(r)}</td>
     <td>${estadoSelectVenta(r,'estado_entrega')}</td>
-    <td>${vmSelect(r,'preparacion_estado',['Pendiente','Preparando','Listo'],'vm-edit-sm')}</td>
+    <td>${vmSelect(r,'preparacion_estado',['Nuevo','Preparando','Listo'],'vm-edit-sm')}</td>
     <td>${vmInput(r,'dia_entrega','date','vm-date')}</td>
     <td>${vmInput(r,'observaciones','text','vm-edit-lg')}</td>
     <td><button type="button" class="btn btn-s btn-sm" onclick="verHistorialVenta('${esc(r.id)}')">Ver</button></td>
@@ -3484,6 +3579,7 @@ function vmRender(rows){
       <button type="button" class="btn btn-s btn-sm" onclick="previsualizarWAId('${esc(r.id)}')">Ver WhatsApp</button>
       <button type="button" class="btn btn-wa btn-sm" onclick="enviarWAId('${esc(r.id)}')">WhatsApp</button>
       <button type="button" class="btn btn-s btn-sm" onclick="enviarRecordatorioPagoId('${esc(r.id)}')" ${saldoPendienteVenta(r)>0?'':'disabled'}>Cobro</button>
+      <button type="button" class="btn btn-p btn-sm" onclick="vmRegistrarAbono('${esc(r.id)}')" ${saldoPendienteVenta(r)>0?'':'disabled'}>+ Abono</button>
     </div></td>
     <td><button type="button" class="btn btn-delivery btn-sm" onclick="copiarResumenId('${esc(r.id)}')">Delivery</button></td>
     <td><button type="button" class="btn btn-d btn-sm" onclick="vmEliminarVenta('${esc(r.id)}')">Eliminar</button></td>
@@ -6010,7 +6106,7 @@ function exportCSV(){descargarPlanillaVentas();}
 
 // ══════════ LISTAS EDITABLES ══════════
 const LISTAS_CONFIG = {
-  metodos_pago:    { label:'Métodos de Pago',    defaults:['Transferencia','Efectivo','Link de pago','Td','Tc','QR','Transferencia C.E'], targets:['vMetodo','fpMetodo','opVMetodo'],      filterTargets:['fpMetodo'] },
+  metodos_pago:    { label:'Métodos de Pago',    defaults:['Transferencia','Efectivo','Link de pago','Td','Tc','QR','Transferencia C.E'], targets:['vMetodo','vMetodo2','fpMetodo','opVMetodo'],      filterTargets:['fpMetodo'] },
   tipos_pago:      { label:'Tipos de Pago',       defaults:['Pago adelantado','Contra entrega','Seña + saldo','A confirmar'], targets:['vTipoPago','fpTipoPago'], filterTargets:['fpTipoPago'] },
   tipos_envio:     { label:'Tipos de Envío',      defaults:['Delivery','Sin Delivery','Transportadora','Retiro del Local'], targets:['vTipoEnvio','opVTipoEnvio'],          filterTargets:[] },
   estados_pago:    { label:'Estados de Pago',     defaults:['Pagado','Contra entrega','Pendiente','Falta transferir'],       targets:['vEstadoPago','fpEstPago','opVEstPago'], filterTargets:['fpEstPago'] },
@@ -6968,6 +7064,9 @@ window.addEventListener('DOMContentLoaded', async ()=>{
 /* Mejoras funcionales 2026-08: reordenamiento, combos y modales auxiliares */
 .vm-city-custom{display:grid;grid-template-columns:minmax(140px,1fr) 100px auto auto;gap:6px;align-items:center;min-width:430px}
 .vm-city-custom .vm-edit{min-width:0}
+.cart-step{width:28px;height:28px;border:1px solid var(--border);border-radius:999px;background:#fff;color:var(--text);font-size:18px;line-height:1;cursor:pointer}.cart-step:hover{border-color:var(--gold);color:var(--gold)}
+.ra-client-ficha{display:flex;flex-wrap:wrap;gap:6px 16px;padding:11px 13px;margin:-4px 0 14px;border:1px solid rgba(122,126,39,.2);border-radius:12px;background:rgba(122,126,39,.06);font-size:11px;color:var(--text2)}.ra-client-ficha strong{color:var(--olive1)}
+.ra-sale-summary{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:#fff}.ra-summary-client{display:flex;justify-content:space-between;gap:12px;padding:16px;background:var(--surface2)}.ra-summary-products,.ra-summary-totals{padding:12px 16px}.ra-summary-products>div,.ra-summary-totals>div{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--border)}.ra-summary-totals .total{font-size:17px;color:var(--olive1);border-bottom:0}.ra-postventa{margin-top:12px;padding:14px;border:1px solid rgba(52,199,89,.25);border-radius:14px;background:rgba(52,199,89,.06);display:flex;flex-direction:column;gap:8px}.ra-postventa>span{font-size:12px;color:var(--text3)}.ra-postventa>div{display:flex;gap:7px;flex-wrap:wrap}
 @media(max-width:760px){.vm-city-custom{grid-template-columns:1fr 90px;min-width:280px}.vm-city-custom .btn{width:100%}}
 .stock-bubble{transition:transform .22s ease,box-shadow .22s ease,opacity .18s ease}
 .stock-bubble.ra-dragging{opacity:.55;transform:scale(.985);box-shadow:0 18px 40px rgba(31,26,12,.18);outline:2px solid var(--gold);outline-offset:2px}
@@ -7011,6 +7110,14 @@ window.addEventListener('DOMContentLoaded', async ()=>{
     </div>
     <div id="raQMsg"></div>
     <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:18px"><button class="btn btn-s" onclick="raCerrarModal('raQuickModal')">Cancelar</button><button class="btn btn-p" onclick="raGuardarVentaRapida()">Registrar venta</button></div>
+  </div>
+</div>
+
+<div class="ra-modal" id="vResumenModal" onclick="if(event.target===this)vResumenCerrar()">
+  <div class="ra-modal-box" style="width:min(620px,100%)">
+    <div class="ra-modal-head"><h2>Confirmar venta</h2><button class="btn btn-g" onclick="vResumenCerrar()">✕</button></div>
+    <div id="vResumenContenido" class="ra-sale-summary"></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:18px;flex-wrap:wrap"><button class="btn btn-s" onclick="vResumenCerrar()">Volver a editar</button><button class="btn btn-p" onclick="vGuardar(true)">Confirmar y guardar</button></div>
   </div>
 </div>
 
