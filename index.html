@@ -3860,10 +3860,11 @@ async function cargarStock(){
   gs('stockContent').innerHTML='<div class="empty"><span class="spinner"></span></div>';
   const {data,error}=await SB.from('productos').select('*').order('nombre');
   if(error||!data){gs('stockContent').innerHTML='<div class="empty">Error cargando stock</div>';return;}
-  if(!data.length){gs('stockContent').innerHTML='<div class="empty">Sin productos registrados</div>';return;}
-  allProductos=data||[];
+  const productosStock=typeof raMezclarCombos==='function'?raMezclarCombos(data||[]):(data||[]);
+  if(!productosStock.length){gs('stockContent').innerHTML='<div class="empty">Sin productos registrados</div>';return;}
+  allProductos=productosStock;
   stockSeleccionados=new Set([...stockSeleccionados].filter(cod=>allProductos.some(p=>String(p.codigo)===String(cod))));
-  gs('stockContent').innerHTML=`<div class="stock-groups">${stockRowsAgrupadas(data)}</div>`;
+  gs('stockContent').innerHTML=`<div class="stock-groups">${stockRowsAgrupadas(productosStock)}</div>`;
   stockActualizarSeleccion();
 }
 function stockBaseCodigo(codigo){
@@ -4021,6 +4022,15 @@ function stockVariantCard(p,child){
   const costo=parseInt(p.costo)||0;
   const margen=precio>0?Math.round((precio-costo)*100/precio):0;
   const esperando=(esperaStockGet()[p.codigo]||[]).length;
+  if(p.es_combo){
+    const componentes=(p.componentes||[]).map(c=>{const prod=allProductos.find(x=>!x.es_combo&&String(x.codigo)===String(c.codigo));return `${esc(prod?.nombre||c.codigo)} × ${c.cantidad}`;}).join(' · ');
+    return `<div class="stock-variant-card" data-stock-row="${esc(p.codigo)}">
+      <div class="svc-top"><div class="svc-name">${esc(p.nombre)}<small>${esc(p.codigo)}</small></div><span class="badge b-ok">Combo compuesto</span></div>
+      <div class="svc-grid"><div><label>Disponibles</label><span style="color:${stock>0?'var(--ok)':'var(--err)'}">${stock} combos</span></div><div><label>Stock</label><span>Calculado</span></div><div><label>Precio</label><span>${fmtGs(precio)}</span></div><div><label>Costo</label><span>${fmtGs(costo)}</span></div><div><label>Margen</label><span>${margen}%</span></div></div>
+      <div class="td-mu" style="margin-top:10px;font-size:11px"><strong>Componentes:</strong> ${componentes||'Sin componentes'}</div>
+      <div class="svc-actions"><button type="button" class="btn btn-d btn-sm" onclick="eliminarProducto('${esc(p.codigo)}','${esc(p.nombre)}')">Archivar combo</button></div>
+    </div>`;
+  }
   return `<div class="stock-variant-card" data-stock-row="${esc(p.codigo)}">
     <div class="svc-top">
       <input type="checkbox" class="row-check stock-row-check" data-codigo="${esc(p.codigo)}" ${stockSeleccionados.has(String(p.codigo))?'checked':''} onchange="stockToggleSeleccion('${esc(p.codigo)}',this.checked)">
@@ -7092,8 +7102,16 @@ async function raGuardarCombo(){
   const nombre=gs('raComboNombre').value.trim(),codigo=gs('raComboCodigo').value.trim().toUpperCase(),precio=moneyVal('raComboPrecio'),componentes=raComponentesFormulario();
   if(!nombre||!codigo||precio<=0||!componentes.length){showAlert('raComboMsg','Completá nombre, código, precio y al menos un componente.','err');return;}
   if(allProductos.some(p=>String(p.codigo).toLowerCase()===codigo.toLowerCase())){showAlert('raComboMsg','Ese código ya existe. Usá otro SKU.','err');return;}
-  const lista=raCombos();lista.push({nombre,codigo,precio_venta:precio,costo:moneyVal('raComboCosto'),componentes,activo:true});await guardarConfigClave('combos_compuestos',JSON.stringify(lista));
-  toast('Combo guardado y listo para vender');raCerrarModal('raComboModal');await cargarProductos();if(gs('pv-stock')?.classList.contains('active'))await cargarStock();
+  const boton=gs('raComboMsg')?.parentElement?.querySelector('button.btn-p');if(boton){boton.disabled=true;boton.textContent='Guardando…';}
+  const anterior=appConfig.combos_compuestos||'[]';
+  const lista=raCombos();lista.push({nombre,codigo,precio_venta:precio,costo:moneyVal('raComboCosto'),componentes,activo:true});
+  const {error}=await guardarConfigClave('combos_compuestos',JSON.stringify(lista));
+  if(error){appConfig.combos_compuestos=anterior;showAlert('raComboMsg','No se pudo guardar el combo: '+(error.hint||error.message),'err');if(boton){boton.disabled=false;boton.textContent='Guardar combo';}return;}
+  const {data:confirmado,error:verError}=await SB.from('configuracion').select('valor').eq('clave','combos_compuestos').maybeSingle();
+  if(verError||!parseJSONSafe(confirmado?.valor,[]).some(c=>String(c.codigo)===codigo)){
+    appConfig.combos_compuestos=anterior;showAlert('raComboMsg','Supabase no confirmó el guardado. Probá nuevamente.','err');if(boton){boton.disabled=false;boton.textContent='Guardar combo';}return;
+  }
+  toast('Combo guardado y visible en Stock actual');raCerrarModal('raComboModal');await cargarProductos();await cargarStock();
 }
 
 const raProductoFreshOriginal=productoFreshPorCodigo;
