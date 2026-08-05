@@ -6875,5 +6875,200 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   initUI();
 });
 </script>
+<style>
+/* Mejoras funcionales 2026-08: reordenamiento, combos y modales auxiliares */
+.stock-bubble{transition:transform .22s ease,box-shadow .22s ease,opacity .18s ease}
+.stock-bubble.ra-dragging{opacity:.55;transform:scale(.985);box-shadow:0 18px 40px rgba(31,26,12,.18);outline:2px solid var(--gold);outline-offset:2px}
+.stock-bubble.ra-drag-target{transform:translateY(3px)}
+.ra-modal{position:fixed;inset:0;background:rgba(20,18,10,.45);z-index:1200;display:none;align-items:center;justify-content:center;padding:20px}
+.ra-modal.open{display:flex}.ra-modal-box{background:#fff;border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.25);width:min(720px,100%);max-height:90vh;overflow:auto;padding:22px}
+.ra-modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}.ra-modal-head h2{font-size:18px}
+.ra-component-row{display:grid;grid-template-columns:1fr 90px 40px;gap:8px;align-items:end;margin-bottom:8px}
+.ra-calc-result{padding:14px;border:1px solid var(--border);border-radius:12px;background:#fffdf8;display:grid;gap:7px}.ra-calc-line{display:flex;justify-content:space-between;gap:12px}
+.ra-ok{color:var(--ok)}.ra-warn{color:var(--warn)}.ra-err{color:var(--err)}
+@media(max-width:640px){.ra-component-row{grid-template-columns:1fr 70px 36px}.ra-modal-box{padding:16px}.ra-quick-grid{grid-template-columns:1fr!important}}
+</style>
+
+<div class="ra-modal" id="raComboModal" onclick="if(event.target===this)raCerrarModal('raComboModal')">
+  <div class="ra-modal-box">
+    <div class="ra-modal-head"><h2>Crear combo compuesto</h2><button class="btn btn-g" onclick="raCerrarModal('raComboModal')">✕</button></div>
+    <div class="fg fg2">
+      <div class="field"><label>Nombre del combo</label><input id="raComboNombre" placeholder="Combo Ritual"></div>
+      <div class="field"><label>SKU / código propio</label><input id="raComboCodigo" placeholder="COMBO-RITUAL"></div>
+      <div class="field"><label>Precio de venta (Gs)</label><input id="raComboPrecio" inputmode="numeric" oninput="formatMoneyInput(this)"></div>
+      <div class="field"><label>Costo editable (Gs)</label><input id="raComboCosto" inputmode="numeric" placeholder="Se calcula automáticamente" oninput="formatMoneyInput(this)"></div>
+    </div>
+    <div class="card-hdr" style="margin-top:16px">Componentes</div>
+    <div id="raComboComponentes"></div>
+    <button class="btn btn-s btn-sm" onclick="raAgregarComponente()">+ Agregar componente</button>
+    <div id="raComboResumen" class="td-mu" style="margin-top:10px"></div>
+    <div id="raComboMsg"></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:18px"><button class="btn btn-s" onclick="raCerrarModal('raComboModal')">Cancelar</button><button class="btn btn-p" onclick="raGuardarCombo()">Guardar combo</button></div>
+  </div>
+</div>
+
+<div class="ra-modal" id="raQuickModal" onclick="if(event.target===this)raCerrarModal('raQuickModal')">
+  <div class="ra-modal-box" style="width:min(560px,100%)">
+    <div class="ra-modal-head"><h2>Modo rápido de venta</h2><button class="btn btn-g" onclick="raCerrarModal('raQuickModal')">✕</button></div>
+    <div class="fg fg2 ra-quick-grid">
+      <div class="field"><label>Cliente</label><input id="raQCliente" placeholder="Nombre"></div>
+      <div class="field"><label>WhatsApp</label><input id="raQTel" placeholder="0981..."></div>
+      <div class="field" style="grid-column:1/-1"><label>Producto</label><select id="raQProducto" onchange="raQuickInfo()"></select><div id="raQInfo" class="td-mu" style="margin-top:4px"></div></div>
+      <div class="field"><label>Cantidad</label><input id="raQCant" type="number" min="1" value="1" oninput="raQuickInfo()"></div>
+      <div class="field"><label>Método de pago</label><select id="raQMetodo"></select></div>
+    </div>
+    <div id="raQMsg"></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:18px"><button class="btn btn-s" onclick="raCerrarModal('raQuickModal')">Cancelar</button><button class="btn btn-p" onclick="raGuardarVentaRapida()">Registrar venta</button></div>
+  </div>
+</div>
+
+<script>
+// Capa compatible con el esquema actual: usa configuracion para archivos y combos.
+function raConfigJSON(clave,def){return parseJSONSafe(appConfig[clave],def);}
+function raArchivadosProductos(){return raConfigJSON('productos_archivados',[]).map(String);}
+function raClientesOcultos(){return raConfigJSON('clientes_ocultos',[]).map(String);}
+function raCombos(){return raConfigJSON('combos_compuestos',[]);}
+function raCerrarModal(id){gs(id)?.classList.remove('open');}
+function raDisponibilidadCombo(combo,productos=allProductos){
+  const vals=(combo.componentes||[]).map(c=>{const p=productos.find(x=>String(x.codigo)===String(c.codigo)&&!x.es_combo);return p?Math.floor((parseFloat(p.stock_actual)||0)/Math.max(1,parseFloat(c.cantidad)||1)):0;});
+  return vals.length?Math.min(...vals):0;
+}
+function raMezclarCombos(productos){
+  const base=(productos||[]).filter(p=>!p.es_combo&&!raArchivadosProductos().includes(String(p.codigo)));
+  const combos=raCombos().filter(c=>c.activo!==false).map(c=>({codigo:c.codigo,nombre:c.nombre,nombre_base:c.nombre,grupo:'Combos',unidad:'combo',precio_venta:c.precio_venta,costo:c.costo,stock_actual:raDisponibilidadCombo(c,base),stock_minimo:0,estado:'En venta',es_combo:true,componentes:c.componentes}));
+  return [...base,...combos];
+}
+const raCargarProductosOriginal=cargarProductos;
+cargarProductos=async function(){
+  const {data,error}=await SB.from('productos').select('*').order('nombre');
+  if(error)throw error;
+  allProductos=raMezclarCombos(data||[]);poblarSelectProducto();
+};
+const raCargarConfiguracionOriginal=cargarConfiguracion;
+cargarConfiguracion=async function(){await raCargarConfiguracionOriginal();allProductos=raMezclarCombos(allProductos);poblarSelectProducto();};
+
+async function raArchivarProducto(codigo,nombre){
+  const lista=raArchivadosProductos();if(!lista.includes(String(codigo)))lista.push(String(codigo));
+  await guardarConfigClave('productos_archivados',JSON.stringify(lista));
+  toast('Producto archivado. No aparecerá para nuevas ventas, pero se conserva el historial.');
+  await cargarProductos();await cargarStock();
+}
+eliminarProducto=async function(codigo,nombre){
+  const combo=raCombos().find(c=>String(c.codigo)===String(codigo));
+  if(combo){if(!confirm('¿Ocultar el combo "'+nombre+'"?'))return;const lista=raCombos().map(c=>String(c.codigo)===String(codigo)?{...c,activo:false}:c);await guardarConfigClave('combos_compuestos',JSON.stringify(lista));toast('Combo archivado. Se conserva la configuración.');await cargarProductos();await cargarStock();return;}
+  if(!confirm('¿Eliminar "'+nombre+'" ('+codigo+')?\n\nSi tiene historial, se archivará de forma segura.'))return;
+  const {data:movs}=await SB.from('movimientos').select('codigo_producto').eq('codigo_producto',codigo).limit(1);
+  if((movs||[]).length){await raArchivarProducto(codigo,nombre);return;}
+  const {error}=await SB.from('productos').delete().eq('codigo',codigo);
+  if(error){await raArchivarProducto(codigo,nombre);return;}
+  toast('Producto eliminado');await cargarProductos();await cargarStock();
+};
+stockEliminarSeleccionados=async function(){
+  const codigos=[...stockSeleccionados];if(!codigos.length){toast('Marcá al menos un producto');return;}
+  if(!confirm('¿Quitar '+codigos.length+' producto(s)? Los que tengan historial se archivarán.'))return;
+  for(const codigo of codigos){const p=allProductos.find(x=>String(x.codigo)===String(codigo));await eliminarProductoSinConfirmar(codigo,p?.nombre||codigo);}
+  stockSeleccionados.clear();stockAislarSeleccionados=false;await cargarProductos();await cargarStock();toast('Proceso terminado: historial conservado.');
+};
+async function eliminarProductoSinConfirmar(codigo,nombre){
+  const combo=raCombos().find(c=>String(c.codigo)===String(codigo));if(combo){const lista=raCombos().map(c=>String(c.codigo)===String(codigo)?{...c,activo:false}:c);await guardarConfigClave('combos_compuestos',JSON.stringify(lista));return;}
+  const {data:movs}=await SB.from('movimientos').select('codigo_producto').eq('codigo_producto',codigo).limit(1);
+  if((movs||[]).length){const lista=raArchivadosProductos();if(!lista.includes(String(codigo)))lista.push(String(codigo));await guardarConfigClave('productos_archivados',JSON.stringify(lista));return;}
+  const {error}=await SB.from('productos').delete().eq('codigo',codigo);if(error){const lista=raArchivadosProductos();if(!lista.includes(String(codigo)))lista.push(String(codigo));await guardarConfigClave('productos_archivados',JSON.stringify(lista));}
+}
+
+const raCArmarResumenOriginal=cArmarResumen;
+cArmarResumen=function(rows){const ocultos=raClientesOcultos();return raCArmarResumenOriginal(rows).filter(c=>!ocultos.includes(clienteKey(c.nombre)));};
+async function cOcultarCliente(nombre){
+  if(!confirm('¿Ocultar a "'+nombre+'" de la lista de clientes?\n\nSus ventas antiguas no se borrarán.'))return;
+  const lista=raClientesOcultos(),key=clienteKey(nombre);if(!lista.includes(key))lista.push(key);
+  await guardarConfigClave('clientes_ocultos',JSON.stringify(lista));toast('Cliente ocultado. Sus ventas históricas se conservan.');await cCargar();
+}
+const raCFiltrarOriginal=cFiltrar;
+cFiltrar=function(){raCFiltrarOriginal();document.querySelectorAll('#cBody tr').forEach(tr=>{const nombre=tr.querySelector('td')?.textContent?.trim();const acciones=tr.querySelector('td:last-child>div');if(nombre&&acciones&&!acciones.querySelector('.ra-client-delete')){const b=document.createElement('button');b.type='button';b.className='btn btn-d btn-sm ra-client-delete';b.textContent='Eliminar';b.onclick=()=>cOcultarCliente(nombre);acciones.appendChild(b);}});};
+
+// Drag & drop en vivo. Se guarda al soltar en configuracion.
+function raActivarOrdenStock(){
+  const cont=gs('stockContent');if(!cont||cont.dataset.raSort==='1')return;cont.dataset.raSort='1';let drag=null;
+  cont.addEventListener('dragstart',e=>{const bubble=e.target.closest('.stock-bubble');if(!bubble)return;drag=bubble;bubble.classList.add('ra-dragging');});
+  cont.addEventListener('dragover',e=>{if(!drag)return;e.preventDefault();e.stopPropagation();const target=e.target.closest('.stock-bubble');if(!target||target===drag)return;const rect=target.getBoundingClientRect();target.parentNode.insertBefore(drag,e.clientY<rect.top+rect.height/2?target:target.nextSibling);});
+  cont.addEventListener('drop',async e=>{if(!drag)return;e.preventDefault();e.stopPropagation();await raGuardarOrdenDOM(cont);});
+  cont.addEventListener('dragend',async()=>{if(!drag)return;drag.classList.remove('ra-dragging');await raGuardarOrdenDOM(cont);drag=null;});
+}
+async function raGuardarOrdenDOM(cont){const orden=[...cont.querySelectorAll('.stock-bubble')].map(x=>x.dataset.stockGroup);await guardarConfigClave('stock_orden_grupos',JSON.stringify(orden));appConfig.stock_orden_grupos=JSON.stringify(orden);toast('Nuevo orden guardado');}
+const raCargarStockOriginal=cargarStock;cargarStock=async function(){await raCargarStockOriginal();raActivarOrdenStock();};
+
+function raAbrirCombo(){gs('raComboModal').classList.add('open');gs('raComboNombre').value='';gs('raComboCodigo').value='';gs('raComboPrecio').value='';gs('raComboCosto').value='';gs('raComboComponentes').innerHTML='';raAgregarComponente();raAgregarComponente();}
+function raAgregarComponente(){
+  const row=document.createElement('div');row.className='ra-component-row';
+  const disponibles=allProductos.filter(p=>!p.es_combo).map(p=>`<option value="${esc(p.codigo)}">${esc(p.nombre)} · stock ${p.stock_actual||0}</option>`).join('');
+  row.innerHTML=`<div class="field"><label>Producto</label><select class="ra-comp-prod" onchange="raActualizarComboResumen()"><option value="">— Elegir —</option>${disponibles}</select></div><div class="field"><label>Cantidad</label><input class="ra-comp-cant" type="number" min="0.01" step="0.01" value="1" oninput="raActualizarComboResumen()"></div><button class="btn btn-g" onclick="this.parentElement.remove();raActualizarComboResumen()">✕</button>`;
+  gs('raComboComponentes').appendChild(row);raActualizarComboResumen();
+}
+function raComponentesFormulario(){return [...document.querySelectorAll('.ra-component-row')].map(r=>({codigo:r.querySelector('.ra-comp-prod').value,cantidad:parseFloat(r.querySelector('.ra-comp-cant').value)||0})).filter(x=>x.codigo&&x.cantidad>0);}
+function raActualizarComboResumen(){const comps=raComponentesFormulario();const costo=comps.reduce((s,c)=>{const p=allProductos.find(x=>String(x.codigo)===String(c.codigo));return s+(parseInt(p?.costo)||0)*c.cantidad;},0);const tmp={componentes:comps};gs('raComboResumen').textContent='Costo calculado: '+fmtGs(costo)+' · Se pueden armar '+raDisponibilidadCombo(tmp)+' combo(s) con el stock actual.';if(!moneyVal('raComboCosto'))setMoneyValue('raComboCosto',costo);}
+async function raGuardarCombo(){
+  const nombre=gs('raComboNombre').value.trim(),codigo=gs('raComboCodigo').value.trim().toUpperCase(),precio=moneyVal('raComboPrecio'),componentes=raComponentesFormulario();
+  if(!nombre||!codigo||precio<=0||!componentes.length){showAlert('raComboMsg','Completá nombre, código, precio y al menos un componente.','err');return;}
+  if(allProductos.some(p=>String(p.codigo).toLowerCase()===codigo.toLowerCase())){showAlert('raComboMsg','Ese código ya existe. Usá otro SKU.','err');return;}
+  const lista=raCombos();lista.push({nombre,codigo,precio_venta:precio,costo:moneyVal('raComboCosto'),componentes,activo:true});await guardarConfigClave('combos_compuestos',JSON.stringify(lista));
+  toast('Combo guardado y listo para vender');raCerrarModal('raComboModal');await cargarProductos();if(gs('pv-stock')?.classList.contains('active'))await cargarStock();
+}
+
+const raProductoFreshOriginal=productoFreshPorCodigo;
+const raAjustarStockOriginal=ajustarStockProducto;
+productoFreshPorCodigo=async function(codigo){const c=raCombos().find(x=>x.activo!==false&&String(x.codigo)===String(codigo));if(c)return {codigo:c.codigo,nombre:c.nombre,stock_actual:raDisponibilidadCombo(c),es_combo:true};return raProductoFreshOriginal(codigo);};
+ajustarStockProducto=async function(codigo,delta,motivo=''){
+  const c=raCombos().find(x=>x.activo!==false&&String(x.codigo)===String(codigo));if(!c)return raAjustarStockOriginal(codigo,delta,motivo);
+  const hechos=[];try{for(const comp of c.componentes){const d=(parseFloat(delta)||0)*(parseFloat(comp.cantidad)||0);await raAjustarStockOriginal(comp.codigo,d,'combo '+c.nombre);hechos.push({codigo:comp.codigo,delta:d});}return {codigo:c.codigo,nombre:c.nombre,stock_actual:raDisponibilidadCombo(c)};}catch(e){for(const h of hechos.reverse())await raAjustarStockOriginal(h.codigo,-h.delta,'reversión combo').catch(()=>{});throw e;}
+};
+
+function raAbrirQuick(){
+  gs('raQProducto').innerHTML='<option value="">— Elegir —</option>'+allProductos.filter(p=>p.estado==='En venta'&&(parseFloat(p.stock_actual)||0)>0).map(p=>`<option value="${esc(p.codigo)}">${esc(p.nombre)} · ${fmtGs(p.precio_venta)}</option>`).join('');
+  gs('raQMetodo').innerHTML=(listaGet('metodos_pago')||[]).map(x=>`<option>${esc(x)}</option>`).join('');gs('raQuickModal').classList.add('open');raQuickInfo();
+}
+function raQuickInfo(){const p=allProductos.find(x=>String(x.codigo)===String(gs('raQProducto')?.value));const cant=Math.max(1,parseInt(gs('raQCant')?.value)||1);gs('raQInfo').textContent=p?'Disponible: '+p.stock_actual+' · Total '+fmtGs((parseInt(p.precio_venta)||0)*cant):'';}
+async function raGuardarVentaRapida(){
+  const p=allProductos.find(x=>String(x.codigo)===String(gs('raQProducto').value)),cant=Math.max(1,parseInt(gs('raQCant').value)||1),cliente=gs('raQCliente').value.trim();
+  if(!cliente||!p){showAlert('raQMsg','Indicá cliente y producto.','err');return;}if(cant>(parseFloat(p.stock_actual)||0)){showAlert('raQMsg','Stock insuficiente. Disponible: '+p.stock_actual,'err');return;}
+  carrito=[{codigo:p.codigo,nombre:p.nombre,precio:parseInt(p.precio_venta)||0,cant}];gs('vCliente').value=cliente;gs('vTel').value=gs('raQTel').value;gs('vFecha').value=fechaHoyLocal();
+  const retiro=[...gs('vTipoEnvio').options].find(o=>/retiro/i.test(o.value||o.textContent));if(retiro)gs('vTipoEnvio').value=retiro.value;
+  const metodo=gs('raQMetodo').value;if([...gs('vMetodo').options].some(o=>o.value===metodo))gs('vMetodo').value=metodo;vMetodoChange();raCerrarModal('raQuickModal');await vGuardar();
+}
+
+function raCalcPrecio(){
+  const n=id=>moneyVal(id),pct=id=>parseFloat(gs(id)?.value)||0;const costo=n('raFcProd')+n('raFcEmp')+n('raFcAds')+n('raFcDel')+n('raFcImp')+n('raFcOtros');const margen=Math.min(99,pct('raFcMargen'));const sugerido=margen>=100?0:Math.ceil((costo/(1-margen/100))/1000)*1000;const actual=n('raFcActual');const bruto=(actual||sugerido)-costo;const margenReal=(actual||sugerido)>0?bruto*100/(actual||sugerido):0;const descSinPerder=(actual||sugerido)>0?Math.max(0,((actual||sugerido)-costo)*100/(actual||sugerido)):0;const descMax=Math.min(pct('raFcDesc'),descSinPerder);let estado=actual&&actual<costo?'⚠ Precio actual genera pérdida':actual&&margenReal<margen?'⚠ Precio actual por debajo del margen deseado':'✓ Margen saludable';gs('raCalcResultado').innerHTML=`<div class="ra-calc-line"><span>Costo total real</span><strong>${fmtGs(costo)}</strong></div><div class="ra-calc-line"><span>Precio sugerido</span><strong>${fmtGs(sugerido)}</strong></div><div class="ra-calc-line"><span>Ganancia neta estimada</span><strong>${fmtGs(bruto)}</strong></div><div class="ra-calc-line"><span>Margen bruto</span><strong>${margenReal.toFixed(1)}%</strong></div><div class="ra-calc-line"><span>Descuento seguro</span><strong>${descMax.toFixed(1)}% (hasta ${fmtGs((actual||sugerido)*(1-descMax/100))})</strong></div><div class="${estado.startsWith('✓')?'ra-ok':'ra-warn'}"><strong>${estado}</strong></div>`;
+}
+function raInyectarUI(){
+  const reg=gs('pv-registro')?.querySelector('.card-hdr');if(reg&&!gs('raQuickBtn')){const b=document.createElement('button');b.id='raQuickBtn';b.className='btn btn-s btn-sm';b.textContent='⚡ Modo rápido';b.onclick=raAbrirQuick;reg.appendChild(b);}
+  const prod=gs('pv-productos')?.querySelector('.card');if(prod&&!gs('raComboBtn')){const bar=document.createElement('div');bar.style.cssText='display:flex;justify-content:flex-end;margin-bottom:12px';bar.innerHTML='<button type="button" class="btn btn-s" id="raComboBtn" onclick="raAbrirCombo()">+ Crear combo compuesto</button>';prod.insertBefore(bar,prod.children[1]||null);}
+  const fin=gs('pv-finanzas');if(fin&&!gs('raCalcCard')){const card=document.createElement('div');card.className='card';card.id='raCalcCard';card.style.marginBottom='14px';card.innerHTML=`<div class="card-hdr">Calculadora de costos y precio</div><div class="fg fg4"><div class="field"><label>Costo producto</label><input id="raFcProd" inputmode="numeric" oninput="formatMoneyInput(this);raCalcPrecio()"></div><div class="field"><label>Empaque</label><input id="raFcEmp" inputmode="numeric" oninput="formatMoneyInput(this);raCalcPrecio()"></div><div class="field"><label>Publicidad</label><input id="raFcAds" inputmode="numeric" oninput="formatMoneyInput(this);raCalcPrecio()"></div><div class="field"><label>Delivery</label><input id="raFcDel" inputmode="numeric" oninput="formatMoneyInput(this);raCalcPrecio()"></div><div class="field"><label>IVA / impuestos</label><input id="raFcImp" inputmode="numeric" oninput="formatMoneyInput(this);raCalcPrecio()"></div><div class="field"><label>Otros gastos</label><input id="raFcOtros" inputmode="numeric" oninput="formatMoneyInput(this);raCalcPrecio()"></div><div class="field"><label>Margen deseado %</label><input id="raFcMargen" type="number" value="40" oninput="raCalcPrecio()"></div><div class="field"><label>Descuento máximo %</label><input id="raFcDesc" type="number" value="10" oninput="raCalcPrecio()"></div><div class="field"><label>Precio actual (opcional)</label><input id="raFcActual" inputmode="numeric" oninput="formatMoneyInput(this);raCalcPrecio()"></div></div><div class="ra-calc-result" id="raCalcResultado" style="margin-top:14px"></div>`;fin.insertBefore(card,fin.children[1]||null);raCalcPrecio();}
+}
+document.addEventListener('DOMContentLoaded',()=>{raInyectarUI();setTimeout(raInyectarUI,300);});
+</script>
+<style>
+.delivery-portal-box{display:grid;grid-template-columns:minmax(180px,1fr) auto;gap:9px;align-items:end}.delivery-link-result{margin-top:12px;padding:11px;border:1px solid var(--border);border-radius:10px;background:#fffdf8;display:none}.delivery-link-result.open{display:block}.delivery-link-url{font-family:var(--fm);font-size:11px;overflow-wrap:anywhere;color:var(--text2);margin:6px 0 10px}
+@media(max-width:620px){.delivery-portal-box{grid-template-columns:1fr}}
+</style>
+<script>
+function deliveryPortalInyectar(){
+  const pv=gs('pv-delivery');if(!pv||gs('deliveryPortalCard'))return;
+  const card=document.createElement('div');card.className='card';card.id='deliveryPortalCard';card.style.marginBottom='14px';
+  card.innerHTML=`<div class="card-hdr">Portal privado del repartidor</div><div style="font-size:12px;color:var(--text3);margin-bottom:12px">Generá un enlace individual. La persona solamente verá sus pedidos asignados y podrá actualizar entrega, observación o fecha.</div><div class="delivery-portal-box"><div class="field"><label>Repartidor</label><select id="deliveryPortalPersona"></select></div><button type="button" class="btn btn-p" onclick="deliveryPortalCrear()">Generar enlace privado</button></div><div id="deliveryPortalMsg"></div><div class="delivery-link-result" id="deliveryPortalResult"><strong>Enlace listo para compartir</strong><div class="delivery-link-url" id="deliveryPortalUrl"></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-s btn-sm" onclick="deliveryPortalCopiar()">Copiar enlace</button><button class="btn btn-wa btn-sm" onclick="deliveryPortalWhatsApp()">Enviar por WhatsApp</button><button class="btn btn-d btn-sm" onclick="deliveryPortalRevocar()">Revocar enlace</button></div></div>`;
+  pv.insertBefore(card,pv.firstChild);deliveryPortalPoblar();
+}
+function deliveryPortalPoblar(){const sel=gs('deliveryPortalPersona');if(!sel)return;const nombres=[...new Set([...(deliverysFijos||[]).filter(x=>x.activo!==false).map(x=>x.nombre),...allVentasCache.map(x=>x.delivery_persona).filter(Boolean)].filter(x=>!['Sin asignar','Uber Moto','Otro externo'].includes(x)))];sel.innerHTML=nombres.length?nombres.map(n=>`<option>${esc(n)}</option>`).join(''):'<option value="">Configurá primero un delivery fijo</option>';}
+async function deliveryPortalCrear(){
+  const persona=gs('deliveryPortalPersona')?.value;if(!persona){showAlert('deliveryPortalMsg','Elegí un repartidor.','err');return;}
+  const {data,error}=await SB.rpc('delivery_crear_acceso',{p_delivery_persona:persona});
+  if(error){showAlert('deliveryPortalMsg','Falta activar el portal en Supabase o no hay sesión: '+error.message,'err');return;}
+  const token=data?.token||data?.[0]?.token;if(!token){showAlert('deliveryPortalMsg','Supabase no devolvió el enlace.','err');return;}
+  const url=new URL('delivery.html',location.href);url.search='token='+encodeURIComponent(token);gs('deliveryPortalUrl').textContent=url.href;gs('deliveryPortalResult').classList.add('open');showAlert('deliveryPortalMsg','✓ Enlace privado generado. El enlace anterior de esta persona quedó revocado.','ok');
+}
+async function deliveryPortalCopiar(){const url=gs('deliveryPortalUrl')?.textContent;if(!url)return;try{await navigator.clipboard.writeText(url);toast('Enlace copiado');}catch(e){prompt('Copiá este enlace:',url);}}
+function deliveryPortalWhatsApp(){const url=gs('deliveryPortalUrl')?.textContent,persona=gs('deliveryPortalPersona')?.value;if(!url)return;window.open('https://wa.me/?text='+encodeURIComponent('Hola '+persona+', este es tu enlace privado para ver y actualizar las entregas de Ritual Ancestral:\n'+url),'_blank');}
+async function deliveryPortalRevocar(){const persona=gs('deliveryPortalPersona')?.value;if(!persona||!confirm('¿Revocar el acceso de '+persona+'?'))return;const {error}=await SB.rpc('delivery_revocar_acceso',{p_delivery_persona:persona});if(error){showAlert('deliveryPortalMsg',error.message,'err');return;}gs('deliveryPortalResult').classList.remove('open');toast('Enlace revocado');}
+const deliveryNavOriginal=navTo;navTo=function(tab,btn){deliveryNavOriginal(tab,btn);if(tab==='delivery')setTimeout(()=>{deliveryPortalInyectar();deliveryPortalPoblar();},30);};
+document.addEventListener('DOMContentLoaded',()=>setTimeout(deliveryPortalInyectar,350));
+</script>
 </body>
 </html>
