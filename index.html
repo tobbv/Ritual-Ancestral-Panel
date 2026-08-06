@@ -1313,9 +1313,9 @@ document.addEventListener('DOMContentLoaded', function(){
       <!-- REGISTRO -->
       <div class="pv" id="pv-registro">
         <div class="card sales-entry-card">
-          <div class="sales-entry-title"><div><span class="sales-entry-kicker">Nueva venta</span><h2>Registrar pedido</h2></div><div class="sales-progress"><span class="active">1 Cliente</span><span>2 Pedido</span><span>3 Pago</span><span>4 Entrega</span></div></div>
+          <div class="sales-entry-title"><div><span class="sales-entry-kicker">Nueva venta</span><h2>Registrar pedido</h2></div></div>
           <div class="sales-entry-layout"><div class="sales-entry-main">
-          <section class="sales-form-section"><div class="sales-section-head"><span class="sales-section-icon"><svg viewBox="0 0 24 24"><path d="M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10"/></svg></span><div><h3>Cliente</h3><p>Solo nombre y fecha son necesarios para comenzar.</p></div><button type="button" class="sales-section-toggle" onclick="vToggleOptional('vClienteOpcional',this)">Más datos</button></div>
+          <section class="sales-form-section" data-sales-step="cliente"><div class="sales-section-head"><span class="sales-section-icon"><svg viewBox="0 0 24 24"><path d="M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10"/></svg></span><div><h3>Cliente</h3><p>Solo nombre y fecha son necesarios para comenzar.</p></div><button type="button" class="sales-last-purchase" onclick="vUsarUltimaCompra()">Usar última compra</button><button type="button" class="sales-section-toggle" onclick="vToggleOptional('vClienteOpcional',this)">Más datos</button></div>
           <div class="fg fg2" style="margin-bottom:14px;">
             <div class="field"><label>Fecha</label><input type="date" id="vFecha"></div>
             <div class="field" style="position:relative">
@@ -1332,7 +1332,7 @@ document.addEventListener('DOMContentLoaded', function(){
           </div>
           <div id="vClienteFicha" class="ra-client-ficha" style="display:none"></div>
           </section>
-          <section class="sales-form-section"><div class="sales-section-head"><span class="sales-section-icon"><svg viewBox="0 0 24 24"><path d="m3 6 9-4 9 4-9 4-9-4Zm0 0v12l9 4 9-4V6M12 10v12"/></svg></span><div><h3>Pedido</h3><p>Buscá productos, variantes y cantidades.</p></div></div>
+          <section class="sales-form-section" data-sales-step="pedido"><div class="sales-section-head"><span class="sales-section-icon"><svg viewBox="0 0 24 24"><path d="m3 6 9-4 9 4-9 4-9-4Zm0 0v12l9 4 9-4V6M12 10v12"/></svg></span><div><h3>Pedido</h3><p>Buscá productos, variantes y cantidades.</p></div></div>
           <div id="vCombosBar" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px"></div>
           <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:10px;">
             <!-- Producto picker — ocupa el espacio disponible -->
@@ -1376,13 +1376,13 @@ document.addEventListener('DOMContentLoaded', function(){
               <input type="number" id="vRegaloCant" min="0" value="0" style="width:64px" oninput="vActualizarRegalo()">
             </div>
           </div>
-          <div class="fg fg2" style="margin-top:10px">
-            <div class="field"><label>Descuento (Gs)</label><input type="text" inputmode="numeric" id="vDescuento" value="0" oninput="formatMoneyInput(this);vCalcTotal()"></div>
-            <div class="cart-total" id="vTotal">Total: Gs 0</div>
+          <div class="sales-discount-total" style="margin-top:10px">
+            <div class="discount-panel"><label>Descuento en productos</label><div class="discount-control"><select id="vDescuentoTipo" class="select-s" onchange="vDescuentoTipoChange()"><option value="gs">Gs</option><option value="percent">%</option></select><input type="text" inputmode="numeric" id="vDescuento" value="0" oninput="vDescuentoInput(this)"></div><div class="discount-presets"><button type="button" onclick="vAplicarDescuentoRapido(5)">5%</button><button type="button" onclick="vAplicarDescuentoRapido(10)">10%</button><button type="button" onclick="vAplicarDescuentoRapido(15)">15%</button><button type="button" onclick="vAplicarDescuentoRapido(0)">Sin descuento</button></div><small id="vDescuentoAyuda" class="field-help">Solo productos · no incluye regalo ni envío</small></div>
+            <div class="cart-total" id="vTotal"><span>Total</span><strong>Gs 0</strong></div>
           </div>
           </section>
           <div class="sales-two-columns">
-          <section class="sales-form-section"><div class="sales-section-head"><span class="sales-section-icon"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/></svg></span><div><h3>Pago</h3><p>El saldo se calcula automáticamente.</p></div></div><div class="fg fg2">
+          <section class="sales-form-section" data-sales-step="pago"><div class="sales-section-head"><span class="sales-section-icon"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/></svg></span><div><h3>Pago</h3><p>El saldo se calcula automáticamente.</p></div></div><div class="fg fg2">
             <div class="field"><label>Método</label><select id="vMetodo" class="select-s" onchange="vMetodoChange()"></select></div>
             <div class="field"><label>Tipo de pago</label><select id="vTipoPago" class="select-s" onchange="vTipoPagoChange()"></select></div>
             <div class="field"><label>Estado</label><select id="vEstadoPago" class="select-s" onchange="vCalcTotal()"></select></div>
@@ -1392,7 +1392,7 @@ document.addEventListener('DOMContentLoaded', function(){
             <div class="field sales-wide"><label>Saldo pendiente</label><input type="text" id="vSaldoPendiente" value="Gs 0" readonly></div>
             <div class="field sales-wide"><label>Comprobante / referencia</label><input type="text" id="vComprobante" placeholder="Opcional"></div>
           </div></section>
-          <section class="sales-form-section"><div class="sales-section-head"><span class="sales-section-icon"><svg viewBox="0 0 24 24"><path d="M3 5h11v12H3zM14 9h4l3 4v4h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg></span><div><h3>Entrega</h3><p>Mostramos solamente los datos necesarios.</p></div></div><div class="fg fg2">
+          <section class="sales-form-section" data-sales-step="entrega"><div class="sales-section-head"><span class="sales-section-icon"><svg viewBox="0 0 24 24"><path d="M3 5h11v12H3zM14 9h4l3 4v4h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg></span><div><h3>Entrega</h3><p>Mostramos solamente los datos necesarios.</p></div></div><div id="vEnvioAtajos" class="delivery-shortcuts sales-wide"></div><div class="fg fg2">
             <div class="field sales-wide"><label>Tipo de envío</label><select id="vTipoEnvio" class="select-s" onchange="vTipoEnvioChange()"></select></div>
             <div class="field" data-shipping="city"><label>Ciudad</label><select id="vCiudad" class="select-s" onchange="vCiudadChange()"><option value="">— Seleccionar —</option></select></div>
             <div class="field" id="vOtraCiudadWrap" data-shipping="city" style="display:none"><label>Otra ciudad</label><input type="text" id="vOtraCiudad"></div>
@@ -1417,7 +1417,7 @@ document.addEventListener('DOMContentLoaded', function(){
           </div>
           <div id="vMsg"></div>
           <div id="vPostVenta" class="ra-postventa" style="display:none"></div>
-          </div><aside class="sales-summary-sticky"><div class="sales-summary-label">Resumen</div><div id="vSummaryClient" class="sales-summary-client">Venta nueva</div><div class="sales-summary-line"><span>Productos</span><strong id="vSummaryProducts">Gs 0</strong></div><div class="sales-summary-line"><span>Descuento</span><strong id="vSummaryDiscount">Gs 0</strong></div><div class="sales-summary-line"><span>Envío</span><strong id="vSummaryShipping">Gs 0</strong></div><div class="sales-summary-line total"><span>Total</span><strong id="vSummaryTotal">Gs 0</strong></div><div class="sales-summary-line"><span>Abonado</span><strong id="vSummaryPaid">Gs 0</strong></div><div class="sales-summary-line balance"><span>Saldo</span><strong id="vSummaryBalance">Gs 0</strong></div><div id="vSummaryStatus" class="sales-summary-status">Pendiente</div><button type="button" class="btn btn-p" onclick="vGuardar()">Guardar venta</button></aside></div>
+          </div><div class="sales-summary-column"><div class="sales-progress"><span data-progress="cliente" class="active"><i>✓</i>1 Cliente</span><span data-progress="pedido"><i>✓</i>2 Pedido</span><span data-progress="pago"><i>✓</i>3 Pago</span><span data-progress="entrega"><i>✓</i>4 Entrega</span></div><aside class="sales-summary-sticky"><div class="sales-summary-label">Resumen</div><div id="vSummaryClient" class="sales-summary-client">Venta nueva</div><div class="sales-summary-breakdown"><div class="sales-summary-line"><span>Productos</span><strong id="vSummaryProducts">Gs 0</strong></div><div class="sales-summary-line discount"><span>Descuento</span><strong id="vSummaryDiscount">Gs 0</strong></div><div class="sales-summary-line"><span>Envío</span><strong id="vSummaryShipping">Gs 0</strong></div></div><div class="sales-summary-total"><span>Total</span><strong id="vSummaryTotal">Gs 0</strong></div><div class="sales-summary-line"><span>Abonado</span><strong id="vSummaryPaid">Gs 0</strong></div><div class="sales-summary-line balance"><span>Saldo</span><strong id="vSummaryBalance">Gs 0</strong></div><div id="vSummaryStatus" class="sales-summary-status">Pendiente</div><button type="button" class="btn btn-p" onclick="vGuardar()">Guardar venta</button></aside></div></div>
         </div>
       </div>
 
@@ -2864,7 +2864,7 @@ function navTo(tab, el) {
   if(tab==='finanzas')  fCargar();
   if(tab==='clientes')  cCargar();
   if(tab==='config')    cfgMostrar();
-  if(tab==='registro'){poblarCombosRapidos();vTipoEnvioChange();vCalcTotal();}
+  if(tab==='registro'){poblarCombosRapidos();vRenderEnvioAtajos();vActivarNavegacionEnter();vTipoEnvioChange();vCalcTotal();}
 }
 
 // ═══ DATOS BASE ═══
@@ -3065,21 +3065,48 @@ function saldoPendienteVenta(r){
   const abonado=parseInt(r.monto_pagado)||0;
   return Math.max(0,totalVenta(r)-abonado);
 }
+function vSubtotalDescontable(){
+  return carrito.filter(p=>p.codigo!==REGALO_CODIGO).reduce((s,p)=>s+p.precio*p.cant,0);
+}
 function calcularSaldoDesdeForm(){
   const sub=carrito.reduce((s,p)=>s+p.precio*p.cant,0);
-  const desc=Math.min(sub,moneyVal('vDescuento'));
   const env=moneyVal('vCostoEnvio');
-  const total=sub-desc+env;
+  const desc=vDescuentoMonto(vSubtotalDescontable());
+  const total=sub+env-desc;
   const abonado=moneyVal('vMontoPagado')+moneyVal('vMontoPagado2');
   return Math.max(0,total-abonado);
 }
+function vDescuentoMonto(baseTotal){
+  const valor=Math.max(0,moneyVal('vDescuento'));
+  const tipo=gs('vDescuentoTipo')?.value||'gs';
+  return Math.min(baseTotal,tipo==='percent'?Math.round(baseTotal*Math.min(100,valor)/100):valor);
+}
+function vDescuentoInput(el){
+  if(gs('vDescuentoTipo')?.value==='percent'){
+    const n=Math.min(100,Math.max(0,parseInt(String(el.value||'').replace(/\D/g,''))||0));el.value=n;
+  }else formatMoneyInput(el);
+  vCalcTotal();
+}
+function vDescuentoTipoChange(){
+  const porcentaje=gs('vDescuentoTipo')?.value==='percent';
+  if(gs('vDescuento'))gs('vDescuento').value='0';
+  if(gs('vDescuentoAyuda'))gs('vDescuentoAyuda').textContent=porcentaje?'Porcentaje solo sobre productos; excluye regalo y envío':'Importe solo sobre productos; excluye regalo y envío';
+  vCalcTotal();
+}
+function vAplicarDescuentoRapido(porcentaje){
+  if(gs('vDescuentoTipo'))gs('vDescuentoTipo').value='percent';
+  if(gs('vDescuento'))gs('vDescuento').value=String(porcentaje);
+  if(gs('vDescuentoAyuda'))gs('vDescuentoAyuda').textContent=porcentaje?`${porcentaje}% solo sobre productos; excluye regalo y envío`:'Sin descuento aplicado';
+  document.querySelectorAll('.discount-presets button').forEach(b=>b.classList.toggle('selected',b.textContent.trim()===(porcentaje?porcentaje+'%':'Sin descuento')));
+  vCalcTotal();
+}
 function vCalcTotal(){
   const sub=carrito.reduce((s,p)=>s+p.precio*p.cant,0);
-  const desc=Math.min(sub,moneyVal('vDescuento'));
   const env=moneyVal('vCostoEnvio');
-  const total=sub-desc+env;
+  const desc=vDescuentoMonto(vSubtotalDescontable());
+  const total=sub+env-desc;
   const abonado=moneyVal('vMontoPagado')+moneyVal('vMontoPagado2');
-  if(gs('vTotal'))gs('vTotal').innerHTML=`<small>Productos ${fmtGs(sub)}${desc?' · Descuento −'+fmtGs(desc):''}${env?' · Delivery '+fmtGs(env):''}</small><br>Total: ${fmtGs(total)}`;
+  if(gs('vTotal'))gs('vTotal').innerHTML=`<span>Total final</span><strong>${fmtGs(total)}</strong>`;
   if(gs('vSaldoPendiente'))gs('vSaldoPendiente').value=fmtGs(calcularSaldoDesdeForm());
   if(gs('vEstadoPago')){
     const estado=abonado<=0?'Pendiente':abonado>=total?'Pagado':'Parcial';
@@ -3087,14 +3114,15 @@ function vCalcTotal(){
   }
   if(gs('vSummaryClient'))gs('vSummaryClient').textContent=(gs('vCliente')?.value||'').trim()||'Venta nueva';
   if(gs('vSummaryProducts'))gs('vSummaryProducts').textContent=fmtGs(sub);
-  if(gs('vSummaryDiscount'))gs('vSummaryDiscount').textContent=desc?'−'+fmtGs(desc):fmtGs(0);
+  if(gs('vSummaryDiscount'))gs('vSummaryDiscount').textContent=desc?`− ${fmtGs(desc)}`:fmtGs(0);
   if(gs('vSummaryShipping'))gs('vSummaryShipping').textContent=fmtGs(env);
   if(gs('vSummaryTotal'))gs('vSummaryTotal').textContent=fmtGs(total);
   if(gs('vSummaryPaid'))gs('vSummaryPaid').textContent=fmtGs(abonado);
   if(gs('vSummaryBalance'))gs('vSummaryBalance').textContent=fmtGs(Math.max(0,total-abonado));
   if(gs('vSummaryStatus')){const estado=abonado<=0?'Pendiente':abonado>=total?'Pagado':'Parcial';gs('vSummaryStatus').textContent=estado;gs('vSummaryStatus').style.cssText=estado==='Pagado'?'background:rgba(52,199,89,.1);color:#1e8139':estado==='Parcial'?'background:rgba(0,122,255,.1);color:#176bb9':'';}
-  const pasos=document.querySelectorAll('#pv-registro .sales-progress span');
-  pasos.forEach((p,i)=>p.classList.toggle('active',i===0?!!(gs('vCliente')?.value||'').trim():i===1?carrito.length>0:i===2?abonado>0||!!gs('vMetodo')?.value:i===3?!!gs('vTipoEnvio')?.value:false));
+  const completos={cliente:!!(gs('vFecha')?.value&&(gs('vCliente')?.value||'').trim()),pedido:carrito.length>0,pago:!!gs('vMetodo')?.value,entrega:!!gs('vTipoEnvio')?.value};
+  document.querySelectorAll('#pv-registro [data-progress]').forEach(p=>{const ok=!!completos[p.dataset.progress];p.classList.toggle('complete',ok);p.classList.toggle('active',ok);});
+  document.querySelectorAll('#pv-registro [data-sales-step]').forEach(s=>s.classList.toggle('is-complete',!!completos[s.dataset.salesStep]));
   if(moneyVal('vMontoPagado2')>0&&gs('vSegundoPagoWrap')){gs('vSegundoPagoWrap').style.display='grid';if(gs('vSegundoPagoBtn'))gs('vSegundoPagoBtn').textContent='− Quitar segundo método';}
 }
 function vToggleOptional(id,btn){const el=gs(id);if(!el)return;const abrir=getComputedStyle(el).display==='none';el.style.display=abrir?'':'none';if(btn)btn.textContent=abrir?'Menos datos':'Más datos';}
@@ -3157,6 +3185,15 @@ function vMostrarFichaCliente(nombre){
   const productos={};ventas.forEach(v=>itemsVentaDesdeDetalle(v.detalle).forEach(i=>productos[i.nombre]=(productos[i.nombre]||0)+i.cant));const habitual=Object.entries(productos).sort((a,b)=>b[1]-a[1])[0]?.[0]||'—';
   box.style.display='';box.innerHTML=`<strong>Cliente existente</strong><span>${ventas.length} compras · ${fmtGs(total)} acumulado · Última ${formatoFecha(ultima.fecha)||ultima.fecha}</span><span>${pendientes.length?'<b style="color:var(--warn)">'+pendientes.length+' venta(s) pendiente(s)</b>':'Sin ventas pendientes'} · ${canceladas} cancelada(s) · Habitual: ${esc(habitual)}</span>`;
 }
+function vUsarUltimaCompra(){
+  const nombre=(gs('vCliente')?.value||'').trim();
+  const ultima=ultimaVentaDeCliente(nombre);
+  if(!ultima){toast(nombre?'Este cliente todavía no tiene compras anteriores':'Elegí primero un cliente existente');return;}
+  const asignar=(id,valor)=>{const el=gs(id);if(el&&valor!==undefined&&valor!==null&&valor!=='')el.value=valor;};
+  asignar('vTel',ultima.contacto);asignar('vRuc',ultima.ruc);asignar('vUbicacion',ultima.ubicacion);asignar('vReferencia',ultima.direccion_referencia);asignar('vObs',ultima.observaciones);
+  [['vCiudad',ultima.ciudad],['vTipoEnvio',ultima.tipo_envio],['vDelivery',ultima.delivery_persona],['vMetodo',ultima.metodo_pago],['vTipoPago',ultima.tipo_pago]].forEach(([id,val])=>{const el=gs(id);if(el&&[...el.options].some(o=>o.value===val))el.value=val;});
+  vTipoEnvioChange();vCiudadChange();if(ultima.costo_delivery!==undefined)setMoneyValue('vCostoEnvio',ultima.costo_delivery);vCalcTotal();toast('Datos de la última compra cargados');
+}
 function vAgregarObsRapida(texto){
   const el=gs('vObs');if(!el)return;
   const actual=el.value.trim();
@@ -3205,6 +3242,21 @@ function vTipoEnvioChange(){
   }
   vCalcTotal();
 }
+function vRenderEnvioAtajos(){
+  const wrap=gs('vEnvioAtajos'),sel=gs('vTipoEnvio');if(!wrap||!sel)return;
+  const candidatos=[['Delivery',/delivery/i],['Retiro local',/retiro/i],['Transportadora',/transport/i],['Uber Moto',/uber/i]];
+  wrap.innerHTML=candidatos.map(([label,re])=>{const opt=[...sel.options].find(o=>re.test(o.value));return opt?`<button type="button" onclick="vAplicarAtajoEnvio('${esc(opt.value)}')">${label}</button>`:'';}).join('');
+}
+function vAplicarAtajoEnvio(valor){if(gs('vTipoEnvio'))gs('vTipoEnvio').value=valor;vTipoEnvioChange();}
+function vActivarNavegacionEnter(){
+  const root=gs('pv-registro');if(!root||root.dataset.enterReady)return;root.dataset.enterReady='1';
+  root.addEventListener('keydown',e=>{if(e.key!=='Enter'||e.shiftKey||e.target.tagName==='TEXTAREA'||e.target.id==='vProdSearch'||e.target.closest('.prod-picker'))return;const campos=[...root.querySelectorAll('input:not([type="hidden"]),select,textarea,button')].filter(el=>!el.disabled&&el.offsetParent!==null&&el.tabIndex!==-1);const i=campos.indexOf(e.target);if(i>=0&&campos[i+1]){e.preventDefault();campos[i+1].focus();}});
+}
+function vLimpiarErrores(){document.querySelectorAll('#pv-registro .sales-form-section.has-error').forEach(s=>s.classList.remove('has-error'));}
+function vMarcarError(id,mensaje){
+  vLimpiarErrores();const el=gs(id),section=el?.closest('.sales-form-section');if(section)section.classList.add('has-error');
+  if(el){el.focus({preventScroll:true});(section||el).scrollIntoView({behavior:'smooth',block:'center'});}showAlert('vMsg',mensaje,'err');
+}
 function esDeliveryPropio(tipo){
   return String(tipo||'').trim().toLowerCase()==='delivery';
 }
@@ -3239,7 +3291,8 @@ function vTipoPagoChange(){
 }
 let vUltimaVentaGuardada=null;
 async function vGuardar(confirmado=false){
-  if(!carrito.length){showAlert('vMsg','Agregá al menos un producto antes de guardar la venta.','err');return;}
+  vLimpiarErrores();
+  if(!carrito.length){vMarcarError('vProdSearch','Agregá al menos un producto antes de guardar la venta.');return;}
   const btn=gs('vGuardarBtn');
   const btnTxt=btn?btn.textContent:'Guardar Venta';
   if(btn){btn.disabled=true;btn.textContent='Guardando...';}
@@ -3251,9 +3304,11 @@ async function vGuardar(confirmado=false){
   const fechaStr=gs('vFecha').value;
   const mes=mesDesdeFecha(fechaStr);
   const subtotalBruto=carrito.reduce((s,p)=>s+p.precio*p.cant,0);
-  const descuento=Math.min(subtotalBruto,moneyVal('vDescuento'));
-  const totalProds=subtotalBruto-descuento;
-  const totalVentaForm=totalProds+moneyVal('vCostoEnvio');
+  const envioBruto=moneyVal('vCostoEnvio');
+  const descuento=vDescuentoMonto(vSubtotalDescontable());
+  const totalVentaForm=subtotalBruto+envioBruto-descuento;
+  const costoDeliveryNeto=envioBruto;
+  const totalProds=Math.max(0,subtotalBruto-descuento);
   const abono1=moneyVal('vMontoPagado'),abono2=moneyVal('vMontoPagado2');
   const abonos=[];const ahora=new Date().toISOString();const sesion=leerSesionGuardada();const actor=sesion?.user?.email||'Usuario del panel';
   if(abono1>0)abonos.push({monto:abono1,metodo:gs('vMetodo').value,fecha:ahora,usuario:actor});
@@ -3262,13 +3317,13 @@ async function vGuardar(confirmado=false){
   const estadoPago=montoTotal<=0?'Pendiente':montoTotal>=totalVentaForm?'Pagado':'Parcial';
   const row={fecha:fechaStr,mes,cliente:gs('vCliente').value,contacto:gs('vTel').value,ruc:gs('vRuc').value,
     detalle:carrito.map(p=>p.nombre+' x'+p.cant).join(', '),ciudad,tipo_envio:gs('vTipoEnvio').value,
-    costo_delivery:moneyVal('vCostoEnvio'),total_productos:totalProds,descuento,
+    costo_delivery:costoDeliveryNeto,total_productos:totalProds,descuento,
     ubicacion:gs('vUbicacion').value,direccion_referencia:gs('vReferencia')?.value||'',dia_entrega:gs('vDiaEntrega').value||null,
     metodo_pago:abono2>0?gs('vMetodo').value+' + '+gs('vMetodo2').value:gs('vMetodo').value,tipo_pago:gs('vTipoPago')?.value||(listaGet('tipos_pago')[0]||'Pago adelantado'),estado_pago:estadoPago,estado_entrega:listaGet('estados_entrega').includes('Pendiente')?'Pendiente':(listaGet('estados_entrega')[0]||'Pendiente'),estado_pedido:'Nuevo',
     monto_pagado:montoTotal,saldo_pendiente:Math.max(0,totalVentaForm-montoTotal),abonos,comprobante:gs('vComprobante')?.value||'',preparacion_estado:'Nuevo',
     delivery_persona:gs('vDelivery').value,observaciones:gs('vObs').value,creado_por:sesion?.user?.id||null,actualizado_por:sesion?.user?.id||null,historial:[{fecha:ahora,accion:'Venta creada',usuario:actor}]};
-  if(!row.fecha){showAlert('vMsg','Elegí la fecha de compra.','err');return;}
-  if(!row.cliente){showAlert('vMsg','Escribí el nombre del cliente.','err');return;}
+  if(!row.fecha){vMarcarError('vFecha','Elegí la fecha de compra.');return;}
+  if(!row.cliente){vMarcarError('vCliente','Escribí el nombre del cliente.');return;}
   const errores=[];
   const telLimpio=String(row.contacto||'').replace(/\D/g,'');
   if(telLimpio&&!(/^0?9\d{8}$/.test(telLimpio)||/^595\d{9}$/.test(telLimpio)))errores.push('teléfono válido o dejarlo vacío');
@@ -3276,7 +3331,7 @@ async function vGuardar(confirmado=false){
   if(montoTotal>0&&!gs('vMetodo').value)errores.push('método del primer pago');
   if(abono2>0&&!gs('vMetodo2').value)errores.push('método del segundo pago');
   if(montoTotal>totalVentaForm)errores.push('un monto abonado que no supere el total');
-  if(errores.length){showAlert('vMsg','Falta corregir: '+errores.join(' · ')+'.','err');return;}
+  if(errores.length){const id=telLimpio&&!(/^0?9\d{8}$/.test(telLimpio)||/^595\d{9}$/.test(telLimpio))?'vTel':montoTotal>totalVentaForm?'vMontoPagado':String(row.ubicacion||'').trim()?'vUbicacion':'vMetodo';vMarcarError(id,'Falta corregir: '+errores.join(' · ')+'.');return;}
   if(!confirmado){if(!await vConfirmarPosibleDuplicado(row))return;vMostrarResumenVenta(row,subtotalBruto);return;}
   const stockActualPorCodigo={};
   const carritoProductos=carrito.filter(item=>item.codigo!==REGALO_CODIGO);
@@ -3332,6 +3387,8 @@ function vLimpiar(){
   if(gs('vMontoPagado'))gs('vMontoPagado').value='0';
   if(gs('vMontoPagado2'))gs('vMontoPagado2').value='0';
   if(gs('vDescuento'))gs('vDescuento').value='0';
+  if(gs('vDescuentoTipo'))gs('vDescuentoTipo').value='gs';
+  if(gs('vDescuentoAyuda'))gs('vDescuentoAyuda').textContent='Importe manual en guaraníes';
   if(gs('vTelAviso'))gs('vTelAviso').innerHTML='';
   if(gs('vClienteResultados')){gs('vClienteResultados').innerHTML='';gs('vClienteResultados').classList.remove('open');}
   if(gs('vProd'))gs('vProd').selectedIndex=0;
@@ -3399,7 +3456,7 @@ function vPostDuplicar(){
 
 const VENTA_BORRADOR_KEY='ritual_venta_borrador_v1';
 let vBorradorTimer=null,vBorradorRestaurando=false,vBorradorConsultado=false;
-const VENTA_BORRADOR_CAMPOS=['vFecha','vCliente','vTel','vRuc','vCiudad','vOtraCiudad','vTipoEnvio','vCostoEnvio','vDescuento','vMetodo','vMetodo2','vTipoPago','vEstadoPago','vMontoPagado','vMontoPagado2','vDelivery','vUbicacion','vReferencia','vDiaEntrega','vComprobante','vObs','vRegaloCant'];
+const VENTA_BORRADOR_CAMPOS=['vFecha','vCliente','vTel','vRuc','vCiudad','vOtraCiudad','vTipoEnvio','vCostoEnvio','vDescuentoTipo','vDescuento','vMetodo','vMetodo2','vTipoPago','vEstadoPago','vMontoPagado','vMontoPagado2','vDelivery','vUbicacion','vReferencia','vDiaEntrega','vComprobante','vObs','vRegaloCant'];
 function vBorradorProgramar(){
   if(vBorradorRestaurando)return;
   clearTimeout(vBorradorTimer);vBorradorTimer=setTimeout(vBorradorGuardar,500);
@@ -7240,6 +7297,32 @@ html.dark body{background:#000!important}html.dark .sales-form-section,html.dark
 @media(max-width:1180px){.sales-entry-layout{grid-template-columns:1fr}.sales-summary-sticky{position:relative;top:auto;order:-1;display:grid;grid-template-columns:repeat(3,1fr);gap:0 16px}.sales-summary-sticky>.btn,.sales-summary-client,.sales-summary-status{grid-column:1/-1}}
 @media(max-width:850px){.sales-two-columns{grid-template-columns:1fr}.sales-progress{display:none}}
 @media(max-width:620px){.sales-entry-title h2{font-size:21px}.sales-form-section{padding:13px;border-radius:15px}.sales-entry-card .fg2{grid-template-columns:1fr}.sales-nested{grid-template-columns:1fr}.sales-summary-sticky{grid-template-columns:1fr 1fr}.sales-summary-client,.sales-summary-status,.sales-summary-sticky>.btn{grid-column:1/-1}.sales-save-bar .btn{flex:1}}
+
+/* Ajuste fino de retícula y totales */
+.sales-entry-title{display:grid;grid-template-columns:minmax(0,1fr) 260px;align-items:end;gap:16px}.sales-progress{width:100%;box-sizing:border-box}.sales-progress span{flex:1;text-align:center;white-space:nowrap}.sales-entry-main,.sales-form-section,.sales-two-columns{min-width:0}.sales-form-section>.fg,.sales-two-columns>.sales-form-section>.fg{align-items:end}.sales-discount-total{align-items:end!important}.sales-discount-total>.field,.sales-discount-total>.cart-total{min-height:76px;box-sizing:border-box}.sales-discount-total>.field{display:flex;flex-direction:column;justify-content:flex-end}.discount-control{display:grid;grid-template-columns:82px minmax(0,1fr);gap:8px}.discount-control select,.discount-control input{height:40px}.field-help{display:block;min-height:14px;margin-top:5px;color:var(--text3);font-size:9.5px}.sales-entry-card .cart-total{display:flex;align-items:center;justify-content:flex-end;padding:0 17px!important;font-size:17px!important;font-weight:750;white-space:nowrap}.sales-summary-total{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:12px 0 14px;border-bottom:1px solid var(--border);margin-bottom:5px}.sales-summary-total span{font-size:13px;color:var(--text2)}.sales-summary-total strong{font-size:22px;letter-spacing:-.45px;color:var(--text)}.sales-summary-sticky{box-sizing:border-box}.sales-save-bar{box-sizing:border-box;width:100%}
+@media(max-width:1180px){.sales-entry-title{grid-template-columns:1fr}.sales-progress{max-width:532px}.sales-summary-total{grid-column:1/-1}}
+@media(max-width:620px){.sales-discount-total>.field,.sales-discount-total>.cart-total{min-height:auto}.sales-entry-card .cart-total{height:52px;justify-content:center}.discount-control{grid-template-columns:76px minmax(0,1fr)}}
+
+/* Registro de ventas: retícula profesional, estados y controles rápidos */
+.sales-entry-main{gap:16px}.sales-form-section{padding:20px;border-radius:20px}.sales-section-head{min-height:38px;margin-bottom:18px}.sales-section-head h3{font-size:15px}.sales-section-head p{font-size:11px}.sales-section-head:after{content:'✓';display:grid;place-items:center;width:21px;height:21px;margin-left:auto;border-radius:50%;background:#34c759;color:#fff;font-size:11px;font-weight:800;opacity:0;transform:scale(.75);transition:opacity 180ms ease,transform 220ms var(--motion-spring)}.sales-form-section.is-complete .sales-section-head:after{opacity:1;transform:scale(1)}.sales-section-head .sales-section-toggle,.sales-section-head .sales-last-purchase{margin-left:0}.sales-last-purchase{border:0;background:rgba(0,122,255,.09);color:#007aff;border-radius:9px;padding:7px 10px;font-size:10.5px;font-weight:650;cursor:pointer}.sales-form-section.has-error{border-color:rgba(255,59,48,.65)!important;box-shadow:0 0 0 3px rgba(255,59,48,.1),0 10px 30px rgba(255,59,48,.08)!important}.sales-progress span i{display:none;margin-right:4px;font-style:normal}.sales-progress span.complete{background:rgba(52,199,89,.12);color:#218739;box-shadow:none}.sales-progress span.complete i{display:inline}.sales-discount-total{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,1fr);gap:16px;align-items:stretch!important}.discount-panel,.sales-entry-card .cart-total{min-height:146px!important;height:100%;box-sizing:border-box;border-radius:16px!important}.discount-panel{display:flex;flex-direction:column;padding:16px;border:1px solid rgba(60,60,67,.14);background:rgba(118,118,128,.035)}.discount-panel>label{display:block;margin-bottom:8px;color:var(--text3);font-size:11px;font-weight:650;letter-spacing:.45px;text-transform:uppercase}.discount-control{grid-template-columns:82px minmax(0,1fr)}.discount-control select,.discount-control input{height:42px}.discount-presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}.discount-presets button,.delivery-shortcuts button{appearance:none;border:0;border-radius:9px;background:rgba(118,118,128,.1);color:var(--text2);padding:7px 10px;font-size:10.5px;font-weight:700;cursor:pointer;transition:background 150ms ease,color 150ms ease,transform 150ms ease}.discount-presets button:hover,.delivery-shortcuts button:hover{background:rgba(0,122,255,.1);color:#007aff}.discount-presets button:active,.delivery-shortcuts button:active{transform:scale(.97)}.discount-presets button.selected{background:#007aff;color:#fff}.discount-panel .field-help{margin-top:auto;padding-top:7px}.sales-entry-card .cart-total{display:flex!important;flex-direction:column;align-items:flex-end!important;justify-content:center!important;padding:20px 24px!important;background:linear-gradient(135deg,rgba(0,122,255,.08),rgba(90,200,250,.1))!important;color:var(--text)!important;white-space:normal}.sales-entry-card .cart-total span{font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#007aff}.sales-entry-card .cart-total strong{font-size:34px;line-height:1.12;letter-spacing:-1.2px;margin-top:5px}.delivery-shortcuts{display:flex;gap:6px;flex-wrap:wrap;margin:-5px 0 13px}.sales-summary-total strong{font-size:27px;letter-spacing:-.8px}.sales-summary-sticky{padding:20px}.sales-summary-line{padding:9px 0}.sales-entry-card .fg{gap:14px}.sales-entry-card .field label{margin-bottom:7px}.sales-entry-card input,.sales-entry-card select{min-height:42px}
+@media(max-width:980px){.sales-discount-total{grid-template-columns:1fr}.discount-panel,.sales-entry-card .cart-total{min-height:132px!important}.sales-entry-card .cart-total{align-items:center!important}.sales-entry-layout{grid-template-columns:1fr}.sales-summary-sticky{position:relative;top:auto}.sales-entry-title{grid-template-columns:1fr}.sales-progress{max-width:560px}}
+@media(max-width:620px){.sales-form-section{padding:15px}.sales-section-head{flex-wrap:wrap}.sales-section-head>div{flex:1}.sales-section-head:after{order:2}.sales-last-purchase{order:3}.sales-section-toggle{order:4}.sales-discount-total{gap:10px}.discount-panel,.sales-entry-card .cart-total{min-height:128px!important}.sales-entry-card .cart-total{height:auto!important}.sales-entry-card .cart-total strong{font-size:29px}}
+
+/* Corrección visual: total sobrio, resumen original y contención de márgenes */
+#pv-registro,.sales-entry-card,.sales-entry-title,.sales-entry-layout,.sales-entry-main,.sales-two-columns{max-width:100%;box-sizing:border-box;min-width:0}.sales-entry-card{overflow:clip}.sales-entry-title{grid-template-columns:minmax(0,1fr) minmax(0,520px);width:100%}.sales-progress{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));width:100%;max-width:520px;min-width:0;overflow:hidden}.sales-progress span{display:block;min-width:0;padding:8px 5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sales-discount-total{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.discount-panel,.sales-entry-card .cart-total{min-height:142px!important;border:1px solid rgba(60,60,67,.14)!important;background:rgba(118,118,128,.035)!important}.sales-entry-card .cart-total{position:relative;align-items:flex-start!important;justify-content:center!important;padding:20px 22px!important;color:var(--text)!important}.sales-entry-card .cart-total:before{content:'';position:absolute;left:0;top:22px;bottom:22px;width:3px;border-radius:0 3px 3px 0;background:#007aff}.sales-entry-card .cart-total span{font-size:11px;color:var(--text3);letter-spacing:.55px}.sales-entry-card .cart-total strong{font-size:28px;line-height:1.15;letter-spacing:-.7px;margin-top:7px;color:var(--text)}.sales-summary-sticky{width:100%;max-width:100%;padding:20px;overflow:hidden}.sales-summary-client{margin-bottom:12px}.sales-summary-breakdown{padding:3px 0 9px;border-bottom:1px solid var(--border)}.sales-summary-breakdown .sales-summary-line{padding:6px 0}.sales-summary-line.discount strong{color:var(--text3)}.sales-summary-total{padding:14px 0 11px;margin:0;border-bottom:0}.sales-summary-total strong{font-size:25px}.sales-summary-status{margin-top:12px}.sales-summary-sticky>.btn{min-width:0;max-width:100%}
+@media(max-width:1180px){.sales-entry-title{grid-template-columns:1fr}.sales-progress{justify-self:start}}
+@media(max-width:980px){.sales-entry-layout{padding:0 2px}.sales-summary-sticky{margin-top:2px}.sales-discount-total{grid-template-columns:1fr}}
+@media(max-width:620px){.sales-entry-card{padding-inline:0!important}.sales-entry-title{padding-inline:2px}.sales-progress{gap:3px;padding:3px;border-radius:11px}.sales-progress span{font-size:9.5px;padding:8px 3px}.sales-progress span i{margin-right:2px}.sales-form-section,.sales-summary-sticky{width:100%;max-width:100%;margin-left:0;margin-right:0}.discount-panel,.sales-entry-card .cart-total{min-height:124px!important}.sales-entry-card .cart-total{align-items:flex-start!important}.sales-entry-card .cart-total strong{font-size:27px}.sales-summary-sticky{padding:17px}.sales-summary-total strong{font-size:23px}}
+
+/* Composición final: progreso unido al resumen y total sin contenedor */
+.sales-entry-title{display:block;width:100%;margin-bottom:16px}.sales-entry-layout{grid-template-columns:minmax(0,1fr) minmax(330px,360px);gap:18px}.sales-summary-column{position:sticky;top:88px;display:grid;gap:14px;width:100%;min-width:0;align-self:start}.sales-summary-column .sales-progress{width:100%;max-width:none;box-sizing:border-box}.sales-summary-column .sales-summary-sticky{position:relative;top:auto}.sales-discount-total{align-items:center!important}.sales-entry-card .cart-total{min-height:0!important;height:auto!important;border:0!important;border-radius:0!important;background:transparent!important;padding:0!important;box-shadow:none!important;align-items:flex-end!important;justify-content:center!important}.sales-entry-card .cart-total:before{display:none}.sales-entry-card .cart-total span{font-size:10.5px;color:var(--text3)}.sales-entry-card .cart-total strong{font-size:30px;margin-top:5px;text-align:right}.discount-panel{min-height:142px!important}.sales-progress span{font-size:9.5px;padding-inline:3px}.sales-progress span i{margin-right:2px}
+@media(max-width:980px){.sales-entry-layout{grid-template-columns:1fr;gap:16px}.sales-summary-column{position:relative;top:auto;max-width:100%}.sales-discount-total{grid-template-columns:minmax(0,1fr) minmax(220px,.8fr)}.sales-entry-card .cart-total{align-items:flex-end!important}}
+@media(max-width:620px){.sales-summary-column{gap:12px}.sales-discount-total{grid-template-columns:1fr}.sales-entry-card .cart-total{padding:8px 2px 2px!important;align-items:flex-end!important}.sales-entry-card .cart-total strong{font-size:27px}.sales-progress span{font-size:9px}.discount-panel{min-height:0!important}}
+
+/* Balance fino entre descuento y total */
+.sales-discount-total{grid-template-columns:minmax(0,1.18fr) minmax(300px,.82fr);gap:20px}.sales-entry-card .cart-total{padding-right:28px!important}
+@media(max-width:1100px){.sales-discount-total{grid-template-columns:minmax(0,1.1fr) minmax(240px,.9fr);gap:16px}.sales-entry-card .cart-total{padding-right:18px!important}}
+@media(max-width:620px){.sales-discount-total{grid-template-columns:1fr;gap:10px}.sales-entry-card .cart-total{padding:8px 2px 2px!important}}
 </style>
 
 <div class="ra-modal" id="raComboModal" onclick="if(event.target===this)raCerrarModal('raComboModal')">
