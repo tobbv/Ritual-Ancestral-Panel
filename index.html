@@ -2241,7 +2241,7 @@ document.addEventListener('DOMContentLoaded', function(){
     </div>
     <div class="fg fg2">
       <div class="field" id="stCodigoWrap"><label>Código</label><input class="stock-edit" id="stCodigo"></div>
-      <div class="field"><label>Nombre</label><input class="stock-edit stock-edit-name" id="stNombre"></div>
+      <div class="field"><label id="stNombreLabel">Nombre</label><input class="stock-edit stock-edit-name" id="stNombre"></div>
       <div class="field"><label>Stock actual</label><input class="stock-edit" id="stStock" type="number"></div>
       <div class="field"><label>Unidad</label><select class="select-s stock-edit" id="stUnidad"></select></div>
       <div class="field"><label>Categoría</label><select class="select-s stock-edit" id="stGrupo"></select></div>
@@ -4028,6 +4028,8 @@ function stockBaseCodigo(codigo){
   return String(codigo||'');
 }
 function stockBaseNombre(nombre,codigo){
+  const mismoGrupo=allProductos.find(x=>stockBaseCodigo(x.codigo)===stockBaseCodigo(codigo)&&String(x.nombre_base||'').trim());
+  if(mismoGrupo)return String(mismoGrupo.nombre_base).trim();
   const p=allProductos.find(x=>stockBaseCodigo(x.codigo)===stockBaseCodigo(codigo)&&String(x.codigo)===stockBaseCodigo(codigo));
   if(p)return p.nombre||nombre||'Producto';
   const limpio=String(nombre||'Producto').replace(/\s+(Rosa|Rosado|Beige|Azul|Negro|Blanco|Verde|Rojo|Dorado|Plateado|Chico|Grande|XL|XXL|Tradicional|Dulce Premium)$/i,'').trim();
@@ -4044,19 +4046,19 @@ function stockVarianteSuffix(nombre,baseNombre,codigo){
 async function stockEditarNombreGrupo(key){
   const items=allProductos.filter(p=>stockBaseCodigo(p.codigo)===key);
   if(!items.length)return;
-  const actual=stockBaseNombre(items[0].nombre,key);
-  const nuevo=prompt('Nuevo nombre del grupo',actual);
+  const actual=String(items.find(p=>String(p.nombre_base||'').trim())?.nombre_base||stockBaseNombre(items[0].nombre,key)).trim();
+  const nuevo=prompt('Nombre del producto raíz (las variantes no cambiarán)',actual);
   if(!nuevo||!nuevo.trim()||nuevo.trim()===actual)return;
   const base=nuevo.trim();
   const updates=items.map(p=>{
-    const suffix=stockVarianteSuffix(p.nombre,actual,p.codigo);
-    const nombre=(base+(suffix?' '+suffix:'')).trim();
-    return SB.from('productos').update({nombre}).eq('codigo',p.codigo);
+    const variante=String(p.variante||stockVarianteSuffix(p.nombre,actual,p.codigo)||'').trim();
+    const nombre=(base+(variante?' '+variante:'')).trim();
+    return SB.from('productos').update({nombre_base:base,variante,nombre}).eq('codigo',p.codigo);
   });
   const results=await Promise.all(updates);
   const err=results.find(r=>r.error)?.error;
   if(err){toast('No se pudo editar el grupo: '+err.message);return;}
-  toast('Nombre del grupo actualizado');
+  toast('Producto raíz actualizado; las variantes se conservaron');
   await cargarProductos();
   await cargarStock();
 }
@@ -4186,10 +4188,13 @@ function stockVariantCard(p,child){
       <div class="svc-actions"><button type="button" class="btn btn-d btn-sm" onclick="eliminarProducto('${esc(p.codigo)}','${esc(p.nombre)}')">Archivar combo</button></div>
     </div>`;
   }
+  const nombreMostrado=String(p.nombre_base||'').trim()
+    ? (String(p.nombre_base).trim()+(String(p.variante||'').trim()?' '+String(p.variante).trim():'')).trim()
+    : (p.nombre||'Producto');
   return `<div class="stock-variant-card" data-stock-row="${esc(p.codigo)}">
     <div class="svc-top">
       <input type="checkbox" class="row-check stock-row-check" data-codigo="${esc(p.codigo)}" ${stockSeleccionados.has(String(p.codigo))?'checked':''} onchange="stockToggleSeleccion('${esc(p.codigo)}',this.checked)">
-      <div class="svc-name">${esc(p.nombre)}<small>${esc(p.codigo)}</small></div>
+      <div class="svc-name">${esc(nombreMostrado)}<small>${esc(p.codigo)}</small></div>
       <span class="badge ${estadoCls}">${esc(estado)}</span>
     </div>
     <div class="svc-grid">
@@ -4328,7 +4333,9 @@ function editarStock(codigo){
       wrap.innerHTML=`<label>Código</label><input class="stock-edit" id="stCodigo" value="${esc(p.codigo)}">`;
     }
   }
-  if(gs('stNombre'))gs('stNombre').value=p.nombre;
+  const varianteActual=String(p.variante||'').trim();
+  if(gs('stNombreLabel'))gs('stNombreLabel').textContent=esGrupo?'Nombre de la variante':'Nombre del producto';
+  if(gs('stNombre'))gs('stNombre').value=esGrupo?(varianteActual||stockVarianteSuffix(p.nombre,p.nombre_base||stockBaseNombre(p.nombre,p.codigo),p.codigo)):p.nombre;
   if(gs('stStock'))gs('stStock').value=parseFloat(p.stock_actual)||0;
   if(gs('stUnidad'))gs('stUnidad').innerHTML=UNIDADES_STOCK.map(u=>`<option ${u===(p.unidad||'')?'selected':''}>${u}</option>`).join('');
   if(gs('stGrupo'))gs('stGrupo').innerHTML=CATEGORIAS_PRODUCTO.map(g=>`<option ${g===(p.grupo||'')?'selected':''}>${g}</option>`).join('');
@@ -4346,9 +4353,11 @@ async function guardarStockEdit(codigoOriginal){
   const nuevoStock=parseFloat(gs('stStock').value)||0;
   let codigoIngresado=gs('stCodigo').value.trim();
   const nuevoCodigo=stockEditBaseKey?(stockEditBaseKey+'-'+codigoIngresado.replace(/^-+/,'').toUpperCase()):codigoIngresado;
+  const nombreIngresado=gs('stNombre').value.trim();
+  const nombreBase=stockEditBaseKey?String(original?.nombre_base||stockBaseNombre(original?.nombre,original?.codigo)).trim():'';
   const row={
     codigo:nuevoCodigo,
-    nombre:gs('stNombre').value.trim(),
+    nombre:stockEditBaseKey?(nombreBase+' '+nombreIngresado).trim():nombreIngresado,
     stock_actual:nuevoStock,
     unidad:gs('stUnidad').value,
     grupo:gs('stGrupo').value,
@@ -4358,6 +4367,10 @@ async function guardarStockEdit(codigoOriginal){
     costo:moneyVal('stCosto'),
     estado:gs('stEstado').value
   };
+  if(stockEditBaseKey){
+    row.nombre_base=nombreBase;
+    row.variante=nombreIngresado;
+  }
   if(!row.codigo||!row.nombre||(stockEditBaseKey&&!codigoIngresado)){showAlert('stMsg','Codigo y nombre son obligatorios','err');return;}
   const {error}=await SB.from('productos').update(row).eq('codigo',codigoOriginal);
   if(error){showAlert('stMsg','No se pudo guardar: '+error.message,'err');return;}
