@@ -1610,13 +1610,14 @@ document.addEventListener('DOMContentLoaded', function(){
       <!-- CLIENTES -->
       <div class="pv" id="pv-clientes">
         <div class="client-toolbar">
-          <input type="text" id="cBuscar" placeholder="Buscar por nombre o ciudad..." oninput="cFiltrar()" style="max-width:340px">
+          <input type="text" id="cBuscar" placeholder="Buscar por nombre, teléfono o ciudad..." oninput="cBuscarCambio()" style="max-width:340px">
+          <select id="cOrden" class="select-s" onchange="cOrdenCambio()" style="max-width:210px"><option value="recientes">Más recientes</option><option value="compras">Más compras</option><option value="total">Mayor valor</option><option value="pendiente">Saldo pendiente</option><option value="nombre">Nombre A–Z</option></select>
           <button type="button" class="btn btn-p btn-sm" onclick="cExportarPlanilla()">Descargar clientes</button>
         </div>
-        <div class="tw">
-          <table><thead><tr><th>Cliente</th><th>WhatsApp</th><th>Ciudad</th><th>Compras</th><th>Tipo</th><th>Total comprado</th><th>Ultima compra</th><th>Pago pendiente</th><th>Nota</th><th>Acciones</th></tr></thead>
-          <tbody id="cBody"><tr><td colspan="10" class="empty">Sin datos</td></tr></tbody></table>
-        </div>
+        <div class="client-list-meta"><span id="cResultados">0 clientes</span><span>Se muestran 40 por página para mantener el panel rápido.</span></div>
+        <div id="cCards" class="client-cards"><div class="empty">Sin datos</div></div>
+        <div id="cPaginacion" class="client-pagination"></div>
+        <table style="display:none"><tbody id="cBody"></tbody></table>
       </div>
 
       <!-- DELIVERY -->
@@ -3580,12 +3581,12 @@ function vmCardVenta(r){
       <div class="vm-sale-chevron">⌄</div>
       ${alertas.length?`<div class="vm-sale-alerts">${alertas.map(a=>`<span>${uiIcon('alert')} ${esc(a)}</span>`).join('')}</div>`:''}
     </div>
-    <div class="vm-sale-body"><div class="vm-sale-sections">
+    <div class="vm-sale-body"><div class="vm-sale-body-inner"><div class="vm-sale-sections">
       <section class="vm-sale-section"><h4>${uiIcon('user')} Cliente</h4><div class="vm-detail-grid"><label>Nombre${vmInput(r,'cliente','text')}</label><label>WhatsApp${vmInput(r,'contacto','text')}</label><label>RUC / CI${vmInput(r,'ruc','text')}</label><label>Ciudad${vmCiudadSelect(r)}</label><label class="wide">Dirección / referencia${vmInput(r,'direccion_referencia','text','vm-edit-lg')}</label></div><div class="vm-section-actions">${tel?`<button class="btn btn-wa btn-sm" onclick="enviarWAId('${id}')">WhatsApp</button>`:''}${actionMenu([tel?`<a class="action-menu-item" href="tel:${esc(tel)}">Llamar</a>`:'',r.ubicacion?`<button class="action-menu-item" onclick="vmAbrirUbicacion('${id}')">Abrir Google Maps</button>`:''].filter(Boolean))}</div></section>
       <section class="vm-sale-section"><h4>${uiIcon('package')} Pedido</h4><button type="button" class="vm-product-edit" onclick="vpAbrir('${id}')"><span>${esc(r.detalle||'Sin productos')}</span><small>Editar productos y cantidades ›</small></button><div class="vm-detail-grid"><label>Preparación${vmSelect(r,'preparacion_estado',['Nuevo','Preparando','Listo'])}</label><label>Fecha de compra${vmInput(r,'fecha','date')}</label><label class="wide">Observaciones${vmInput(r,'observaciones','text','vm-edit-lg')}</label></div></section>
       <section class="vm-sale-section"><h4>${uiIcon('card')} Pago</h4><div class="vm-money-breakdown"><div><span>Productos</span><strong>${fmtGs(r.total_productos)}</strong></div>${r.descuento?`<div><span>Descuento aplicado</span><strong>−${fmtGs(r.descuento)}</strong></div>`:''}<div><span>Delivery</span><strong>${fmtGs(r.costo_delivery)}</strong></div><div class="total"><span>Total</span><strong>${fmtGs(total)}</strong></div><div><span>Abonado</span><strong>${fmtGs(r.monto_pagado)}</strong></div><div class="balance"><span>Saldo</span><strong>${fmtGs(saldo)}</strong></div></div><div class="vm-detail-grid"><label>Estado${estadoSelectVenta(r,'estado_pago')}</label><label>Método${vmSelect(r,'metodo_pago',listaGet('metodos_pago'))}</label></div><div class="vm-section-actions"><button class="btn btn-p btn-sm" onclick="vmRegistrarAbono('${id}')" ${saldo>0?'':'disabled'}>+ Registrar abono</button>${actionMenu([`<button class="action-menu-item" onclick="enviarRecordatorioPagoId('${id}')" ${saldo>0?'':'disabled'}>Recordar cobro</button>`,`<button class="action-menu-item" onclick="verHistorialVenta('${id}')">Ver historial</button>`])}</div></section>
       <section class="vm-sale-section"><h4>${uiIcon('truck')} Entrega</h4><div class="vm-detail-grid"><label>Estado${estadoSelectVenta(r,'estado_entrega')}</label><label>Delivery${vmSelect(r,'delivery_persona',['Sin asignar',...deliverysFijos.filter(d=>d.activo!==false).map(d=>d.nombre),'Uber Moto','Otro externo'])}</label><label>Fecha${vmInput(r,'dia_entrega','date')}</label><label>Tipo${vmSelect(r,'tipo_envio',listaGet('tipos_envio'))}</label><label class="wide">Ubicación${vmInput(r,'ubicacion','url','vm-edit-lg')}</label></div><div class="vm-section-actions">${r.ubicacion?`<button class="btn btn-s btn-sm" onclick="vmAbrirUbicacion('${id}')">Abrir Maps</button>`:''}${actionMenu([`<button class="action-menu-item" onclick="copiarResumenId('${id}')">Copiar resumen para delivery</button>`])}</div></section>
-    </div><div class="vm-sale-footer">${actionMenu([`<button class="action-menu-item" onclick="previsualizarWAId('${id}')">Vista previa de WhatsApp</button>`,`<button class="action-menu-item" onclick="vmDuplicarVenta('${id}')">Duplicar pedido</button>`,`<button class="action-menu-item" onclick="vmImprimirVenta('${id}')">Imprimir</button>`,`<button class="action-menu-item danger" onclick="vmEliminarVenta('${id}')">Eliminar venta</button>`],'Acciones')}</div></div>
+    </div><div class="vm-sale-footer">${actionMenu([`<button class="action-menu-item" onclick="previsualizarWAId('${id}')">Vista previa de WhatsApp</button>`,`<button class="action-menu-item" onclick="vmDuplicarVenta('${id}')">Duplicar pedido</button>`,`<button class="action-menu-item" onclick="vmImprimirVenta('${id}')">Imprimir</button>`,`<button class="action-menu-item danger" onclick="vmEliminarVenta('${id}')">Eliminar venta</button>`],'Acciones')}</div></div></div>
   </article>`;
 }
 function vmRenderCards(rows){const box=gs('vmCards');if(!box)return;box.innerHTML=rows.length?rows.map(vmCardVenta).join(''):`<div class="empty">Sin ventas para ${esc(mesFiltro)}</div>`;vmAplicarFiltro();}
@@ -4489,17 +4490,26 @@ async function mGuardar(){
 function mLimpiar(){['mProd','mCant','mCostoU','mProv','mObs'].forEach(id=>{const el=gs(id);if(el)el.value='';});gs('mFecha').value=fechaHoyLocal();}
 
 // ═══ CLIENTES ═══
+let cPagina=1;
+const C_POR_PAGINA=40;
+const cClientesAbiertos=new Set();
 async function cCargar(){
-  const tbody=gs('cBody');if(tbody)tbody.innerHTML='<tr><td colspan="8" class="empty"><span class="spinner"></span> Cargando clientes...</td></tr>';
+  const cards=gs('cCards');if(cards)cards.innerHTML='<div class="empty"><span class="spinner"></span> Cargando clientes...</div>';
   try{
-    const {data,error}=await SB.from('ventas').select('*').order('fecha',{ascending:false});
-    if(error)throw error;
-    allVentasCache=data||[];
-    clientesResumen=cArmarResumen(data||[]);
+    const acumuladas=[];
+    for(let desde=0;desde<20000;desde+=1000){
+      const {data,error}=await SB.from('ventas').select('*').order('fecha',{ascending:false}).range(desde,desde+999);
+      if(error)throw error;
+      acumuladas.push(...(data||[]));
+      if(!data||data.length<1000)break;
+    }
+    allVentasCache=acumuladas;
+    clientesResumen=cArmarResumen(acumuladas);
   }catch(e){
     clientesResumen=cArmarResumen(ventasDelMes);
-    if(tbody&&!clientesResumen.length)tbody.innerHTML='<tr><td colspan="8" class="empty">No se pudieron cargar clientes</td></tr>';
+    if(cards&&!clientesResumen.length)cards.innerHTML='<div class="empty">No se pudieron cargar clientes</div>';
   }
+  cPagina=1;
   cFiltrar();
 }
 function cArmarResumen(rows){
@@ -4507,44 +4517,51 @@ function cArmarResumen(rows){
   (rows||[]).forEach(r=>{
     const nombre=(r.cliente||'').trim();
     if(!nombre)return;
-    const key=nombre.toLowerCase();
-    if(!map[key])map[key]={nombre,tel:'',ciudad:'',compras:0,total:0,ultima:'',pendiente:0};
+    const telNormalizado=cNormalizarTelefono(r.contacto);
+    const key=encodeURIComponent(telNormalizado?('tel:'+telNormalizado):('nom:'+clienteKey(nombre))).replace(/'/g,'%27');
+    if(!map[key])map[key]={key,nombre,tel:'',ciudad:'',compras:0,total:0,ultima:'',pendiente:0,entregadas:0,canceladas:0,productos:{}};
     const c=map[key];
     c.compras++;
-    if(r.contacto)c.tel=r.contacto;
-    if(r.ciudad)c.ciudad=r.ciudad;
+    if(!c.ultima||String(r.fecha||'')>=String(c.ultima||'')){c.nombre=nombre;if(r.contacto)c.tel=r.contacto;if(r.ciudad)c.ciudad=r.ciudad;}
     const total=(parseInt(r.total_productos)||0)+(parseInt(r.costo_delivery)||0);
     c.total+=total;
-    if(r.estado_pago!=='Pagado')c.pendiente+=total;
+    c.pendiente+=saldoPendienteVenta(r);
+    if(r.estado_entrega==='Entregado')c.entregadas++;
+    if(r.estado_entrega==='Cancelado')c.canceladas++;
+    itemsVentaDesdeDetalle(r.detalle).forEach(i=>c.productos[i.nombre]=(c.productos[i.nombre]||0)+(parseInt(i.cant)||1));
     if(!c.ultima||String(r.fecha||'')>String(c.ultima||''))c.ultima=r.fecha||'';
   });
   return Object.values(map).sort((a,b)=>String(b.ultima||'').localeCompare(String(a.ultima||''))||b.compras-a.compras||b.total-a.total);
 }
+function cBuscarCambio(){cPagina=1;cFiltrar();}
+function cOrdenCambio(){cPagina=1;cFiltrar();}
+function cDatosOrdenados(){
+  const q=(gs('cBuscar')?.value||'').trim().toLowerCase();
+  const orden=gs('cOrden')?.value||'recientes';
+  const lista=clientesResumen.filter(c=>!q||[c.nombre,c.ciudad,c.tel].some(v=>String(v||'').toLowerCase().includes(q)));
+  return lista.sort((a,b)=>orden==='compras'?b.compras-a.compras:orden==='total'?b.total-a.total:orden==='pendiente'?b.pendiente-a.pendiente:orden==='nombre'?String(a.nombre).localeCompare(String(b.nombre),'es'):String(b.ultima||'').localeCompare(String(a.ultima||'')));
+}
 function cFiltrar(){
-  const tbody=gs('cBody');if(!tbody)return;
-  const q=(gs('cBuscar')?gs('cBuscar').value:'').toLowerCase();
-  const filtrado=clientesResumen.filter(c=>!q||(c.nombre||'').toLowerCase().includes(q)||(c.ciudad||'').toLowerCase().includes(q)||(c.tel||'').toLowerCase().includes(q));
-  if(!filtrado.length){tbody.innerHTML='<tr><td colspan="10" class="empty">Sin clientes</td></tr>';return;}
+  const cards=gs('cCards');if(!cards)return;
+  const filtrado=cDatosOrdenados();
+  if(gs('cResultados'))gs('cResultados').textContent=filtrado.length+' cliente'+(filtrado.length===1?'':'s');
+  const paginas=Math.max(1,Math.ceil(filtrado.length/C_POR_PAGINA));cPagina=Math.min(cPagina,paginas);
+  const pagina=filtrado.slice((cPagina-1)*C_POR_PAGINA,cPagina*C_POR_PAGINA);
+  if(!pagina.length){cards.innerHTML='<div class="empty">Sin clientes</div>';cRenderPaginacion(0);return;}
   const notas=notasClientesGet();
-  tbody.innerHTML=filtrado.map(c=>{
+  cards.innerHTML=pagina.map(c=>{
     const frecuente=c.compras>=3;
     const vip=c.compras>=5;
-    const tipo=frecuente?'Cliente frecuente':'Cliente';
     const nota=notas[clienteKey(c.nombre)]||'';
-    return `<tr class="${frecuente?'cliente-frecuente':''}">
-      <td class="td-em">${esc(c.nombre)}</td>
-      <td class="td-mu">${esc(c.tel||'-')}</td>
-      <td class="td-mu">${esc(c.ciudad||'-')}</td>
-      <td class="td-m"><span class="cliente-badge ${frecuente?'freq':''}">${c.compras}</span></td>
-      <td><span class="cliente-tipo ${frecuente?'freq':''}">${tipo}</span>${vip?` <span class="badge b-warn badge-with-icon" title="5+ compras: considerá un descuento o regalo">${uiIcon('bulb')} VIP</span>`:''}</td>
-      <td class="td-m">${fmtGs(c.total)}</td>
-      <td class="td-mu">${formatoFecha(c.ultima)||'-'}</td>
-      <td class="td-m" style="color:${c.pendiente>0?'var(--warn)':'var(--ok)'}">${c.pendiente>0?fmtGs(c.pendiente):'OK'}</td>
-      <td><input type="text" class="vm-edit vm-edit-md" value="${esc(nota)}" placeholder="Agregar nota..." onchange="notasClienteGuardar('${esc(c.nombre)}',this.value);toast('Nota guardada')"></td>
-      <td><select class="client-action-select" onchange="clienteAccionSeleccionar(this,'${esc(c.nombre)}','${esc(c.tel||'')}')"><option value="">Acciones…</option><option value="repetir">Repetir última compra</option>${c.tel?'<option value="whatsapp">Abrir WhatsApp</option>':''}</select></td>
-    </tr>`;
+    const abierta=cClientesAbiertos.has(c.key),favoritos=Object.entries(c.productos||{}).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([n,q])=>n+' ×'+q).join(' · ')||'Sin detalle';
+    const historial=((allVentasCache||[]).filter(v=>(c.tel&&cNormalizarTelefono(v.contacto)===cNormalizarTelefono(c.tel))||(!c.tel&&clienteKey(v.cliente)===clienteKey(c.nombre))).sort((a,b)=>String(b.fecha||'').localeCompare(String(a.fecha||''))).slice(0,5));
+    return `<article class="client-card${abierta?' open':''}" data-client-key="${esc(c.key)}"><div class="client-card-head" onclick="cToggleCliente('${esc(c.key)}')"><div class="client-primary"><div class="client-name">${esc(c.nombre)} ${vip?'<span class="badge b-warn">VIP</span>':frecuente?'<span class="badge b-ok">Frecuente</span>':''}</div><div class="client-sub"><span>${uiIcon('pin')} ${esc(c.ciudad||'Sin ciudad')}</span><span>${uiIcon('clock')} ${formatoFecha(c.ultima)||'Sin fecha'}</span></div></div><div class="client-kpi client-purchases"><small>Compras</small><strong>${c.compras}</strong></div><div class="client-kpi client-total"><small>Total comprado</small><strong>${fmtGs(c.total)}</strong></div><div class="client-kpi"><small>Saldo</small><strong class="${c.pendiente>0?'due':''}">${c.pendiente>0?fmtGs(c.pendiente):'Sin saldo'}</strong></div><div class="client-chevron">⌄</div></div><div class="client-card-body"><div class="client-card-body-inner"><div class="client-detail"><section class="client-panel"><h4>${uiIcon('user')} Ficha del cliente</h4><div class="client-info-grid"><div><span>WhatsApp</span><strong>${esc(c.tel||'Sin teléfono')}</strong></div><div><span>Ciudad</span><strong>${esc(c.ciudad||'Sin ciudad')}</strong></div><div><span>Entregadas</span><strong>${c.entregadas}</strong></div><div><span>Canceladas</span><strong>${c.canceladas}</strong></div><div style="grid-column:1/-1"><span>Productos habituales</span><strong>${esc(favoritos)}</strong></div></div><input type="text" class="client-note" value="${esc(nota)}" placeholder="Nota sobre preferencias o referencias…" onchange="notasClienteGuardar('${esc(c.nombre)}',this.value);toast('Nota guardada')"><div class="client-actions">${c.tel?`<button class="btn btn-wa btn-sm" onclick="window.open('https://web.whatsapp.com/send?phone=${esc(telefonoWA(c.tel))}','_blank')">WhatsApp</button>`:''}<button class="btn btn-p btn-sm" onclick="repetirCompraCliente('${esc(c.nombre)}')">Repetir compra</button>${actionMenu([`<button class="action-menu-item danger" onclick="cOcultarCliente('${esc(c.nombre)}')">Ocultar cliente</button>`])}</div></section><section class="client-panel"><h4>${uiIcon('clock')} Últimas ventas</h4><div class="client-history">${historial.length?historial.map(v=>`<div class="client-history-row"><span>${formatoFecha(v.fecha)||'-'}</span><span title="${esc(v.detalle||'')}">${esc(v.detalle||'Sin productos')}</span><strong>${fmtGs(totalVenta(v))}</strong><span class="vm-status ${saldoPendienteVenta(v)>0?'is-warn':'is-ok'}">${saldoPendienteVenta(v)>0?'Pendiente':'Pagado'}</span></div>`).join(''):'<div class="empty">Sin historial</div>'}</div></section></div></div></div></article>`;
   }).join('');
+  cRenderPaginacion(paginas);
 }
+function cToggleCliente(key){if(cClientesAbiertos.has(key))cClientesAbiertos.delete(key);else cClientesAbiertos.add(key);document.querySelector(`.client-card[data-client-key="${CSS.escape(key)}"]`)?.classList.toggle('open',cClientesAbiertos.has(key));}
+function cRenderPaginacion(total){const box=gs('cPaginacion');if(!box)return;if(total<=1){box.innerHTML='';return;}box.innerHTML=`<button class="btn btn-s btn-sm" onclick="cIrPagina(${cPagina-1})" ${cPagina<=1?'disabled':''}>Anterior</button><span>Página ${cPagina} de ${total}</span><button class="btn btn-s btn-sm" onclick="cIrPagina(${cPagina+1})" ${cPagina>=total?'disabled':''}>Siguiente</button>`;}
+function cIrPagina(p){cPagina=Math.max(1,p);cFiltrar();gs('pv-clientes')?.scrollIntoView({behavior:'smooth',block:'start'});}
 function clienteAccionSeleccionar(el,nombre,tel){
   const accion=el.value;el.value='';
   if(accion==='repetir')repetirCompraCliente(nombre);
@@ -4584,8 +4601,7 @@ function repetirCompraCliente(nombre){
   },50);
 }
 function cClientesFiltrados(){
-  const q=(gs('cBuscar')?gs('cBuscar').value:'').toLowerCase();
-  return clientesResumen.filter(c=>!q||(c.nombre||'').toLowerCase().includes(q)||(c.ciudad||'').toLowerCase().includes(q)||(c.tel||'').toLowerCase().includes(q));
+  return cDatosOrdenados();
 }
 function cNormalizarTelefono(tel){
   let n=String(tel||'').replace(/\D/g,'');
@@ -7175,6 +7191,28 @@ window.addEventListener('DOMContentLoaded', async ()=>{
 .ra-calc-result{padding:14px;border:1px solid var(--border);border-radius:12px;background:#fffdf8;display:grid;gap:7px}.ra-calc-line{display:flex;justify-content:space-between;gap:12px}
 .ra-ok{color:var(--ok)}.ra-warn{color:var(--warn)}.ra-err{color:var(--err)}
 @media(max-width:640px){.ra-component-row{grid-template-columns:1fr 70px 36px}.ra-modal-box{padding:16px}.ra-quick-grid{grid-template-columns:1fr!important}}
+
+/* Movimiento unificado tipo iOS */
+:root{--motion-spring:cubic-bezier(.22,.8,.25,1);--motion-fast:180ms;--motion-panel:320ms}
+.vm-sale-card{transition:border-color var(--motion-fast),box-shadow var(--motion-panel) var(--motion-spring),opacity var(--motion-fast),transform var(--motion-panel) var(--motion-spring)!important}
+.vm-sale-card:hover{transform:translateY(-1px)}
+.vm-sale-body{display:grid!important;grid-template-rows:0fr;border-top:0!important;overflow:hidden;opacity:0;visibility:hidden;transition:grid-template-rows var(--motion-panel) var(--motion-spring),opacity 220ms ease,visibility 0s linear var(--motion-panel),border-color var(--motion-fast)!important}
+.vm-sale-card.open .vm-sale-body{grid-template-rows:1fr;opacity:1;visibility:visible;border-top:1px solid var(--border)!important;transition:grid-template-rows var(--motion-panel) var(--motion-spring),opacity 240ms ease 45ms,visibility 0s,border-color var(--motion-fast)!important}
+.vm-sale-body-inner{min-height:0;overflow:hidden;transform:translateY(-8px);transition:transform var(--motion-panel) var(--motion-spring)}
+.vm-sale-card.open .vm-sale-body-inner{transform:translateY(0)}
+.vm-sale-chevron,.stock-bubble-chevron{transition:transform var(--motion-panel) var(--motion-spring),background var(--motion-fast)!important}
+.pv.active{animation:raPageIn 260ms var(--motion-spring) both}.modal-bg.open .modal,.ra-modal.open .ra-modal-box{animation:raModalIn 240ms var(--motion-spring) both}
+.action-menu[open] .action-menu-pop{animation:raMenuIn 160ms var(--motion-spring) both}
+@keyframes raPageIn{from{opacity:.25;transform:translateY(5px)}to{opacity:1;transform:none}}
+@keyframes raModalIn{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes raMenuIn{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
+
+/* Clientes: resumen compacto, detalle desplegable y paginación */
+.client-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}.client-toolbar input{flex:1;min-width:230px}.client-list-meta{display:flex;justify-content:space-between;gap:12px;color:var(--text3);font-size:11px;margin:8px 2px 12px}.client-cards{display:grid;gap:10px}.client-card{background:var(--card,#fff);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:box-shadow var(--motion-panel) var(--motion-spring),transform var(--motion-panel) var(--motion-spring),border-color var(--motion-fast)}.client-card:hover{box-shadow:0 8px 24px rgba(24,24,20,.065);transform:translateY(-1px)}.client-card-head{display:grid;grid-template-columns:minmax(190px,1.4fr) 100px 145px 145px 30px;gap:12px;align-items:center;padding:14px 16px;cursor:pointer}.client-primary{min-width:0}.client-name{font-size:14px;font-weight:760;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.client-sub{display:flex;gap:10px;flex-wrap:wrap;color:var(--text3);font-size:10.5px;margin-top:5px}.client-kpi small{display:block;color:var(--text3);font-size:9px;text-transform:uppercase;letter-spacing:.35px;margin-bottom:3px}.client-kpi strong{font-size:12px;color:var(--text)}.client-kpi .due{color:var(--warn)}.client-chevron{font-size:20px;color:var(--text3);transition:transform var(--motion-panel) var(--motion-spring)}.client-card.open .client-chevron{transform:rotate(180deg)}.client-card-body{display:grid;grid-template-rows:0fr;opacity:0;visibility:hidden;transition:grid-template-rows var(--motion-panel) var(--motion-spring),opacity 220ms ease,visibility 0s linear var(--motion-panel)}.client-card.open .client-card-body{grid-template-rows:1fr;opacity:1;visibility:visible;transition:grid-template-rows var(--motion-panel) var(--motion-spring),opacity 220ms ease 40ms,visibility 0s}.client-card-body-inner{min-height:0;overflow:hidden}.client-detail{border-top:1px solid var(--border);padding:14px 16px;background:var(--surface,#f8f8fa);display:grid;grid-template-columns:minmax(220px,.8fr) minmax(300px,1.2fr);gap:14px}.client-panel{background:#fff;border:1px solid var(--border);border-radius:13px;padding:13px}.client-panel h4{font-size:10px;text-transform:uppercase;letter-spacing:.4px;margin:0 0 10px}.client-info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;font-size:11px}.client-info-grid span{color:var(--text3)}.client-info-grid strong{display:block;color:var(--text);margin-top:2px}.client-note{width:100%;margin-top:11px}.client-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}.client-history{display:grid;gap:6px}.client-history-row{display:grid;grid-template-columns:80px minmax(150px,1fr) 100px 88px;gap:8px;align-items:center;padding:8px 9px;border-radius:9px;background:var(--surface2);font-size:10.5px}.client-history-row span:nth-child(2){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.client-pagination{display:flex;justify-content:center;align-items:center;gap:8px;margin:16px 0}.client-pagination span{font-size:11px;color:var(--text3)}
+@media(max-width:900px){.client-card-head{grid-template-columns:minmax(180px,1fr) 90px 120px 26px}.client-card-head .client-total{display:none}.client-detail{grid-template-columns:1fr}}
+@media(max-width:620px){.client-list-meta{align-items:flex-start;flex-direction:column}.client-card-head{grid-template-columns:minmax(150px,1fr) 90px 24px;padding:13px}.client-card-head .client-purchases,.client-card-head .client-total{display:none}.client-detail{padding:10px}.client-info-grid{grid-template-columns:1fr}.client-history-row{grid-template-columns:72px 1fr 78px}.client-history-row span:last-child{display:none}}
+html.dark .client-panel{background:#232325!important}html.dark .client-detail{background:#1c1c1e!important}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
 
 <div class="ra-modal" id="raComboModal" onclick="if(event.target===this)raCerrarModal('raComboModal')">
