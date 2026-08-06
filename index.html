@@ -1312,13 +1312,15 @@ document.addEventListener('DOMContentLoaded', function(){
 
       <!-- REGISTRO -->
       <div class="pv" id="pv-registro">
-        <div class="card">
-          <div class="card-hdr">Nueva Venta</div>
+        <div class="card sales-entry-card">
+          <div class="sales-entry-title"><div><span class="sales-entry-kicker">Nueva venta</span><h2>Registrar pedido</h2></div><div class="sales-progress"><span class="active">1 Cliente</span><span>2 Pedido</span><span>3 Pago</span><span>4 Entrega</span></div></div>
+          <div class="sales-entry-layout"><div class="sales-entry-main">
+          <section class="sales-form-section"><div class="sales-section-head"><span class="sales-section-icon"><svg viewBox="0 0 24 24"><path d="M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10"/></svg></span><div><h3>Cliente</h3><p>Solo nombre y fecha son necesarios para comenzar.</p></div><button type="button" class="sales-section-toggle" onclick="vToggleOptional('vClienteOpcional',this)">Más datos</button></div>
           <div class="fg fg2" style="margin-bottom:14px;">
             <div class="field"><label>Fecha</label><input type="date" id="vFecha"></div>
             <div class="field" style="position:relative">
               <label>Cliente</label>
-              <input type="text" id="vCliente" placeholder="Nombre del cliente" autocomplete="off" oninput="vClienteBuscar()" onfocus="vClienteBuscar()" onblur="setTimeout(()=>{if(gs('vClienteResultados'))gs('vClienteResultados').classList.remove('open')},150)">
+              <input type="text" id="vCliente" placeholder="Nombre del cliente" autocomplete="off" oninput="vClienteBuscar();vCalcTotal()" onfocus="vClienteBuscar()" onblur="setTimeout(()=>{if(gs('vClienteResultados'))gs('vClienteResultados').classList.remove('open')},150)">
               <div id="vClienteResultados" class="global-results" style="max-height:220px"></div>
             </div>
             <div class="field">
@@ -1326,10 +1328,11 @@ document.addEventListener('DOMContentLoaded', function(){
               <input type="text" id="vTel" placeholder="0981..." oninput="vTelInput()">
               <div id="vTelAviso" style="font-size:11px;margin-top:4px"></div>
             </div>
-            <div class="field"><label>RUC / CI</label><input type="text" id="vRuc" placeholder="Opcional"></div>
+            <div class="field" id="vClienteOpcional"><label>RUC / CI</label><input type="text" id="vRuc" placeholder="Opcional"></div>
           </div>
           <div id="vClienteFicha" class="ra-client-ficha" style="display:none"></div>
-          <div class="card-hdr" style="margin-top:4px;">Productos</div>
+          </section>
+          <section class="sales-form-section"><div class="sales-section-head"><span class="sales-section-icon"><svg viewBox="0 0 24 24"><path d="m3 6 9-4 9 4-9 4-9-4Zm0 0v12l9 4 9-4V6M12 10v12"/></svg></span><div><h3>Pedido</h3><p>Buscá productos, variantes y cantidades.</p></div></div>
           <div id="vCombosBar" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px"></div>
           <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:10px;">
             <!-- Producto picker — ocupa el espacio disponible -->
@@ -1377,24 +1380,29 @@ document.addEventListener('DOMContentLoaded', function(){
             <div class="field"><label>Descuento (Gs)</label><input type="text" inputmode="numeric" id="vDescuento" value="0" oninput="formatMoneyInput(this);vCalcTotal()"></div>
             <div class="cart-total" id="vTotal">Total: Gs 0</div>
           </div>
-          <div class="fg fg2" style="margin:14px 0;">
-            <div class="field"><label>Ciudad</label><select id="vCiudad" class="select-s" onchange="vCiudadChange()"><option value="">— Seleccionar —</option></select></div>
-            <div class="field" id="vOtraCiudadWrap" style="display:none"><label>Otra ciudad</label><input type="text" id="vOtraCiudad"></div>
-            <div class="field"><label>Tipo de Envio</label><select id="vTipoEnvio" class="select-s" onchange="vTipoEnvioChange()"></select></div>
-            <div class="field"><label>Costo Envio (Gs)</label><input type="text" inputmode="numeric" id="vCostoEnvio" value="0" oninput="formatMoneyInput(this);vCalcTotal()"></div>
-            <div class="field"><label>Metodo de Pago</label><select id="vMetodo" class="select-s" onchange="vMetodoChange()"></select></div>
-            <div class="field"><label>Tipo de Pago</label><select id="vTipoPago" class="select-s" onchange="vTipoPagoChange()"></select></div>
-            <div class="field"><label>Estado de Pago</label><select id="vEstadoPago" class="select-s" onchange="vCalcTotal()"></select></div>
+          </section>
+          <div class="sales-two-columns">
+          <section class="sales-form-section"><div class="sales-section-head"><span class="sales-section-icon"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/></svg></span><div><h3>Pago</h3><p>El saldo se calcula automáticamente.</p></div></div><div class="fg fg2">
+            <div class="field"><label>Método</label><select id="vMetodo" class="select-s" onchange="vMetodoChange()"></select></div>
+            <div class="field"><label>Tipo de pago</label><select id="vTipoPago" class="select-s" onchange="vTipoPagoChange()"></select></div>
+            <div class="field"><label>Estado</label><select id="vEstadoPago" class="select-s" onchange="vCalcTotal()"></select></div>
             <div class="field"><label>Monto abonado (Gs)</label><input type="text" inputmode="numeric" id="vMontoPagado" value="0" oninput="formatMoneyInput(this);vCalcTotal()"></div>
-            <div class="field"><label>Segundo método (opcional)</label><select id="vMetodo2" class="select-s"></select></div>
-            <div class="field"><label>Segundo abono (Gs)</label><input type="text" inputmode="numeric" id="vMontoPagado2" value="0" oninput="formatMoneyInput(this);vCalcTotal()"></div>
-            <div class="field"><label>Saldo pendiente</label><input type="text" id="vSaldoPendiente" value="Gs 0" readonly></div>
-            <div class="field"><label>Delivery asignado</label><select id="vDelivery" class="select-s"></select></div>
-            <div class="field"><label>Ubicacion</label><input type="url" id="vUbicacion" placeholder="Link de ubicacion"></div>
-            <div class="field"><label>Dirección / referencia</label><input type="text" id="vReferencia" placeholder="Casa, portón, entre calles..."></div>
-            <div class="field"><label>Dia de entrega</label><input type="date" id="vDiaEntrega"></div>
-            <div class="field"><label>Comprobante / referencia</label><input type="text" id="vComprobante" placeholder="Opcional"></div>
-          </div>
+            <div class="field sales-wide"><button type="button" class="btn btn-s btn-sm" onclick="vToggleSegundoPago()" id="vSegundoPagoBtn">+ Agregar segundo método</button></div>
+            <div id="vSegundoPagoWrap" class="sales-nested sales-wide" style="display:none"><div class="field"><label>Segundo método</label><select id="vMetodo2" class="select-s"></select></div><div class="field"><label>Segundo abono (Gs)</label><input type="text" inputmode="numeric" id="vMontoPagado2" value="0" oninput="formatMoneyInput(this);vCalcTotal()"></div></div>
+            <div class="field sales-wide"><label>Saldo pendiente</label><input type="text" id="vSaldoPendiente" value="Gs 0" readonly></div>
+            <div class="field sales-wide"><label>Comprobante / referencia</label><input type="text" id="vComprobante" placeholder="Opcional"></div>
+          </div></section>
+          <section class="sales-form-section"><div class="sales-section-head"><span class="sales-section-icon"><svg viewBox="0 0 24 24"><path d="M3 5h11v12H3zM14 9h4l3 4v4h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg></span><div><h3>Entrega</h3><p>Mostramos solamente los datos necesarios.</p></div></div><div class="fg fg2">
+            <div class="field sales-wide"><label>Tipo de envío</label><select id="vTipoEnvio" class="select-s" onchange="vTipoEnvioChange()"></select></div>
+            <div class="field" data-shipping="city"><label>Ciudad</label><select id="vCiudad" class="select-s" onchange="vCiudadChange()"><option value="">— Seleccionar —</option></select></div>
+            <div class="field" id="vOtraCiudadWrap" data-shipping="city" style="display:none"><label>Otra ciudad</label><input type="text" id="vOtraCiudad"></div>
+            <div class="field" data-shipping="cost"><label>Costo de envío</label><input type="text" inputmode="numeric" id="vCostoEnvio" value="0" oninput="formatMoneyInput(this);vCalcTotal()"></div>
+            <div class="field" data-shipping="delivery"><label>Delivery asignado</label><select id="vDelivery" class="select-s"></select></div>
+            <div class="field sales-wide" data-shipping="location"><label>Ubicación</label><input type="url" id="vUbicacion" placeholder="Link de Google Maps"></div>
+            <div class="field sales-wide" data-shipping="reference"><label>Dirección / referencia</label><input type="text" id="vReferencia" placeholder="Casa, portón, agencia, entre calles..."></div>
+            <div class="field sales-wide" data-shipping="date"><label>Día de entrega</label><input type="date" id="vDiaEntrega"></div>
+          </div></section></div>
+          <section class="sales-form-section sales-observations"><div class="sales-section-head"><span class="sales-section-icon"><svg viewBox="0 0 24 24"><path d="M5 3h14v18H5zM8 8h8M8 12h8M8 16h5"/></svg></span><div><h3>Observaciones</h3><p>Indicaciones especiales para preparar o entregar.</p></div></div>
           <div class="field"><label>Observaciones</label>
             <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
               <button type="button" class="chip" onclick="vAgregarObsRapida('Frágil')">Frágil</button>
@@ -1402,13 +1410,14 @@ document.addEventListener('DOMContentLoaded', function(){
               <button type="button" class="chip" onclick="vAgregarObsRapida('Cliente nuevo')">Cliente nuevo</button>
               <button type="button" class="chip" onclick="vAgregarObsRapida('Coordinar horario')">Coordinar horario</button>
             </div>
-            <textarea id="vObs" rows="2" placeholder="Opcional..."></textarea></div>
-          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">
+            <textarea id="vObs" rows="2" placeholder="Opcional..."></textarea></div></section>
+          <div class="sales-save-bar">
             <button type="button" class="btn btn-s" onclick="vLimpiar()">Limpiar</button>
             <button type="button" class="btn btn-p" id="vGuardarBtn" onclick="vGuardar()">Guardar Venta</button>
           </div>
           <div id="vMsg"></div>
           <div id="vPostVenta" class="ra-postventa" style="display:none"></div>
+          </div><aside class="sales-summary-sticky"><div class="sales-summary-label">Resumen</div><div id="vSummaryClient" class="sales-summary-client">Venta nueva</div><div class="sales-summary-line"><span>Productos</span><strong id="vSummaryProducts">Gs 0</strong></div><div class="sales-summary-line"><span>Descuento</span><strong id="vSummaryDiscount">Gs 0</strong></div><div class="sales-summary-line"><span>Envío</span><strong id="vSummaryShipping">Gs 0</strong></div><div class="sales-summary-line total"><span>Total</span><strong id="vSummaryTotal">Gs 0</strong></div><div class="sales-summary-line"><span>Abonado</span><strong id="vSummaryPaid">Gs 0</strong></div><div class="sales-summary-line balance"><span>Saldo</span><strong id="vSummaryBalance">Gs 0</strong></div><div id="vSummaryStatus" class="sales-summary-status">Pendiente</div><button type="button" class="btn btn-p" onclick="vGuardar()">Guardar venta</button></aside></div>
         </div>
       </div>
 
@@ -1610,14 +1619,13 @@ document.addEventListener('DOMContentLoaded', function(){
       <!-- CLIENTES -->
       <div class="pv" id="pv-clientes">
         <div class="client-toolbar">
-          <input type="text" id="cBuscar" placeholder="Buscar por nombre, teléfono o ciudad..." oninput="cBuscarCambio()" style="max-width:340px">
-          <select id="cOrden" class="select-s" onchange="cOrdenCambio()" style="max-width:210px"><option value="recientes">Más recientes</option><option value="compras">Más compras</option><option value="total">Mayor valor</option><option value="pendiente">Saldo pendiente</option><option value="nombre">Nombre A–Z</option></select>
+          <input type="text" id="cBuscar" placeholder="Buscar por nombre o ciudad..." oninput="cFiltrar()" style="max-width:340px">
           <button type="button" class="btn btn-p btn-sm" onclick="cExportarPlanilla()">Descargar clientes</button>
         </div>
-        <div class="client-list-meta"><span id="cResultados">0 clientes</span><span>Se muestran 40 por página para mantener el panel rápido.</span></div>
-        <div id="cCards" class="client-cards"><div class="empty">Sin datos</div></div>
-        <div id="cPaginacion" class="client-pagination"></div>
-        <table style="display:none"><tbody id="cBody"></tbody></table>
+        <div class="tw">
+          <table><thead><tr><th>Cliente</th><th>WhatsApp</th><th>Ciudad</th><th>Compras</th><th>Tipo</th><th>Total comprado</th><th>Ultima compra</th><th>Pago pendiente</th><th>Nota</th><th>Acciones</th></tr></thead>
+          <tbody id="cBody"><tr><td colspan="10" class="empty">Sin datos</td></tr></tbody></table>
+        </div>
       </div>
 
       <!-- DELIVERY -->
@@ -2856,7 +2864,7 @@ function navTo(tab, el) {
   if(tab==='finanzas')  fCargar();
   if(tab==='clientes')  cCargar();
   if(tab==='config')    cfgMostrar();
-  if(tab==='registro')  poblarCombosRapidos();
+  if(tab==='registro'){poblarCombosRapidos();vTipoEnvioChange();vCalcTotal();}
 }
 
 // ═══ DATOS BASE ═══
@@ -3077,7 +3085,20 @@ function vCalcTotal(){
     const estado=abonado<=0?'Pendiente':abonado>=total?'Pagado':'Parcial';
     if([...gs('vEstadoPago').options].some(o=>o.value===estado))gs('vEstadoPago').value=estado;
   }
+  if(gs('vSummaryClient'))gs('vSummaryClient').textContent=(gs('vCliente')?.value||'').trim()||'Venta nueva';
+  if(gs('vSummaryProducts'))gs('vSummaryProducts').textContent=fmtGs(sub);
+  if(gs('vSummaryDiscount'))gs('vSummaryDiscount').textContent=desc?'−'+fmtGs(desc):fmtGs(0);
+  if(gs('vSummaryShipping'))gs('vSummaryShipping').textContent=fmtGs(env);
+  if(gs('vSummaryTotal'))gs('vSummaryTotal').textContent=fmtGs(total);
+  if(gs('vSummaryPaid'))gs('vSummaryPaid').textContent=fmtGs(abonado);
+  if(gs('vSummaryBalance'))gs('vSummaryBalance').textContent=fmtGs(Math.max(0,total-abonado));
+  if(gs('vSummaryStatus')){const estado=abonado<=0?'Pendiente':abonado>=total?'Pagado':'Parcial';gs('vSummaryStatus').textContent=estado;gs('vSummaryStatus').style.cssText=estado==='Pagado'?'background:rgba(52,199,89,.1);color:#1e8139':estado==='Parcial'?'background:rgba(0,122,255,.1);color:#176bb9':'';}
+  const pasos=document.querySelectorAll('#pv-registro .sales-progress span');
+  pasos.forEach((p,i)=>p.classList.toggle('active',i===0?!!(gs('vCliente')?.value||'').trim():i===1?carrito.length>0:i===2?abonado>0||!!gs('vMetodo')?.value:i===3?!!gs('vTipoEnvio')?.value:false));
+  if(moneyVal('vMontoPagado2')>0&&gs('vSegundoPagoWrap')){gs('vSegundoPagoWrap').style.display='grid';if(gs('vSegundoPagoBtn'))gs('vSegundoPagoBtn').textContent='− Quitar segundo método';}
 }
+function vToggleOptional(id,btn){const el=gs(id);if(!el)return;const abrir=getComputedStyle(el).display==='none';el.style.display=abrir?'':'none';if(btn)btn.textContent=abrir?'Menos datos':'Más datos';}
+function vToggleSegundoPago(){const wrap=gs('vSegundoPagoWrap'),btn=gs('vSegundoPagoBtn');if(!wrap)return;const abrir=getComputedStyle(wrap).display==='none';wrap.style.display=abrir?'grid':'none';if(!abrir){setMoneyValue('vMontoPagado2',0);if(gs('vMetodo2'))gs('vMetodo2').selectedIndex=0;vCalcTotal();}if(btn)btn.textContent=abrir?'− Quitar segundo método':'+ Agregar segundo método';}
 function vClienteBuscar(){
   const q=(gs('vCliente')?.value||'').trim().toLowerCase();
   const box=gs('vClienteResultados');if(!box)return;
@@ -3167,6 +3188,18 @@ function vActualizarRegalo(){
 }
 function vTipoEnvioChange(){
   const val=gs('vTipoEnvio')?.value||'';
+  const tipo=val.trim().toLowerCase();
+  let visibles=new Set(['reference','date']);
+  if(tipo==='delivery')visibles=new Set(['city','cost','delivery','location','reference','date']);
+  else if(tipo.includes('uber'))visibles=new Set(['city','cost','location','reference','date']);
+  else if(tipo.includes('transport'))visibles=new Set(['city','cost','reference','date']);
+  else if(!tipo||tipo.includes('definir'))visibles=new Set(['reference','date']);
+  else if(!tipo.includes('retiro')&&!tipo.includes('sin delivery'))visibles=new Set(['city','cost','reference','date']);
+  document.querySelectorAll('#pv-registro [data-shipping]').forEach(el=>{
+    const mostrar=visibles.has(el.dataset.shipping);
+    if(el.id==='vOtraCiudadWrap'){el.style.display=mostrar&&gs('vCiudad')?.value==='_otra'?'':'none';}
+    else el.style.display=mostrar?'':'none';
+  });
   if(/retiro/i.test(val)){
     setMoneyValue('vCostoEnvio',0);
   }
@@ -3319,8 +3352,12 @@ function vLimpiar(){
   if(gs('vFecha'))gs('vFecha').value=fechaHoyLocal();
   if(gs('vRegaloCant'))gs('vRegaloCant').value=0;
   if(gs('vClienteFicha'))gs('vClienteFicha').style.display='none';
+  if(gs('vClienteOpcional'))gs('vClienteOpcional').style.display='none';
+  if(gs('vSegundoPagoWrap'))gs('vSegundoPagoWrap').style.display='none';
+  if(gs('vSegundoPagoBtn'))gs('vSegundoPagoBtn').textContent='+ Agregar segundo método';
   ppSelectedCodigo=null;
   vRenderCarrito();
+  vTipoEnvioChange();
   vCalcTotal();
   vBorradorBorrar();
 }
@@ -4490,26 +4527,17 @@ async function mGuardar(){
 function mLimpiar(){['mProd','mCant','mCostoU','mProv','mObs'].forEach(id=>{const el=gs(id);if(el)el.value='';});gs('mFecha').value=fechaHoyLocal();}
 
 // ═══ CLIENTES ═══
-let cPagina=1;
-const C_POR_PAGINA=40;
-const cClientesAbiertos=new Set();
 async function cCargar(){
-  const cards=gs('cCards');if(cards)cards.innerHTML='<div class="empty"><span class="spinner"></span> Cargando clientes...</div>';
+  const tbody=gs('cBody');if(tbody)tbody.innerHTML='<tr><td colspan="8" class="empty"><span class="spinner"></span> Cargando clientes...</td></tr>';
   try{
-    const acumuladas=[];
-    for(let desde=0;desde<20000;desde+=1000){
-      const {data,error}=await SB.from('ventas').select('*').order('fecha',{ascending:false}).range(desde,desde+999);
-      if(error)throw error;
-      acumuladas.push(...(data||[]));
-      if(!data||data.length<1000)break;
-    }
-    allVentasCache=acumuladas;
-    clientesResumen=cArmarResumen(acumuladas);
+    const {data,error}=await SB.from('ventas').select('*').order('fecha',{ascending:false});
+    if(error)throw error;
+    allVentasCache=data||[];
+    clientesResumen=cArmarResumen(data||[]);
   }catch(e){
     clientesResumen=cArmarResumen(ventasDelMes);
-    if(cards&&!clientesResumen.length)cards.innerHTML='<div class="empty">No se pudieron cargar clientes</div>';
+    if(tbody&&!clientesResumen.length)tbody.innerHTML='<tr><td colspan="8" class="empty">No se pudieron cargar clientes</td></tr>';
   }
-  cPagina=1;
   cFiltrar();
 }
 function cArmarResumen(rows){
@@ -4517,51 +4545,44 @@ function cArmarResumen(rows){
   (rows||[]).forEach(r=>{
     const nombre=(r.cliente||'').trim();
     if(!nombre)return;
-    const telNormalizado=cNormalizarTelefono(r.contacto);
-    const key=encodeURIComponent(telNormalizado?('tel:'+telNormalizado):('nom:'+clienteKey(nombre))).replace(/'/g,'%27');
-    if(!map[key])map[key]={key,nombre,tel:'',ciudad:'',compras:0,total:0,ultima:'',pendiente:0,entregadas:0,canceladas:0,productos:{}};
+    const key=nombre.toLowerCase();
+    if(!map[key])map[key]={nombre,tel:'',ciudad:'',compras:0,total:0,ultima:'',pendiente:0};
     const c=map[key];
     c.compras++;
-    if(!c.ultima||String(r.fecha||'')>=String(c.ultima||'')){c.nombre=nombre;if(r.contacto)c.tel=r.contacto;if(r.ciudad)c.ciudad=r.ciudad;}
+    if(r.contacto)c.tel=r.contacto;
+    if(r.ciudad)c.ciudad=r.ciudad;
     const total=(parseInt(r.total_productos)||0)+(parseInt(r.costo_delivery)||0);
     c.total+=total;
-    c.pendiente+=saldoPendienteVenta(r);
-    if(r.estado_entrega==='Entregado')c.entregadas++;
-    if(r.estado_entrega==='Cancelado')c.canceladas++;
-    itemsVentaDesdeDetalle(r.detalle).forEach(i=>c.productos[i.nombre]=(c.productos[i.nombre]||0)+(parseInt(i.cant)||1));
+    if(r.estado_pago!=='Pagado')c.pendiente+=total;
     if(!c.ultima||String(r.fecha||'')>String(c.ultima||''))c.ultima=r.fecha||'';
   });
   return Object.values(map).sort((a,b)=>String(b.ultima||'').localeCompare(String(a.ultima||''))||b.compras-a.compras||b.total-a.total);
 }
-function cBuscarCambio(){cPagina=1;cFiltrar();}
-function cOrdenCambio(){cPagina=1;cFiltrar();}
-function cDatosOrdenados(){
-  const q=(gs('cBuscar')?.value||'').trim().toLowerCase();
-  const orden=gs('cOrden')?.value||'recientes';
-  const lista=clientesResumen.filter(c=>!q||[c.nombre,c.ciudad,c.tel].some(v=>String(v||'').toLowerCase().includes(q)));
-  return lista.sort((a,b)=>orden==='compras'?b.compras-a.compras:orden==='total'?b.total-a.total:orden==='pendiente'?b.pendiente-a.pendiente:orden==='nombre'?String(a.nombre).localeCompare(String(b.nombre),'es'):String(b.ultima||'').localeCompare(String(a.ultima||'')));
-}
 function cFiltrar(){
-  const cards=gs('cCards');if(!cards)return;
-  const filtrado=cDatosOrdenados();
-  if(gs('cResultados'))gs('cResultados').textContent=filtrado.length+' cliente'+(filtrado.length===1?'':'s');
-  const paginas=Math.max(1,Math.ceil(filtrado.length/C_POR_PAGINA));cPagina=Math.min(cPagina,paginas);
-  const pagina=filtrado.slice((cPagina-1)*C_POR_PAGINA,cPagina*C_POR_PAGINA);
-  if(!pagina.length){cards.innerHTML='<div class="empty">Sin clientes</div>';cRenderPaginacion(0);return;}
+  const tbody=gs('cBody');if(!tbody)return;
+  const q=(gs('cBuscar')?gs('cBuscar').value:'').toLowerCase();
+  const filtrado=clientesResumen.filter(c=>!q||(c.nombre||'').toLowerCase().includes(q)||(c.ciudad||'').toLowerCase().includes(q)||(c.tel||'').toLowerCase().includes(q));
+  if(!filtrado.length){tbody.innerHTML='<tr><td colspan="10" class="empty">Sin clientes</td></tr>';return;}
   const notas=notasClientesGet();
-  cards.innerHTML=pagina.map(c=>{
+  tbody.innerHTML=filtrado.map(c=>{
     const frecuente=c.compras>=3;
     const vip=c.compras>=5;
+    const tipo=frecuente?'Cliente frecuente':'Cliente';
     const nota=notas[clienteKey(c.nombre)]||'';
-    const abierta=cClientesAbiertos.has(c.key),favoritos=Object.entries(c.productos||{}).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([n,q])=>n+' ×'+q).join(' · ')||'Sin detalle';
-    const historial=((allVentasCache||[]).filter(v=>(c.tel&&cNormalizarTelefono(v.contacto)===cNormalizarTelefono(c.tel))||(!c.tel&&clienteKey(v.cliente)===clienteKey(c.nombre))).sort((a,b)=>String(b.fecha||'').localeCompare(String(a.fecha||''))).slice(0,5));
-    return `<article class="client-card${abierta?' open':''}" data-client-key="${esc(c.key)}"><div class="client-card-head" onclick="cToggleCliente('${esc(c.key)}')"><div class="client-primary"><div class="client-name">${esc(c.nombre)} ${vip?'<span class="badge b-warn">VIP</span>':frecuente?'<span class="badge b-ok">Frecuente</span>':''}</div><div class="client-sub"><span>${uiIcon('pin')} ${esc(c.ciudad||'Sin ciudad')}</span><span>${uiIcon('clock')} ${formatoFecha(c.ultima)||'Sin fecha'}</span></div></div><div class="client-kpi client-purchases"><small>Compras</small><strong>${c.compras}</strong></div><div class="client-kpi client-total"><small>Total comprado</small><strong>${fmtGs(c.total)}</strong></div><div class="client-kpi"><small>Saldo</small><strong class="${c.pendiente>0?'due':''}">${c.pendiente>0?fmtGs(c.pendiente):'Sin saldo'}</strong></div><div class="client-chevron">⌄</div></div><div class="client-card-body"><div class="client-card-body-inner"><div class="client-detail"><section class="client-panel"><h4>${uiIcon('user')} Ficha del cliente</h4><div class="client-info-grid"><div><span>WhatsApp</span><strong>${esc(c.tel||'Sin teléfono')}</strong></div><div><span>Ciudad</span><strong>${esc(c.ciudad||'Sin ciudad')}</strong></div><div><span>Entregadas</span><strong>${c.entregadas}</strong></div><div><span>Canceladas</span><strong>${c.canceladas}</strong></div><div style="grid-column:1/-1"><span>Productos habituales</span><strong>${esc(favoritos)}</strong></div></div><input type="text" class="client-note" value="${esc(nota)}" placeholder="Nota sobre preferencias o referencias…" onchange="notasClienteGuardar('${esc(c.nombre)}',this.value);toast('Nota guardada')"><div class="client-actions">${c.tel?`<button class="btn btn-wa btn-sm" onclick="window.open('https://web.whatsapp.com/send?phone=${esc(telefonoWA(c.tel))}','_blank')">WhatsApp</button>`:''}<button class="btn btn-p btn-sm" onclick="repetirCompraCliente('${esc(c.nombre)}')">Repetir compra</button>${actionMenu([`<button class="action-menu-item danger" onclick="cOcultarCliente('${esc(c.nombre)}')">Ocultar cliente</button>`])}</div></section><section class="client-panel"><h4>${uiIcon('clock')} Últimas ventas</h4><div class="client-history">${historial.length?historial.map(v=>`<div class="client-history-row"><span>${formatoFecha(v.fecha)||'-'}</span><span title="${esc(v.detalle||'')}">${esc(v.detalle||'Sin productos')}</span><strong>${fmtGs(totalVenta(v))}</strong><span class="vm-status ${saldoPendienteVenta(v)>0?'is-warn':'is-ok'}">${saldoPendienteVenta(v)>0?'Pendiente':'Pagado'}</span></div>`).join(''):'<div class="empty">Sin historial</div>'}</div></section></div></div></div></article>`;
+    return `<tr class="${frecuente?'cliente-frecuente':''}">
+      <td class="td-em">${esc(c.nombre)}</td>
+      <td class="td-mu">${esc(c.tel||'-')}</td>
+      <td class="td-mu">${esc(c.ciudad||'-')}</td>
+      <td class="td-m"><span class="cliente-badge ${frecuente?'freq':''}">${c.compras}</span></td>
+      <td><span class="cliente-tipo ${frecuente?'freq':''}">${tipo}</span>${vip?` <span class="badge b-warn badge-with-icon" title="5+ compras: considerá un descuento o regalo">${uiIcon('bulb')} VIP</span>`:''}</td>
+      <td class="td-m">${fmtGs(c.total)}</td>
+      <td class="td-mu">${formatoFecha(c.ultima)||'-'}</td>
+      <td class="td-m" style="color:${c.pendiente>0?'var(--warn)':'var(--ok)'}">${c.pendiente>0?fmtGs(c.pendiente):'OK'}</td>
+      <td><input type="text" class="vm-edit vm-edit-md" value="${esc(nota)}" placeholder="Agregar nota..." onchange="notasClienteGuardar('${esc(c.nombre)}',this.value);toast('Nota guardada')"></td>
+      <td><select class="client-action-select" onchange="clienteAccionSeleccionar(this,'${esc(c.nombre)}','${esc(c.tel||'')}')"><option value="">Acciones…</option><option value="repetir">Repetir última compra</option>${c.tel?'<option value="whatsapp">Abrir WhatsApp</option>':''}</select></td>
+    </tr>`;
   }).join('');
-  cRenderPaginacion(paginas);
 }
-function cToggleCliente(key){if(cClientesAbiertos.has(key))cClientesAbiertos.delete(key);else cClientesAbiertos.add(key);document.querySelector(`.client-card[data-client-key="${CSS.escape(key)}"]`)?.classList.toggle('open',cClientesAbiertos.has(key));}
-function cRenderPaginacion(total){const box=gs('cPaginacion');if(!box)return;if(total<=1){box.innerHTML='';return;}box.innerHTML=`<button class="btn btn-s btn-sm" onclick="cIrPagina(${cPagina-1})" ${cPagina<=1?'disabled':''}>Anterior</button><span>Página ${cPagina} de ${total}</span><button class="btn btn-s btn-sm" onclick="cIrPagina(${cPagina+1})" ${cPagina>=total?'disabled':''}>Siguiente</button>`;}
-function cIrPagina(p){cPagina=Math.max(1,p);cFiltrar();gs('pv-clientes')?.scrollIntoView({behavior:'smooth',block:'start'});}
 function clienteAccionSeleccionar(el,nombre,tel){
   const accion=el.value;el.value='';
   if(accion==='repetir')repetirCompraCliente(nombre);
@@ -4601,7 +4622,8 @@ function repetirCompraCliente(nombre){
   },50);
 }
 function cClientesFiltrados(){
-  return cDatosOrdenados();
+  const q=(gs('cBuscar')?gs('cBuscar').value:'').toLowerCase();
+  return clientesResumen.filter(c=>!q||(c.nombre||'').toLowerCase().includes(q)||(c.ciudad||'').toLowerCase().includes(q)||(c.tel||'').toLowerCase().includes(q));
 }
 function cNormalizarTelefono(tel){
   let n=String(tel||'').replace(/\D/g,'');
@@ -7193,7 +7215,7 @@ window.addEventListener('DOMContentLoaded', async ()=>{
 @media(max-width:640px){.ra-component-row{grid-template-columns:1fr 70px 36px}.ra-modal-box{padding:16px}.ra-quick-grid{grid-template-columns:1fr!important}}
 
 /* Movimiento unificado tipo iOS */
-:root{--motion-spring:cubic-bezier(.22,.8,.25,1);--motion-fast:180ms;--motion-panel:320ms}
+:root{--motion-spring:cubic-bezier(.25,.8,.25,1);--motion-fast:150ms;--motion-panel:235ms}
 .vm-sale-card{transition:border-color var(--motion-fast),box-shadow var(--motion-panel) var(--motion-spring),opacity var(--motion-fast),transform var(--motion-panel) var(--motion-spring)!important}
 .vm-sale-card:hover{transform:translateY(-1px)}
 .vm-sale-body{display:grid!important;grid-template-rows:0fr;border-top:0!important;overflow:hidden;opacity:0;visibility:hidden;transition:grid-template-rows var(--motion-panel) var(--motion-spring),opacity 220ms ease,visibility 0s linear var(--motion-panel),border-color var(--motion-fast)!important}
@@ -7207,12 +7229,17 @@ window.addEventListener('DOMContentLoaded', async ()=>{
 @keyframes raModalIn{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
 @keyframes raMenuIn{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
 
-/* Clientes: resumen compacto, detalle desplegable y paginación */
-.client-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}.client-toolbar input{flex:1;min-width:230px}.client-list-meta{display:flex;justify-content:space-between;gap:12px;color:var(--text3);font-size:11px;margin:8px 2px 12px}.client-cards{display:grid;gap:10px}.client-card{background:var(--card,#fff);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:box-shadow var(--motion-panel) var(--motion-spring),transform var(--motion-panel) var(--motion-spring),border-color var(--motion-fast)}.client-card:hover{box-shadow:0 8px 24px rgba(24,24,20,.065);transform:translateY(-1px)}.client-card-head{display:grid;grid-template-columns:minmax(190px,1.4fr) 100px 145px 145px 30px;gap:12px;align-items:center;padding:14px 16px;cursor:pointer}.client-primary{min-width:0}.client-name{font-size:14px;font-weight:760;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.client-sub{display:flex;gap:10px;flex-wrap:wrap;color:var(--text3);font-size:10.5px;margin-top:5px}.client-kpi small{display:block;color:var(--text3);font-size:9px;text-transform:uppercase;letter-spacing:.35px;margin-bottom:3px}.client-kpi strong{font-size:12px;color:var(--text)}.client-kpi .due{color:var(--warn)}.client-chevron{font-size:20px;color:var(--text3);transition:transform var(--motion-panel) var(--motion-spring)}.client-card.open .client-chevron{transform:rotate(180deg)}.client-card-body{display:grid;grid-template-rows:0fr;opacity:0;visibility:hidden;transition:grid-template-rows var(--motion-panel) var(--motion-spring),opacity 220ms ease,visibility 0s linear var(--motion-panel)}.client-card.open .client-card-body{grid-template-rows:1fr;opacity:1;visibility:visible;transition:grid-template-rows var(--motion-panel) var(--motion-spring),opacity 220ms ease 40ms,visibility 0s}.client-card-body-inner{min-height:0;overflow:hidden}.client-detail{border-top:1px solid var(--border);padding:14px 16px;background:var(--surface,#f8f8fa);display:grid;grid-template-columns:minmax(220px,.8fr) minmax(300px,1.2fr);gap:14px}.client-panel{background:#fff;border:1px solid var(--border);border-radius:13px;padding:13px}.client-panel h4{font-size:10px;text-transform:uppercase;letter-spacing:.4px;margin:0 0 10px}.client-info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;font-size:11px}.client-info-grid span{color:var(--text3)}.client-info-grid strong{display:block;color:var(--text);margin-top:2px}.client-note{width:100%;margin-top:11px}.client-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}.client-history{display:grid;gap:6px}.client-history-row{display:grid;grid-template-columns:80px minmax(150px,1fr) 100px 88px;gap:8px;align-items:center;padding:8px 9px;border-radius:9px;background:var(--surface2);font-size:10.5px}.client-history-row span:nth-child(2){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.client-pagination{display:flex;justify-content:center;align-items:center;gap:8px;margin:16px 0}.client-pagination span{font-size:11px;color:var(--text3)}
-@media(max-width:900px){.client-card-head{grid-template-columns:minmax(180px,1fr) 90px 120px 26px}.client-card-head .client-total{display:none}.client-detail{grid-template-columns:1fr}}
-@media(max-width:620px){.client-list-meta{align-items:flex-start;flex-direction:column}.client-card-head{grid-template-columns:minmax(150px,1fr) 90px 24px;padding:13px}.client-card-head .client-purchases,.client-card-head .client-total{display:none}.client-detail{padding:10px}.client-info-grid{grid-template-columns:1fr}.client-history-row{grid-template-columns:72px 1fr 78px}.client-history-row span:last-child{display:none}}
-html.dark .client-panel{background:#232325!important}html.dark .client-detail{background:#1c1c1e!important}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* Registro de ventas — composición Apple, clara y progresiva */
+.sales-entry-card{padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important}.sales-entry-title{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;margin-bottom:16px}.sales-entry-kicker{display:block;color:var(--text3);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.55px}.sales-entry-title h2{font-size:24px;letter-spacing:-.7px;margin:3px 0 0}.sales-progress{display:flex;gap:4px;background:rgba(118,118,128,.1);padding:4px;border-radius:12px}.sales-progress span{padding:7px 10px;border-radius:9px;color:var(--text3);font-size:10.5px;font-weight:650;transition:background var(--motion-fast),color var(--motion-fast),box-shadow var(--motion-fast)}.sales-progress span.active{background:#fff;color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.09)}.sales-entry-layout{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:16px;align-items:start}.sales-entry-main{display:grid;gap:13px}.sales-form-section{background:rgba(255,255,255,.88);border:1px solid rgba(60,60,67,.14);border-radius:18px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,.025);transition:box-shadow var(--motion-panel) var(--motion-spring),transform var(--motion-panel) var(--motion-spring)}.sales-form-section:focus-within{box-shadow:0 8px 28px rgba(0,0,0,.065);transform:translateY(-1px)}.sales-section-head{display:flex;align-items:center;gap:10px;margin-bottom:15px}.sales-section-head>div{min-width:0}.sales-section-head h3{font-size:14px;letter-spacing:-.15px;margin:0}.sales-section-head p{font-size:10.5px;color:var(--text3);margin:2px 0 0}.sales-section-icon{width:30px;height:30px;display:grid;place-items:center;border-radius:9px;background:rgba(0,122,255,.09);color:#007aff;flex:0 0 auto}.sales-section-icon svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.sales-section-toggle{margin-left:auto;border:0;background:rgba(118,118,128,.1);color:#007aff;border-radius:9px;padding:7px 10px;font-size:10.5px;font-weight:650;cursor:pointer}.sales-two-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.sales-wide{grid-column:1/-1}.sales-nested{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:10px;background:rgba(118,118,128,.07);border-radius:12px}.sales-save-bar{position:sticky;bottom:10px;z-index:20;display:flex;justify-content:flex-end;gap:8px;padding:9px;background:rgba(248,248,250,.8);backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);border:1px solid rgba(60,60,67,.12);border-radius:15px;box-shadow:0 8px 28px rgba(0,0,0,.09)}.sales-summary-sticky{position:sticky;top:88px;background:rgba(255,255,255,.9);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);border:1px solid rgba(60,60,67,.14);border-radius:18px;padding:17px;box-shadow:0 10px 32px rgba(0,0,0,.07)}.sales-summary-label{text-transform:uppercase;color:var(--text3);font-size:9px;letter-spacing:.6px;font-weight:750}.sales-summary-client{font-size:15px;font-weight:750;letter-spacing:-.2px;margin:5px 0 15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sales-summary-line{display:flex;justify-content:space-between;gap:10px;padding:7px 0;font-size:11px;color:var(--text2)}.sales-summary-line strong{color:var(--text)}.sales-summary-line.total{font-size:14px;border-top:1px solid var(--border);margin-top:5px;padding-top:12px}.sales-summary-line.balance strong{color:var(--warn)}.sales-summary-status{margin:10px 0 13px;text-align:center;padding:7px;border-radius:10px;background:rgba(255,149,0,.1);color:#a85f00;font-size:11px;font-weight:750}.sales-summary-sticky>.btn{width:100%}.sales-observations textarea{min-height:64px}.sales-entry-card input,.sales-entry-card select,.sales-entry-card textarea{border-radius:11px!important;background:rgba(118,118,128,.06)!important;border-color:rgba(60,60,67,.14)!important;transition:border-color var(--motion-fast),box-shadow var(--motion-fast),background var(--motion-fast)}.sales-entry-card input:focus,.sales-entry-card select:focus,.sales-entry-card textarea:focus{background:#fff!important;border-color:rgba(0,122,255,.55)!important;box-shadow:0 0 0 3px rgba(0,122,255,.11)!important}.sales-entry-card .btn-p{background:#007aff!important;color:#fff!important;border-color:#007aff!important}.sales-entry-card .cart-total{border-radius:12px;background:rgba(0,122,255,.07);color:#007aff}.sales-entry-card #vClienteOpcional{display:none}
+
+/* Acabado Apple global */
+body{background:#f5f5f7}.sidebar,.topbar{backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%)}.sidebar{background:rgba(250,250,252,.84)!important;border-right-color:rgba(60,60,67,.12)!important}.topbar{background:rgba(250,250,252,.82)!important;border-bottom:1px solid rgba(60,60,67,.1)}.card,.stat,.stock-bubble,.vm-sale-card{border-color:rgba(60,60,67,.13)!important;box-shadow:0 2px 12px rgba(0,0,0,.025)}.btn{border-radius:11px;transition:transform 120ms ease,filter 120ms ease,background 150ms ease,box-shadow 150ms ease}.btn:active{transform:scale(.975)}input,select,textarea{border-radius:11px}.nav-item{border-radius:12px}.modal{border-radius:20px}.vm-sale-body{transition:grid-template-rows 235ms var(--motion-spring),opacity 170ms ease,visibility 0s linear 235ms,border-color 150ms!important}.vm-sale-card.open .vm-sale-body{transition:grid-template-rows 235ms var(--motion-spring),opacity 175ms ease 20ms,visibility 0s,border-color 150ms!important}.vm-sale-body-inner{transition:transform 235ms var(--motion-spring)!important}
+html.dark body{background:#000!important}html.dark .sales-form-section,html.dark .sales-summary-sticky{background:rgba(28,28,30,.88)!important}html.dark .sales-save-bar{background:rgba(28,28,30,.8)!important}html.dark .sales-progress span.active{background:#3a3a3c!important}html.dark .sales-entry-card input:focus,html.dark .sales-entry-card select:focus,html.dark .sales-entry-card textarea:focus{background:#2c2c2e!important}
+@media(max-width:1180px){.sales-entry-layout{grid-template-columns:1fr}.sales-summary-sticky{position:relative;top:auto;order:-1;display:grid;grid-template-columns:repeat(3,1fr);gap:0 16px}.sales-summary-sticky>.btn,.sales-summary-client,.sales-summary-status{grid-column:1/-1}}
+@media(max-width:850px){.sales-two-columns{grid-template-columns:1fr}.sales-progress{display:none}}
+@media(max-width:620px){.sales-entry-title h2{font-size:21px}.sales-form-section{padding:13px;border-radius:15px}.sales-entry-card .fg2{grid-template-columns:1fr}.sales-nested{grid-template-columns:1fr}.sales-summary-sticky{grid-template-columns:1fr 1fr}.sales-summary-client,.sales-summary-status,.sales-summary-sticky>.btn{grid-column:1/-1}.sales-save-bar .btn{flex:1}}
 </style>
 
 <div class="ra-modal" id="raComboModal" onclick="if(event.target===this)raCerrarModal('raComboModal')">
