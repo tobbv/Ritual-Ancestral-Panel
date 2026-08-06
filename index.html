@@ -1262,51 +1262,29 @@ document.addEventListener('DOMContentLoaded', function(){
 
       <!-- INICIO -->
       <div class="pv active" id="pv-inicio">
-        <div class="card" id="dashHoyCard" style="margin-bottom:14px">
-          <div class="card-hdr" style="display:flex;justify-content:space-between;align-items:center;gap:10px">
-            <span>Hoy · <span id="dashHoyFecha"></span></span>
-            <button type="button" class="btn btn-s btn-sm" onclick="copiarResumenDiario()">Copiar resumen del día</button>
-          </div>
-          <div id="dashHoyResumen" class="mini-grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px"></div>
-          <div id="dashChecklist" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)"></div>
+        <div class="dash-apple-head">
+          <div><span class="dash-eyebrow">Panel de control</span><h1>Buenos días</h1><p id="dashHoyFecha">Cargando fecha…</p></div>
+          <div class="dash-head-actions"><select id="dashPeriodo" class="select-s" onchange="dashCargar()"><option value="hoy">Hoy</option><option value="7dias">Últimos 7 días</option><option value="mes" selected>Este mes</option><option value="anterior">Mes anterior</option></select><button type="button" class="btn btn-p" onclick="irARegistroVentas()">+ Nueva venta</button></div>
         </div>
-        <div id="dashHero" class="finance-hero">
-          <div>
-            <div class="finance-state" id="dashEstadoTitulo">Cargando...</div>
-            <div class="finance-note" id="dashEstadoNota">Resumen del mes actual.</div>
-          </div>
-          <div><div class="finance-k">Ventas cobradas</div><div class="finance-v" id="dashCobrado">Gs 0</div></div>
-          <div><div class="finance-k">Ganancia neta</div><div class="finance-v" id="dashNeta">Gs 0</div></div>
-          <div><div class="finance-k">Pendiente</div><div class="finance-v" id="dashPendiente">Gs 0</div></div>
+        <div id="dashHero" class="dash-health"><div><div id="dashEstadoTitulo">Cargando…</div><p id="dashEstadoNota">Preparando el resumen del negocio.</p></div><button type="button" class="dash-copy" onclick="copiarResumenDiario()">Copiar resumen</button></div>
+        <div class="dash-kpis">
+          <button class="dash-kpi" onclick="globalIr('ventasmes')"><span>Ventas cobradas</span><strong id="dashCobrado">Gs 0</strong><small id="dashCobradoTrend">Periodo seleccionado</small></button>
+          <button class="dash-kpi" onclick="globalIr('finanzas')"><span>Ganancia neta</span><strong id="dashNeta">Gs 0</strong><small>Después de costos y gastos</small></button>
+          <button class="dash-kpi warning" onclick="globalIr('ventasmes')"><span>Saldo pendiente</span><strong id="dashPendiente">Gs 0</strong><small>Requiere seguimiento</small></button>
+          <button class="dash-kpi" onclick="globalIr('delivery')"><span>Por entregar</span><strong id="dashPorEntregar">0</strong><small>Pedidos activos</small></button>
         </div>
-        <div class="stats">
-          <div class="stat"><div class="stat-v" id="dashPedidos">-</div><div class="stat-l">Pedidos del mes</div></div>
-          <div class="stat"><div class="stat-v" id="dashPorEntregar" style="color:var(--warn)">-</div><div class="stat-l">Por entregar</div></div>
-          <div class="stat"><div class="stat-v" id="dashStockBajo" style="color:var(--err)">-</div><div class="stat-l">Stock bajo</div></div>
-          <div class="stat"><div class="stat-v" id="dashTicket">-</div><div class="stat-l">Ticket promedio</div></div>
+        <div class="dash-primary-grid">
+          <section class="dash-panel dash-attention"><div class="dash-panel-head"><div><span class="dash-eyebrow">Prioridades</span><h2>Atención requerida</h2></div><button onclick="globalIr('ventasmes')">Ver todo</button></div><div id="dashAlertas" class="alert-list"><div class="empty">Sin alertas</div></div></section>
+          <section class="dash-panel"><div class="dash-panel-head"><div><span class="dash-eyebrow">Operación</span><h2>Preparación y entregas</h2></div><button onclick="globalIr('delivery')">Abrir delivery</button></div><div id="dashPreparacion" class="daily-list"><div class="empty">Sin pedidos para preparar</div></div></section>
         </div>
-          <div class="mini-grid">
-          <div class="card">
-            <div class="card-hdr">Alertas inteligentes</div>
-            <div id="dashAlertas" class="alert-list"><div class="empty">Sin alertas</div></div>
-          </div>
-          <div class="card">
-            <div class="card-hdr">Preparación de hoy</div>
-            <div id="dashPreparacion" class="daily-list"><div class="empty">Sin pedidos para preparar</div></div>
-          </div>
-          <div class="card">
-            <div class="card-hdr">Productos con stock bajo</div>
-            <div id="dashStockLista"><div class="empty">Sin datos</div></div>
-          </div>
-          <div class="card">
-            <div class="card-hdr">Accesos rapidos</div>
-            <div class="quick-grid">
-              <button type="button" class="btn btn-p" onclick="irARegistroVentas()">Añadir venta</button>
-              <button type="button" class="btn btn-s" onclick="globalIr('ventasmes')">Ver ventas</button>
-              <button type="button" class="btn btn-s" onclick="globalIr('stock')">Ver stock</button>
-              <button type="button" class="btn btn-s" onclick="globalIr('finanzas')">Ver finanzas</button>
-            </div>
-          </div>
+        <div class="dash-secondary-grid">
+          <section class="dash-panel dash-chart-panel"><div class="dash-panel-head"><div><span class="dash-eyebrow">Rendimiento</span><h2>Ventas recientes</h2></div><span id="dashTicket" class="dash-ticket">Gs 0 promedio</span></div><div id="dashChart" class="dash-bars"></div></section>
+          <section class="dash-panel"><div class="dash-panel-head"><div><span class="dash-eyebrow">Actividad</span><h2>Movimientos recientes</h2></div></div><div id="dashActivity" class="dash-activity"></div></section>
+        </div>
+        <div class="dash-bottom-grid">
+          <section class="dash-panel"><div class="dash-panel-head"><div><span class="dash-eyebrow">Inventario</span><h2>Stock bajo · <span id="dashStockBajo">0</span></h2></div><button onclick="globalIr('stock')">Ver stock</button></div><div id="dashStockLista"><div class="empty">Sin datos</div></div></section>
+          <section class="dash-panel"><div class="dash-panel-head"><div><span class="dash-eyebrow">Hoy</span><h2>Agenda y cierre</h2></div></div><div id="dashHoyResumen"></div><div id="dashChecklist" class="dash-checklist"></div></section>
+          <section class="dash-panel dash-actions"><div class="dash-panel-head"><div><span class="dash-eyebrow">Acciones</span><h2>Accesos rápidos</h2></div></div><div class="dash-action-grid"><button onclick="irARegistroVentas()"><b>＋</b><span>Nueva venta</span></button><button onclick="globalIr('ventasmes')"><b>▤</b><span>Ventas</span></button><button onclick="globalIr('stock')"><b>□</b><span>Stock</span></button><button onclick="globalIr('finanzas')"><b>↗</b><span>Finanzas</span></button></div><div class="dash-mini-stats"><span><strong id="dashPedidos">0</strong> pedidos</span></div></section>
         </div>
       </div>
 
@@ -2634,7 +2612,8 @@ async function dashCargar(){
     await Promise.all([cargarProductos().catch(()=>{}),cargarConfiguracion().catch(()=>{})]);
     const ventas=await cargarVentasCache();
     const mes=getMesActual();
-    const rows=ventasDelMesPorFecha(ventas,mes);
+    const periodo=gs('dashPeriodo')?.value||'mes';
+    const rows=dashFiltrarPeriodo(ventas,periodo);
     const pendientesHistoricos=ventas.filter(r=>saldoPendienteVenta(r)>0);
     const gastos=parseJSONSafe(appConfig['gastos_'+mes],[]);
     const analisis=analizarFinanzas(rows,gastos);
@@ -2645,7 +2624,7 @@ async function dashCargar(){
     let cls='ok',titulo='Mes saludable',nota='Ventas, gastos y stock se ven bajo control.';
     if(analisis.neta<0){cls='err';titulo='Atencion: perdida';nota='Los costos y gastos superan la ganancia bruta del mes.';}
     else if(analisis.margen<20||analisis.pendiente>analisis.cob*0.45||stockBajo.length){cls='warn';titulo='Revisar hoy';nota='Hay pendientes, margen bajo o productos con poco stock.';}
-    if(hero)hero.className='finance-hero '+cls;
+    if(hero)hero.className='dash-health '+cls;
     if(gs('dashEstadoTitulo'))gs('dashEstadoTitulo').innerHTML=estadoBadgeHTML(titulo,cls);
     if(gs('dashEstadoNota'))gs('dashEstadoNota').textContent=nota;
     if(gs('dashCobrado'))gs('dashCobrado').textContent=fmtGs(analisis.cob);
@@ -2654,16 +2633,36 @@ async function dashCargar(){
     if(gs('dashPedidos'))gs('dashPedidos').textContent=rows.length;
     if(gs('dashPorEntregar'))gs('dashPorEntregar').textContent=porEntregar;
     if(gs('dashStockBajo'))gs('dashStockBajo').textContent=stockBajo.length;
-    if(gs('dashTicket'))gs('dashTicket').textContent=fmtGs(ticket);
+    if(gs('dashTicket'))gs('dashTicket').textContent=fmtGs(ticket)+' promedio';
     await stockBajoDesdeActualizar(stockBajo.map(p=>p.codigo));
     renderDashAlertas(analisis,stockBajo,porEntregar,pendientesHistoricos,rows);
     renderDashStock(stockBajo);
     renderDashPreparacion(rows);
+    renderDashChart(ventas);
+    renderDashActivity(ventas);
     await renderDashHoy(rows,pendientesHistoricos,stockBajo);
   }catch(e){
     if(gs('dashAlertas'))gs('dashAlertas').innerHTML='<div class="empty">No se pudo cargar el dashboard</div>';
     console.warn(e);
   }
+}
+function dashFiltrarPeriodo(ventas,periodo){
+  const hoy=new Date(fechaHoyLocal()+'T12:00:00');
+  const fecha=r=>new Date(String(r.fecha||'').slice(0,10)+'T12:00:00');
+  if(periodo==='hoy')return ventas.filter(r=>String(r.fecha||'').slice(0,10)===fechaHoyLocal());
+  if(periodo==='7dias'){const desde=new Date(hoy);desde.setDate(hoy.getDate()-6);return ventas.filter(r=>fecha(r)>=desde&&fecha(r)<=hoy);}
+  if(periodo==='anterior'){const y=hoy.getMonth()===0?hoy.getFullYear()-1:hoy.getFullYear(),m=hoy.getMonth()===0?11:hoy.getMonth()-1;return ventas.filter(r=>{const d=fecha(r);return d.getFullYear()===y&&d.getMonth()===m;});}
+  return ventas.filter(r=>{const d=fecha(r);return d.getFullYear()===hoy.getFullYear()&&d.getMonth()===hoy.getMonth();});
+}
+function renderDashChart(ventas){
+  const el=gs('dashChart');if(!el)return;const hoy=new Date(fechaHoyLocal()+'T12:00:00');const dias=[];
+  for(let i=6;i>=0;i--){const d=new Date(hoy);d.setDate(hoy.getDate()-i);const key=d.toISOString().slice(0,10);const total=ventas.filter(v=>String(v.fecha||'').slice(0,10)===key).reduce((s,v)=>s+totalVenta(v),0);dias.push({label:d.toLocaleDateString('es-PY',{weekday:'short'}).replace('.',''),total});}
+  const max=Math.max(1,...dias.map(d=>d.total));el.innerHTML=dias.map(d=>`<div class="dash-bar-item"><div class="dash-bar-value">${d.total?fmtGs(d.total):''}</div><div class="dash-bar-track"><i style="height:${Math.max(d.total?12:3,Math.round(d.total/max*100))}%"></i></div><span>${esc(d.label)}</span></div>`).join('');
+}
+function renderDashActivity(ventas){
+  const el=gs('dashActivity');if(!el)return;const recientes=[...ventas].sort((a,b)=>String(b.fecha||'').localeCompare(String(a.fecha||''))).slice(0,5);
+  if(!recientes.length){el.innerHTML='<div class="empty">Todavía no hay actividad</div>';return;}
+  el.innerHTML=recientes.map(v=>{const entregado=String(v.estado_entrega||'').toLowerCase()==='entregado';return `<button type="button" onclick="globalIr('ventasmes')"><i class="${entregado?'ok':'new'}">${entregado?'✓':'＋'}</i><span><strong>${esc(v.cliente||'Venta')}</strong><small>${esc(v.detalle||'Pedido registrado')}</small></span><b>${fmtGs(totalVenta(v))}</b></button>`;}).join('');
 }
 async function copiarResumenDiario(){
   const hoyStr=fechaHoyLocal();
@@ -7323,6 +7322,11 @@ html.dark body{background:#000!important}html.dark .sales-form-section,html.dark
 .sales-discount-total{grid-template-columns:minmax(0,1.18fr) minmax(300px,.82fr);gap:20px}.sales-entry-card .cart-total{padding-right:28px!important}
 @media(max-width:1100px){.sales-discount-total{grid-template-columns:minmax(0,1.1fr) minmax(240px,.9fr);gap:16px}.sales-entry-card .cart-total{padding-right:18px!important}}
 @media(max-width:620px){.sales-discount-total{grid-template-columns:1fr;gap:10px}.sales-entry-card .cart-total{padding:8px 2px 2px!important}}
+
+/* Dashboard Apple — preview */
+#pv-inicio{--dash-blue:#007aff;--dash-green:#34c759;--dash-orange:#ff9500;display:none;gap:16px}#pv-inicio.active{display:grid}.dash-apple-head{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;padding:4px 2px 2px}.dash-eyebrow{display:block;color:var(--text3);font-size:10px;font-weight:750;letter-spacing:.7px;text-transform:uppercase}.dash-apple-head h1{margin:3px 0 2px;font-size:30px;line-height:1.05;letter-spacing:-1.15px}.dash-apple-head p{margin:0;color:var(--text3);font-size:12px;text-transform:capitalize}.dash-head-actions{display:flex;align-items:center;gap:8px}.dash-head-actions select{min-width:142px}.dash-health{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:15px 18px;border:1px solid rgba(60,60,67,.12);border-radius:17px;background:rgba(255,255,255,.82);box-shadow:0 3px 14px rgba(0,0,0,.035)}.dash-health p{margin:4px 0 0;color:var(--text3);font-size:11px}.dash-health.ok{border-left:3px solid var(--dash-green)}.dash-health.warn{border-left:3px solid var(--dash-orange)}.dash-health.err{border-left:3px solid #ff3b30}.dash-copy,.dash-panel-head button{border:0;background:rgba(118,118,128,.09);color:#007aff;padding:7px 10px;border-radius:9px;font-size:10.5px;font-weight:700;cursor:pointer}.dash-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.dash-kpi{appearance:none;text-align:left;border:1px solid rgba(60,60,67,.12);border-radius:18px;padding:17px;background:rgba(255,255,255,.9);box-shadow:0 3px 14px rgba(0,0,0,.035);cursor:pointer;transition:transform 180ms var(--motion-spring),box-shadow 180ms ease}.dash-kpi:hover{transform:translateY(-2px);box-shadow:0 9px 26px rgba(0,0,0,.07)}.dash-kpi span{display:block;color:var(--text3);font-size:10.5px;font-weight:650}.dash-kpi strong{display:block;margin:8px 0 5px;font-size:23px;letter-spacing:-.65px;color:var(--text)}.dash-kpi small{color:var(--text3);font-size:9.5px}.dash-kpi.warning strong{color:#d76a00}.dash-primary-grid,.dash-secondary-grid{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(330px,.88fr);gap:14px}.dash-bottom-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.dash-panel{min-width:0;padding:18px;border:1px solid rgba(60,60,67,.12);border-radius:19px;background:rgba(255,255,255,.88);box-shadow:0 3px 15px rgba(0,0,0,.035)}.dash-panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.dash-panel-head h2{font-size:15px;letter-spacing:-.25px;margin:2px 0 0}.dash-attention .price-alert{border:0;border-radius:12px;background:rgba(118,118,128,.055);padding:11px 12px}.dash-attention .price-alert+.price-alert{margin-top:7px}.dash-ticket{font-size:10px;color:var(--text3);font-weight:650}.dash-bars{height:190px;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:9px;align-items:end;padding:12px 4px 0}.dash-bar-item{height:100%;display:grid;grid-template-rows:25px 1fr 18px;gap:5px;text-align:center;min-width:0}.dash-bar-value{font-size:8px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.dash-bar-track{position:relative;height:100%;border-radius:7px;background:rgba(118,118,128,.07);overflow:hidden}.dash-bar-track i{position:absolute;left:0;right:0;bottom:0;border-radius:7px;background:linear-gradient(180deg,#5ac8fa,#007aff);transition:height 420ms var(--motion-spring)}.dash-bar-item span{font-size:9px;color:var(--text3);text-transform:capitalize}.dash-activity{display:grid;gap:4px}.dash-activity button{display:grid;grid-template-columns:30px minmax(0,1fr) auto;align-items:center;gap:9px;width:100%;padding:9px 7px;border:0;border-radius:11px;background:transparent;text-align:left;cursor:pointer}.dash-activity button:hover{background:rgba(118,118,128,.06)}.dash-activity i{display:grid;place-items:center;width:28px;height:28px;border-radius:9px;background:rgba(0,122,255,.09);color:#007aff;font-style:normal;font-weight:800}.dash-activity i.ok{background:rgba(52,199,89,.11);color:#218739}.dash-activity span{min-width:0}.dash-activity strong,.dash-activity small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.dash-activity strong{font-size:11px}.dash-activity small{margin-top:2px;color:var(--text3);font-size:9px}.dash-activity b{font-size:10px;white-space:nowrap}.dash-checklist{margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}.dash-action-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.dash-action-grid button{display:flex;align-items:center;gap:8px;padding:11px;border:0;border-radius:12px;background:rgba(118,118,128,.07);color:var(--text);font-size:10.5px;font-weight:650;cursor:pointer}.dash-action-grid button:hover{background:rgba(0,122,255,.09);color:#007aff}.dash-action-grid b{display:grid;place-items:center;width:24px;height:24px;border-radius:8px;background:#fff;color:#007aff;font-size:15px;box-shadow:0 1px 4px rgba(0,0,0,.08)}.dash-mini-stats{margin-top:12px;color:var(--text3);font-size:10px}.dash-mini-stats strong{color:var(--text)}#pv-inicio .finance-status-pill{font-size:11px}html.dark .dash-health,html.dark .dash-kpi,html.dark .dash-panel{background:rgba(28,28,30,.86);border-color:rgba(255,255,255,.12)}html.dark .dash-action-grid b{background:#3a3a3c}
+@media(max-width:1100px){.dash-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.dash-primary-grid,.dash-secondary-grid{grid-template-columns:1fr}.dash-bottom-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dash-actions{grid-column:1/-1}}
+@media(max-width:680px){.dash-apple-head{align-items:flex-start;flex-direction:column}.dash-head-actions{width:100%}.dash-head-actions select,.dash-head-actions .btn{flex:1;min-width:0}.dash-kpis{grid-template-columns:1fr 1fr;gap:9px}.dash-kpi{padding:14px}.dash-kpi strong{font-size:18px}.dash-bottom-grid{grid-template-columns:1fr}.dash-actions{grid-column:auto}.dash-bars{height:160px;gap:5px}.dash-primary-grid,.dash-secondary-grid{gap:10px}}
 </style>
 
 <div class="ra-modal" id="raComboModal" onclick="if(event.target===this)raCerrarModal('raComboModal')">
