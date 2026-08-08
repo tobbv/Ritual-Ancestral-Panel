@@ -37,7 +37,7 @@
 :root{
   --bg:#f5f5f7; --surface:#fff; --card:#fff;
   --border:#d1d1d6; --border2:#c7c7cc;
-  --olive1:#454711; --olive2:#6f7227; --gold:#8d8336;
+  --olive1:#0a84ff; --olive2:#409cff; --gold:#0a84ff;
   --sand:#e1caa1; --terra:#994d26; --brown:#8e5013;
   --text:#1a1a1a; --text2:#555; --text3:#999;
   --ok:#2e7d32; --err:#c62828; --warn:#e65100; --info:#1565c0;
@@ -190,10 +190,10 @@ tbody td{padding:9px 12px;color:var(--text2);vertical-align:middle}
 .bulk-toolbar span{font-size:11px;color:var(--text3);font-weight:700}
 .bulk-check{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--text2);font-weight:700;cursor:pointer}
 .bulk-check input,.row-check{width:16px;height:16px;accent-color:var(--olive1);cursor:pointer}
-tr.row-selected{background:#fff7e7!important}
+tr.row-selected{background:rgba(10,132,255,.08)!important}
 tr.row-muted{opacity:.23}
-.group-row{background:#fbf7ed}
-.group-row:hover{background:#fff3db}
+.group-row{background:rgba(10,132,255,.05)}
+.group-row:hover{background:rgba(10,132,255,.09)}
 .stock-group-cell{padding:10px 12px!important}
 .stock-group-card{display:flex;align-items:center;justify-content:space-between;gap:14px;border:1px solid #eee8dc;background:linear-gradient(180deg,#fffdf8,#fbf5e9);border-radius:16px;padding:10px 14px;box-shadow:0 8px 22px rgba(31,26,12,.04)}
 .stock-group-main{display:flex;align-items:center;gap:12px;min-width:260px}
@@ -324,7 +324,7 @@ input[type="color"]{height:38px;padding:3px}
 .btn-s{background:#fff;border-color:#eee8dc;color:var(--text)}
 .chip{border-radius:999px;padding:8px 18px;background:#fff}
 thead th{background:#fafafa;color:#8f8f8f}
-tbody tr:hover{background:#fffdf8}
+tbody tr:hover{background:rgba(118,118,128,.06)}
 @media(max-width:900px){
   .sidebar{width:56px;min-width:56px;padding-bottom:10px}
   .sidebar-logo{padding:12px 8px}.sidebar-logo img{width:34px;height:34px;border-radius:10px}
@@ -378,9 +378,9 @@ tbody tr:hover{background:#fffdf8}
    variables de --root que ya controla Configuración > Colores/Visual.
    ═══════════════════════════════════════════════════════════ */
 :root{
-  --radius-lg:20px;
-  --radius-md:14px;
-  --radius-sm:10px;
+  --radius-lg:26px;
+  --radius-md:16px;
+  --radius-sm:11px;
   --radius-pill:999px;
   --line:var(--visual-line-rgba, rgba(60,60,67,.13));
   --line-strong:rgba(60,60,67,.22);
@@ -755,59 +755,45 @@ tbody tr:hover{background:rgba(120,120,128,.05)!important}
 }
 
 /* ── Fondo neutro (sin beige), estilo macOS ── */
-:root{--bg:#f5f5f7!important}
-html,body,.app,.page,.main{background:#f5f5f7!important;background-image:none!important}
+:root{--bg:#f0f1f4!important}
+html,body,.app,.page,.main{background:#f0f1f4!important;background-image:none!important}
 
-/* ── Toque leve de "liquid glass" en superficies clave ── */
-/* Fondo con color detrás, para que el desenfoque tenga algo que difuminar */
+/* ── Superficies sólidas y opacas: sin liquid glass, para que el panel */
+/*    siga siendo rápido. Fondo decorativo estático (no difuminado, costo cero). ── */
 .app{
   background:
-    radial-gradient(circle at 8% 4%, color-mix(in srgb, var(--olive1,var(--primary)) 16%, transparent), transparent 34%),
-    radial-gradient(circle at 96% 0%, color-mix(in srgb, var(--gold,#c58c49) 18%, transparent), transparent 32%),
-    radial-gradient(circle at 40% 96%, color-mix(in srgb, var(--info) 10%, transparent), transparent 30%),
-    #f5f5f7 !important;
+    radial-gradient(circle at 8% 4%, color-mix(in srgb, var(--olive1,var(--primary)) 10%, transparent), transparent 34%),
+    radial-gradient(circle at 96% 0%, color-mix(in srgb, var(--gold,#c58c49) 9%, transparent), transparent 32%),
+    #f0f1f4 !important;
 }
 .sidebar,.topbar{
-  background:rgba(255,255,255,.68)!important;
-  backdrop-filter:blur(24px) saturate(140%);
-  -webkit-backdrop-filter:blur(24px) saturate(140%);
-  border:1px solid rgba(255,255,255,.6)!important;
-  box-shadow:0 8px 32px rgba(31,31,35,.08), inset 0 1px 0 rgba(255,255,255,.5)!important;
+  background:#fafafc!important;
+  border:1px solid rgba(60,60,67,.09)!important;
+  box-shadow:0 1px 0 rgba(0,0,0,.02)!important;
 }
 .modal{
-  background:rgba(255,255,255,.94)!important;
-  backdrop-filter:blur(18px) saturate(120%);
-  -webkit-backdrop-filter:blur(18px) saturate(120%);
-  border:1px solid rgba(255,255,255,.7)!important;
-  box-shadow:0 8px 32px rgba(31,31,35,.1), inset 0 1px 0 rgba(255,255,255,.6)!important;
+  background:#fff!important;
+  border:1px solid rgba(60,60,67,.1)!important;
+  box-shadow:0 24px 60px rgba(0,0,0,.16), 0 4px 14px rgba(0,0,0,.06)!important;
 }
 .card,.stat,.finance-hero,.tw,.filter-panel,.rend-card,
 .visual-settings-panel,.bulk-toolbar,.client-toolbar,
 .price-alert,.daily-item,.stock-group-card,.variant-option-card,
 .variant-type-card,.cart-item,.vp-item,.expense-row,.cfg-item,
 .cfg-edit-grid,.cfg-city-panel,.ads-mini,.ads-row,.insight-result{
-  background:rgba(255,255,255,.86)!important;
-  backdrop-filter:blur(10px) saturate(110%);
-  -webkit-backdrop-filter:blur(10px) saturate(110%);
-}
-.modal-bg{
-  backdrop-filter:blur(6px);
-  -webkit-backdrop-filter:blur(6px);
+  background:#fff!important;
 }
 #setupScreen{
   background:
-    radial-gradient(circle at 8% 4%, color-mix(in srgb, var(--olive1,var(--primary)) 16%, transparent), transparent 34%),
-    radial-gradient(circle at 96% 0%, color-mix(in srgb, var(--gold,#c58c49) 18%, transparent), transparent 32%),
-    radial-gradient(circle at 40% 96%, color-mix(in srgb, var(--info) 10%, transparent), transparent 30%),
-    #f5f5f7 !important;
+    radial-gradient(circle at 8% 4%, color-mix(in srgb, var(--olive1,var(--primary)) 12%, transparent), transparent 34%),
+    radial-gradient(circle at 96% 0%, color-mix(in srgb, var(--gold,#c58c49) 12%, transparent), transparent 32%),
+    #f0f1f4 !important;
 }
 .setup-box{
-  background:rgba(255,255,255,.86)!important;border:1px solid rgba(255,255,255,.7)!important;
-  backdrop-filter:blur(28px) saturate(160%);
-  -webkit-backdrop-filter:blur(28px) saturate(160%);
-  border-radius:28px!important;
+  background:#fff!important;border:1px solid rgba(60,60,67,.08)!important;
+  border-radius:30px!important;
   padding:44px 40px!important;
-  box-shadow:0 40px 90px rgba(31,31,35,.14), 0 10px 26px rgba(31,31,35,.06), inset 0 1px 0 rgba(255,255,255,.6)!important;
+  box-shadow:0 30px 70px rgba(31,31,35,.12), 0 8px 22px rgba(31,31,35,.05)!important;
   max-width:420px!important;
 }
 .setup-box img{
@@ -1101,9 +1087,9 @@ html.dark .group-child{background:transparent!important}
 .stock-code-group input{border:none!important;flex:1;padding:8px 10px 8px 2px;border-radius:0!important}
 html.dark .stock-code-group{border-color:rgba(255,255,255,.14)!important}
 html.dark .stock-code-group .stock-code-base{background:rgba(255,255,255,.06)!important;color:#e9e9ee!important}
-.stock-variant-card.row-selected{background:#fff7e7;border-color:#f0dfa8}
+.stock-variant-card.row-selected{background:rgba(10,132,255,.07);border-color:rgba(10,132,255,.35)}
 .stock-variant-card.row-muted{opacity:.28}
-.stock-bubble.row-selected .stock-bubble-head{background:#fff7e7}
+.stock-bubble.row-selected .stock-bubble-head{background:rgba(10,132,255,.07)}
 .stock-bubble.row-muted{opacity:.4}
 html.dark .stock-variant-card.row-selected{background:rgba(255,214,110,.12)!important;border-color:rgba(255,214,110,.3)!important}
 html.dark .stock-bubble.row-selected .stock-bubble-head{background:rgba(255,214,110,.1)!important}
@@ -1113,6 +1099,107 @@ html.dark .stock-bubble-actions{border-color:rgba(255,255,255,.08)!important}
 html.dark .stock-variant-card{background:rgba(255,255,255,.04)!important;border-color:rgba(255,255,255,.09)!important}
 html.dark .stock-bubble-chevron{background:rgba(255,255,255,.06)!important;border-color:rgba(255,255,255,.12)!important;color:#f2f2f7!important}
 html.dark .svc-grid span,html.dark .stock-bubble-name,html.dark .svc-name{color:#f2f2f7!important}
+
+/* ══════════════════════════════════════════════════════════════
+   BETA — Redacción visual definitiva estilo macOS/iOS moderno
+   (capa final: neutraliza restos de "liquid glass" que se hayan
+   reintroducido más abajo en el archivo, y amplía los radios de
+   esquina a un sistema concéntrico 20–30px en las superficies
+   principales). Solo visual: no toca IDs, eventos ni funciones.
+   ══════════════════════════════════════════════════════════════ */
+:root{--bg:#f0f1f4!important}
+html,body,.app,.page,.main{background:#f0f1f4!important}
+
+/* Sin blur repetido en superficies fijas (rendimiento) */
+.sidebar,.topbar,.sales-save-bar,.sales-summary-sticky,.vm-sale-footer{
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+.sidebar,.topbar{background:#fafafc!important}
+.sales-save-bar{background:#fff!important}
+.sales-summary-sticky{background:#fff!important}
+.vm-sale-footer{background:#fff!important}
+
+/* Radios amplios y concéntricos en superficies principales */
+.dash-panel,.dash-kpi,.dash-health{border-radius:24px!important}
+.vm-sale-card{border-radius:22px!important}
+.sales-form-section,.sales-summary-sticky{border-radius:22px!important}
+.ra-sale-summary,.ra-modal-box{border-radius:20px!important}
+.action-menu-pop{border-radius:16px!important}
+.vm-sale-section{border-radius:16px!important}
+.sales-save-bar{border-radius:18px!important}
+.sales-nested,.ra-client-ficha,.ra-postventa{border-radius:16px!important}
+.cart-total,.vm-gift-row{border-radius:14px!important}
+.card,.stat,.modal,.finance-hero{border-radius:var(--radius-lg)!important}
+
+/* Botón principal: cápsula azul Apple en todo el panel */
+.btn-p,.setup-box .btn.btn-p,.sales-entry-card .btn-p{
+  background:#0a84ff!important;border-color:transparent!important;color:#fff!important;
+}
+.btn-p:hover{filter:brightness(1.06)}
+a,.link,.sales-section-icon,.sales-section-toggle,.dash-copy,.dash-panel-head button,
+.dash-action-grid button:hover,.dash-activity i{color:#0a84ff}
+
+html.dark .sidebar,html.dark .topbar{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+html.dark .dash-panel,html.dark .dash-kpi,html.dark .dash-health{border-radius:24px!important}
+html.dark .vm-sale-card{border-radius:22px!important}
+
+/* ── Configuración en dos columnas: navegación de categorías + contenido ── */
+.cfg-shell{display:grid;grid-template-columns:220px minmax(0,1fr);gap:18px;align-items:start}
+.cfg-nav{position:sticky;top:14px;display:flex;flex-direction:column;gap:2px;background:#fff;border:1px solid var(--border);border-radius:20px;padding:8px}
+.cfg-nav button{display:block;width:100%;text-align:left;border:0;background:transparent;padding:10px 12px;border-radius:13px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;transition:background .12s ease,color .12s ease}
+.cfg-nav button:hover{background:rgba(118,118,128,.08)}
+.cfg-nav button.active{background:#0a84ff;color:#fff}
+.cfg-content{display:grid;gap:14px;min-width:0}
+.cfg-cat-pane{display:none;flex-direction:column;gap:14px}
+.cfg-cat-pane.active{display:flex}
+@media(max-width:860px){
+  .cfg-shell{grid-template-columns:1fr}
+  .cfg-nav{position:static;flex-direction:row;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap;gap:6px}
+  .cfg-nav button{flex:0 0 auto}
+}
+html.dark .cfg-nav{background:#232325!important;border-color:rgba(255,255,255,.09)!important}
+html.dark .cfg-nav button{color:#c7c7cc}
+html.dark .cfg-nav button:hover{background:rgba(255,255,255,.07)}
+html.dark .cfg-nav button.active{background:#0a84ff;color:#fff}
+
+/* ── Ficha de usuario al pie del sidebar (estilo Apple Music) ── */
+.sidebar-profile-chip{
+  display:flex;align-items:center;gap:10px;width:100%;
+  margin-top:10px;padding:8px 10px;border:1px solid var(--border);
+  border-radius:16px;background:#fff;cursor:pointer;
+  transition:background .12s ease,transform .08s ease;
+}
+.sidebar-profile-chip:hover{background:rgba(118,118,128,.08)}
+.sidebar-profile-chip:active{transform:scale(.98)}
+.sidebar-profile-avatar{
+  width:30px;height:30px;border-radius:50%;flex:0 0 auto;
+  background:#0a84ff;color:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;
+}
+.sidebar-profile-avatar img{width:100%;height:100%;object-fit:cover}
+.sidebar-profile-text{flex:1;min-width:0;text-align:left;display:flex;flex-direction:column}
+.sidebar-profile-text strong{font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sidebar-profile-text small{font-size:10.5px;color:var(--text3)}
+.sidebar-profile-chevron{color:var(--text3);flex:0 0 auto}
+html.dark .sidebar-profile-chip{background:rgba(255,255,255,.05)!important;border-color:rgba(255,255,255,.09)!important}
+html.dark .sidebar-profile-chip:hover{background:rgba(255,255,255,.08)!important}
+html.dark .sidebar-profile-text strong{color:#f2f2f7!important}
+
+/* ── Placas de color en los íconos del menú (estilo Ajustes/Mapas de iOS) ── */
+.nav-item{gap:10px!important}
+.nav-icon-badge{
+  width:26px;height:26px;border-radius:8px;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;color:#fff;
+}
+.nav-icon-badge svg{width:14px;height:14px;stroke:#fff}
+.nav-item.active .nav-icon-badge{box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.nav-badge-blue{background:#0a84ff}
+.nav-badge-green{background:#34c759}
+.nav-badge-orange{background:#ff9500}
+.nav-badge-purple{background:#af52de}
+.nav-badge-teal{background:#5ac8fa}
+.nav-badge-red{background:#ff3b30}
+.nav-badge-gray{background:#8e8e93}
+.nav-badge-indigo{background:#5856d6}
 </style>
 </head>
 <body>
@@ -1236,6 +1323,14 @@ document.addEventListener('DOMContentLoaded', function(){
         <span>Configuracion</span>
       </button>
     </div>
+    <button type="button" class="sidebar-profile-chip" onclick="abrirPerfilUsuario()">
+      <span class="sidebar-profile-avatar">
+        <img id="sidebarProfileImg" alt="" style="display:none">
+        <svg id="sidebarProfileIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </span>
+      <span class="sidebar-profile-text"><strong>Ritual Ancestral</strong><small>Ver perfil</small></span>
+      <svg class="sidebar-profile-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+    </button>
     <div class="sidebar-footer">v3 · Ritual Ancestral</div>
   </nav>
 
@@ -2309,11 +2404,11 @@ function setMoneyValue(id,val){const el=gs(id);if(el)el.value=fmtInputGs(val);}
 const esc = v => (v==null?'':String(v)).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const DEFAULT_THEME = {
-  sidebar:'#f5f5f5',
+  sidebar:'#fafafc',
   sidebartext:'#3c3c43',
-  primary:'#454711',
-  gold:'#8d8336',
-  bg:'#f5f5f7',
+  primary:'#0a84ff',
+  gold:'#0a84ff',
+  bg:'#f0f1f4',
   card:'#ffffff',
   text:'#1a1a1a',
   border:'#d1d1d6',
@@ -2967,15 +3062,17 @@ function aplicarApariencia(cfg=appConfig){
 function aplicarAvatarPerfil(src){
   const img=gs('userProfileImg');
   const icon=gs('userProfileIcon');
-  if(!img||!icon)return;
-  if(src){
-    img.src=src;
-    img.style.display='block';
-    icon.style.display='none';
-  }else{
-    img.style.display='none';
-    icon.style.display='block';
+  const sImg=gs('sidebarProfileImg');
+  const sIcon=gs('sidebarProfileIcon');
+  if(img&&icon){
+    if(src){img.src=src;img.style.display='block';icon.style.display='none';}
+    else{img.style.display='none';icon.style.display='block';}
   }
+  if(sImg&&sIcon){
+    if(src){sImg.src=src;sImg.style.display='block';sIcon.style.display='none';}
+    else{sImg.style.display='none';sIcon.style.display='block';}
+  }
+  if(!img||!icon)return;
 }
 function abrirPerfilUsuario(){
   const btn=[...document.querySelectorAll('.nav-item')].find(b=>b.textContent.includes('Configuracion'));
@@ -7292,7 +7389,7 @@ window.addEventListener('DOMContentLoaded', async ()=>{
 .ra-modal.open{display:flex}.ra-modal-box{background:#fff;border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.25);width:min(720px,100%);max-height:90vh;overflow:auto;padding:22px}
 .ra-modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}.ra-modal-head h2{font-size:18px}
 .ra-component-row{display:grid;grid-template-columns:1fr 90px 40px;gap:8px;align-items:end;margin-bottom:8px}
-.ra-calc-result{padding:14px;border:1px solid var(--border);border-radius:12px;background:#fffdf8;display:grid;gap:7px}.ra-calc-line{display:flex;justify-content:space-between;gap:12px}
+.ra-calc-result{padding:14px;border:1px solid var(--border);border-radius:16px;background:rgba(118,118,128,.06);display:grid;gap:7px}.ra-calc-line{display:flex;justify-content:space-between;gap:12px}
 .ra-ok{color:var(--ok)}.ra-warn{color:var(--warn)}.ra-err{color:var(--err)}
 @media(max-width:640px){.ra-component-row{grid-template-columns:1fr 70px 36px}.ra-modal-box{padding:16px}.ra-quick-grid{grid-template-columns:1fr!important}}
 
@@ -7344,7 +7441,8 @@ html.dark #pv-ventas{background:#000}html.dark .vm-sale-card,html.dark .vm-sale-
 @media(max-width:620px){.sales-entry-card{padding-inline:0!important}.sales-entry-title{padding-inline:2px}.sales-progress{gap:3px;padding:3px;border-radius:11px}.sales-progress span{font-size:9.5px;padding:8px 3px}.sales-progress span i{margin-right:2px}.sales-form-section,.sales-summary-sticky{width:100%;max-width:100%;margin-left:0;margin-right:0}.discount-panel,.sales-entry-card .cart-total{min-height:124px!important}.sales-entry-card .cart-total{align-items:flex-start!important}.sales-entry-card .cart-total strong{font-size:27px}.sales-summary-sticky{padding:17px}.sales-summary-total strong{font-size:23px}}
 
 /* Composición final: progreso unido al resumen y total sin contenedor */
-.sales-entry-title{display:block;width:100%;margin-bottom:16px}.sales-entry-layout{grid-template-columns:minmax(0,1fr) minmax(330px,360px);gap:18px}.sales-summary-column{position:sticky;top:88px;display:grid;gap:14px;width:100%;min-width:0;align-self:start}.sales-summary-column .sales-progress{width:100%;max-width:none;box-sizing:border-box}.sales-summary-column .sales-summary-sticky{position:relative;top:auto}.sales-discount-total{align-items:center!important}.sales-entry-card .cart-total{min-height:0!important;height:auto!important;border:0!important;border-radius:0!important;background:transparent!important;padding:0!important;box-shadow:none!important;align-items:flex-end!important;justify-content:center!important}.sales-entry-card .cart-total:before{display:none}.sales-entry-card .cart-total span{font-size:10.5px;color:var(--text3)}.sales-entry-card .cart-total strong{font-size:30px;margin-top:5px;text-align:right}.discount-panel{min-height:142px!important}.sales-progress span{font-size:9.5px;padding-inline:3px}.sales-progress span i{margin-right:2px}
+.sales-entry-title{display:block;width:100%;margin-bottom:16px;padding-left:2px}
+.sales-entry-kicker{padding-left:1px}.sales-entry-layout{grid-template-columns:minmax(0,1fr) minmax(330px,360px);gap:18px}.sales-summary-column{position:sticky;top:88px;display:grid;gap:14px;width:100%;min-width:0;align-self:start}.sales-summary-column .sales-progress{width:100%;max-width:none;box-sizing:border-box}.sales-summary-column .sales-summary-sticky{position:relative;top:auto}.sales-discount-total{align-items:center!important}.sales-entry-card .cart-total{min-height:0!important;height:auto!important;border:0!important;border-radius:0!important;background:transparent!important;padding:0!important;box-shadow:none!important;align-items:flex-end!important;justify-content:center!important}.sales-entry-card .cart-total:before{display:none}.sales-entry-card .cart-total span{font-size:10.5px;color:var(--text3)}.sales-entry-card .cart-total strong{font-size:30px;margin-top:5px;text-align:right}.discount-panel{min-height:142px!important}.sales-progress span{font-size:9.5px;padding-inline:3px}.sales-progress span i{margin-right:2px}
 @media(max-width:980px){.sales-entry-layout{grid-template-columns:1fr;gap:16px}.sales-summary-column{position:relative;top:auto;max-width:100%}.sales-discount-total{grid-template-columns:minmax(0,1fr) minmax(220px,.8fr)}.sales-entry-card .cart-total{align-items:flex-end!important}}
 @media(max-width:620px){.sales-summary-column{gap:12px}.sales-discount-total{grid-template-columns:1fr}.sales-entry-card .cart-total{padding:8px 2px 2px!important;align-items:flex-end!important}.sales-entry-card .cart-total strong{font-size:27px}.sales-progress span{font-size:9px}.discount-panel{min-height:0!important}}
 
@@ -7532,7 +7630,7 @@ function raInyectarUI(){
 document.addEventListener('DOMContentLoaded',()=>{raInyectarUI();setTimeout(raInyectarUI,300);});
 </script>
 <style>
-.delivery-portal-box{display:grid;grid-template-columns:minmax(180px,1fr) auto;gap:9px;align-items:end}.delivery-link-result{margin-top:12px;padding:11px;border:1px solid var(--border);border-radius:10px;background:#fffdf8;display:none}.delivery-link-result.open{display:block}.delivery-link-url{font-family:var(--fm);font-size:11px;overflow-wrap:anywhere;color:var(--text2);margin:6px 0 10px}
+.delivery-portal-box{display:grid;grid-template-columns:minmax(180px,1fr) auto;gap:9px;align-items:end}.delivery-link-result{margin-top:12px;padding:11px;border:1px solid var(--border);border-radius:14px;background:rgba(118,118,128,.06);display:none}.delivery-link-result.open{display:block}.delivery-link-url{font-family:var(--fm);font-size:11px;overflow-wrap:anywhere;color:var(--text2);margin:6px 0 10px}
 @media(max-width:620px){.delivery-portal-box{grid-template-columns:1fr}}
 </style>
 <script>
@@ -7555,6 +7653,82 @@ function deliveryPortalWhatsApp(){const url=gs('deliveryPortalUrl')?.textContent
 async function deliveryPortalRevocar(){const persona=gs('deliveryPortalPersona')?.value;if(!persona||!confirm('¿Revocar el acceso de '+persona+'?'))return;const {error}=await SB.rpc('delivery_revocar_acceso',{p_delivery_persona:persona});if(error){showAlert('deliveryPortalMsg',error.message,'err');return;}gs('deliveryPortalResult').classList.remove('open');toast('Enlace revocado');}
 const deliveryNavOriginal=navTo;navTo=function(tab,btn){deliveryNavOriginal(tab,btn);if(tab==='delivery')setTimeout(()=>{deliveryPortalInyectar();deliveryPortalPoblar();},30);};
 document.addEventListener('DOMContentLoaded',()=>setTimeout(deliveryPortalInyectar,350));
+
+/* ── Configuración: reorganizar en dos columnas (mueve los cards reales, no los duplica) ── */
+function cfgReorganizarUI(){
+  const root=gs('pv-config');
+  if(!root||gs('cfgShell'))return;
+  const cats=[
+    {id:'general',label:'General',match:['Datos del Negocio','Respaldo del panel','Diagnóstico del panel','Conexion Supabase']},
+    {id:'ventas',label:'Ventas y pagos',match:['Envoltorio de regalo','Combos rápidos','Fechas especiales','Datos bancarios','Mensajes de WhatsApp']},
+    {id:'productos',label:'Productos',match:['Menús desplegables']},
+    {id:'entregas',label:'Entregas',match:['Deliverys Fijos','Ciudades y Delivery']},
+    {id:'apariencia',label:'Apariencia',match:['Marca e identidad','Colores','Visual','Tipografía']}
+  ];
+  const cards=[...root.children].filter(el=>el.classList && el.classList.contains('card'));
+  if(cards.length<8)return;
+  const shell=document.createElement('div');
+  shell.className='cfg-shell';shell.id='cfgShell';
+  const nav=document.createElement('nav');nav.className='cfg-nav';nav.id='cfgCatNav';
+  const content=document.createElement('div');content.className='cfg-content';content.id='cfgCatContent';
+  const panes={};
+  cats.forEach((c,i)=>{
+    const btn=document.createElement('button');
+    btn.type='button';btn.textContent=c.label;btn.dataset.cat=c.id;
+    if(i===0)btn.classList.add('active');
+    btn.onclick=()=>cfgMostrarCategoria(c.id);
+    nav.appendChild(btn);
+    const pane=document.createElement('div');
+    pane.className='cfg-cat-pane'+(i===0?' active':'');
+    pane.dataset.cat=c.id;
+    content.appendChild(pane);
+    panes[c.id]=pane;
+  });
+  cards.forEach(card=>{
+    const hdr=card.querySelector('.card-hdr');
+    const text=hdr?hdr.textContent.trim():'';
+    let target=panes.general;
+    for(const c of cats){ if(c.match.includes(text)){target=panes[c.id];break;} }
+    target.appendChild(card);
+  });
+  shell.appendChild(nav);shell.appendChild(content);
+  root.insertBefore(shell,root.firstChild);
+}
+function cfgMostrarCategoria(id){
+  document.querySelectorAll('#cfgCatNav button').forEach(b=>b.classList.toggle('active',b.dataset.cat===id));
+  document.querySelectorAll('.cfg-cat-pane').forEach(p=>p.classList.toggle('active',p.dataset.cat===id));
+}
+document.addEventListener('DOMContentLoaded',()=>setTimeout(cfgReorganizarUI,60));
+
+/* ── Placas de color en íconos del menú lateral (solo visual, no toca onclick/IDs) ── */
+function sidebarColorearIconos(){
+  const mapa={
+    'inicio':'nav-badge-blue',
+    'registro':'nav-badge-green',
+    'ventasmes':'nav-badge-blue',
+    'stock':'nav-badge-orange',
+    'productos':'nav-badge-orange',
+    'movimientos':'nav-badge-gray',
+    'clientes':'nav-badge-purple',
+    'delivery':'nav-badge-teal',
+    'finanzas':'nav-badge-indigo',
+    'config':'nav-badge-gray'
+  };
+  document.querySelectorAll('.sidebar .nav-item').forEach(btn=>{
+    if(btn.querySelector('.nav-icon-badge'))return;
+    const svg=btn.querySelector('svg');
+    if(!svg)return;
+    const onclickAttr=btn.getAttribute('onclick')||'';
+    const m=onclickAttr.match(/navTo\('([a-z]+)'/);
+    const key=m?m[1]:'';
+    const cls=mapa[key]||'nav-badge-gray';
+    const badge=document.createElement('span');
+    badge.className='nav-icon-badge '+cls;
+    svg.parentNode.insertBefore(badge,svg);
+    badge.appendChild(svg);
+  });
+}
+document.addEventListener('DOMContentLoaded',()=>setTimeout(sidebarColorearIconos,10));
 </script>
 <!-- Despliegue posterior a recuperación de GitHub Pages · 2026-08-07 -->
 </body>
