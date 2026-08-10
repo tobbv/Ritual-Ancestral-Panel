@@ -1302,6 +1302,17 @@ html.dark .cliente-card-head:hover{background:rgba(255,255,255,.05)!important}
 html.dark .cliente-info b,html.dark .cliente-money strong,html.dark .cliente-detail-grid b{color:#f2f2f7!important}
 #vClienteResultados{top:100%!important;margin-top:4px!important}
 
+/* ── Recordatorios de cobro masivo ── */
+.recordatorio-row{display:flex;align-items:center;gap:12px;padding:11px 14px;border:1px solid var(--border);border-radius:14px;background:#fff}
+.recordatorio-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.recordatorio-info b{font-size:13px;color:var(--text)}
+.recordatorio-info small{font-size:10.5px;color:var(--text3)}
+.recordatorio-monto{font-weight:800;font-size:13px;color:var(--warn);white-space:nowrap}
+html.dark .recordatorio-row{background:#232325!important;border-color:rgba(255,255,255,.09)!important}
+html.dark .recordatorio-info b{color:#f2f2f7!important}
+.alert-tag-btn{border:0;cursor:pointer;transition:filter .12s ease}
+.alert-tag-btn:hover{filter:brightness(.92)}
+
 /* ── Accesibilidad: foco visible por teclado en controles interactivos ── */
 .btn:focus-visible,.nav-item:focus-visible,.cfg-nav button:focus-visible,
 input:focus-visible,select:focus-visible,textarea:focus-visible,
@@ -2552,6 +2563,17 @@ document.addEventListener('DOMContentLoaded', function(){
   </div>
 </div>
 
+<div class="modal-bg" id="modalRecordatorios">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-hdr">
+      <div class="modal-title">Recordatorios de cobro</div>
+      <button type="button" class="btn btn-g btn-sm" onclick="cerrarModal('modalRecordatorios')">✕</button>
+    </div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">Le mandás un WhatsApp a cada uno con un clic. Se abre uno por vez porque WhatsApp Web no permite mandar varios de una.</div>
+    <div id="recordatoriosLista" style="display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow:auto"></div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modalStockEditar">
   <div class="modal" style="max-width:620px;">
     <div class="modal-hdr">
@@ -3061,7 +3083,8 @@ async function dashCargar(){
     if(gs('dashStockBajo'))gs('dashStockBajo').textContent=stockBajo.length;
     if(gs('dashTicket'))gs('dashTicket').textContent=fmtGs(ticket)+' promedio';
     await stockBajoDesdeActualizar(stockBajo.map(p=>p.codigo));
-    renderDashAlertas(analisis,stockBajo,porEntregar,pendientesHistoricos,rows);
+    const rotacion=await dashCalcularRotacion().catch(()=>null);
+    renderDashAlertas(analisis,stockBajo,porEntregar,pendientesHistoricos,rows,rotacion);
     renderDashStock(stockBajo);
     renderDashPreparacion(rows);
     renderDashChart(ventas);
@@ -3187,13 +3210,13 @@ function renderChecklistCierre(){
     CHECKLIST_ITEMS.map(i=>`<label class="login-check" style="cursor:pointer"><input type="checkbox" ${estado[i.id]?'checked':''} onchange="checklistCierreToggle('${i.id}')"><span style="${estado[i.id]?'text-decoration:line-through;color:var(--text3)':''}">${esc(i.label)}</span></label>`).join('');
 }
 
-function renderDashAlertas(a,stockBajo,porEntregar,pendientesHistoricos=[],rows=[]){
+function renderDashAlertas(a,stockBajo,porEntregar,pendientesHistoricos=[],rows=[],rotacion=null){
   const el=gs('dashAlertas');if(!el)return;
   const alerts=[];
   if(a.neta<0)alerts.push({tipo:'err',titulo:'Mes en pérdida',detalle:'Revisar costos, gastos y precios.',tag:'Finanzas'});
-  if(a.pendiente>0)alerts.push({tipo:'warn',titulo:fmtGs(a.pendiente)+' pendiente',detalle:'Hay ventas por cobrar este mes.',tag:'Cobrar'});
+  if(a.pendiente>0)alerts.push({tipo:'warn',titulo:fmtGs(a.pendiente)+' pendiente',detalle:'Hay ventas por cobrar este mes.',tag:'Cobrar',accion:'abrirRecordatoriosCobro()'});
   const deudaVieja=pendientesHistoricos.filter(r=>mesDesdeFecha(r.fecha)!==getMesActual()).reduce((s,r)=>s+saldoPendienteVenta(r),0);
-  if(deudaVieja>0)alerts.push({tipo:'err',titulo:fmtGs(deudaVieja)+' atrasado',detalle:'Pendiente de meses anteriores.',tag:'Urgente'});
+  if(deudaVieja>0)alerts.push({tipo:'err',titulo:fmtGs(deudaVieja)+' atrasado',detalle:'Pendiente de meses anteriores.',tag:'Urgente',accion:'abrirRecordatoriosCobro()'});
   if(porEntregar>0)alerts.push({tipo:'warn',titulo:porEntregar+' pedidos por entregar',detalle:'Revisar agenda y preparación.',tag:'Delivery'});
   if(stockBajo.length){
     const desdeMap=stockBajoDesdeGet();
@@ -3208,15 +3231,63 @@ function renderDashAlertas(a,stockBajo,porEntregar,pendientesHistoricos=[],rows=
   if(sinCosto.length)alerts.push({tipo:'warn',titulo:sinCosto.length+' productos sin costo',detalle:'Finanzas puede quedar impreciso.',tag:'Costo'});
   const sinStock=allProductos.filter(p=>(parseFloat(p.stock_actual)||0)<=0&&String(p.estado||'').toLowerCase().includes('venta'));
   if(sinStock.length)alerts.push({tipo:'err',titulo:sinStock.length+' productos sin stock',detalle:'Siguen marcados como en venta.',tag:'Stock'});
+  if(rotacion?.sinRotacion?.length)alerts.push({tipo:'warn',titulo:rotacion.sinRotacion.length+' producto(s) sin ventas hace 45+ días',detalle:rotacion.sinRotacion.slice(0,3).map(p=>p.nombre).join(', ')+(rotacion.sinRotacion.length>3?'…':''),tag:'Rotación'});
+  if(rotacion?.proyeccion?.length){
+    const primero=rotacion.proyeccion[0];
+    alerts.push({tipo:'err',titulo:'Se agota pronto: '+primero.producto.nombre,detalle:primero.diasRestantes<=0?'Ya está por debajo de su ritmo de venta.':'Quedan ~'+primero.diasRestantes+' día(s) al ritmo actual.'+(rotacion.proyeccion.length>1?' +'+(rotacion.proyeccion.length-1)+' más.':''),tag:'Reponer'});
+  }
   if(!alerts.length){el.innerHTML='<div class="empty">Todo tranquilo por ahora</div>';return;}
   el.innerHTML=alerts.map(a=>alertRowHTML(a)).join('');
 }
 
+async function abrirRecordatoriosCobro(){
+  const el=gs('recordatoriosLista');if(!el)return;
+  el.innerHTML='<div class="empty"><span class="spinner"></span> Cargando...</div>';
+  gs('modalRecordatorios').classList.add('open');
+  const ventas=await cargarVentasCache().catch(()=>[]);
+  const pendientes=ventas.filter(r=>saldoPendienteVenta(r)>0&&!['cancelado'].includes(String(r.estado_entrega||'').toLowerCase()))
+    .sort((a,b)=>saldoPendienteVenta(b)-saldoPendienteVenta(a));
+  if(!pendientes.length){el.innerHTML='<div class="empty">No hay saldos pendientes 🎉</div>';return;}
+  el.innerHTML=pendientes.map(r=>{
+    const dias=diasDesde(r.fecha);
+    const tel=telefonoWA(r.contacto||'');
+    return `<div class="recordatorio-row">
+      <div class="recordatorio-info">
+        <b>${esc(r.cliente||'Cliente')}</b>
+        <small>${dias>0?dias+' día'+(dias===1?'':'s')+' desde la venta':'Venta de hoy'}${r.ciudad?' · '+esc(r.ciudad):''}</small>
+      </div>
+      <div class="recordatorio-monto">${fmtGs(saldoPendienteVenta(r))}</div>
+      ${tel?`<button type="button" class="btn btn-wa btn-sm" onclick="enviarWAId('${esc(r.id)}')">WhatsApp</button>`:`<span class="td-mu" style="font-size:10.5px">Sin WhatsApp</span>`}
+    </div>`;
+  }).join('');
+}
+async function dashCalcularRotacion(){
+  const desde=new Date();desde.setDate(desde.getDate()-45);
+  const desdeStr=fechaLocalDesdeDate(desde);
+  const {data,error}=await SB.from('movimientos').select('codigo_producto,cantidad,fecha').eq('tipo','venta').gte('fecha',desdeStr);
+  if(error||!data||data.length<5)return {sinRotacion:[],proyeccion:[],pocosDatos:true};
+  const porProducto={};
+  data.forEach(m=>{
+    const cod=m.codigo_producto;
+    if(!porProducto[cod])porProducto[cod]={ultimaFecha:m.fecha,totalVendido:0};
+    if(m.fecha>porProducto[cod].ultimaFecha)porProducto[cod].ultimaFecha=m.fecha;
+    porProducto[cod].totalVendido+=Math.abs(parseFloat(m.cantidad)||0);
+  });
+  const activos=allProductos.filter(p=>String(p.estado||'').toLowerCase().includes('venta')&&(parseFloat(p.stock_actual)||0)>0);
+  const sinRotacion=activos.filter(p=>!porProducto[p.codigo]);
+  const proyeccion=activos.filter(p=>porProducto[p.codigo]).map(p=>{
+    const info=porProducto[p.codigo];
+    const ritmoDiario=info.totalVendido/45;
+    const diasRestantes=ritmoDiario>0?Math.floor((parseFloat(p.stock_actual)||0)/ritmoDiario):Infinity;
+    return {producto:p,diasRestantes,ritmoDiario};
+  }).filter(x=>x.diasRestantes<=10).sort((a,b)=>a.diasRestantes-b.diasRestantes);
+  return {sinRotacion,proyeccion,pocosDatos:false};
+}
 function estadoBadgeHTML(txt,tipo='ok'){
   return `<span class="finance-status-pill ${esc(tipo)}"><span></span>${esc(txt)}</span>`;
 }
 function alertRowHTML(a){
-  return `<div class="price-alert dash-alert ${esc(a.tipo||'warn')}"><div class="alert-main"><strong>${esc(a.titulo||a.txt||'Alerta')}</strong><div class="td-mu">${esc(a.detalle||'')}</div></div>${a.tag?`<span class="alert-tag">${esc(a.tag)}</span>`:''}</div>`;
+  return `<div class="price-alert dash-alert ${esc(a.tipo||'warn')}"><div class="alert-main"><strong>${esc(a.titulo||a.txt||'Alerta')}</strong><div class="td-mu">${esc(a.detalle||'')}</div></div>${a.tag?(a.accion?`<button type="button" class="alert-tag alert-tag-btn" onclick="${a.accion}">${esc(a.tag)}</button>`:`<span class="alert-tag">${esc(a.tag)}</span>`):''}</div>`;
 }
 
 function renderDashPreparacion(rows){
@@ -3871,7 +3942,7 @@ async function vGuardar(confirmado=false){
   const costoDeliveryNeto=envioBruto;
   const totalProds=Math.max(0,subtotalBruto-descuento);
   const abono1=moneyVal('vMontoPagado'),abono2=moneyVal('vMontoPagado2');
-  const abonos=[];const ahora=new Date().toISOString();const sesion=leerSesionGuardada();const actor=sesion?.user?.email||'Usuario del panel';
+  const abonos=[];const ahora=new Date().toISOString();const sesion=leerSesionGuardada();const actor=appConfig.nombre_admin||sesion?.user?.email||'Usuario del panel';
   if(abono1>0)abonos.push({monto:abono1,metodo:gs('vMetodo').value,fecha:ahora,usuario:actor});
   if(abono2>0)abonos.push({monto:abono2,metodo:gs('vMetodo2').value,fecha:ahora,usuario:actor});
   const montoTotal=abono1+abono2;
@@ -3915,6 +3986,10 @@ async function vGuardar(confirmado=false){
     for(const [codigo,cant] of Object.entries(pedidoPorCodigo)){
       await ajustarStockProducto(codigo,-cant,'venta');
       stockDescontado.push({codigo,cant});
+    }
+    if(stockDescontado.length){
+      const movsVenta=stockDescontado.map(({codigo,cant})=>({fecha:fechaStr,codigo_producto:codigo,tipo:'venta',cantidad:-cant,costo_unitario:0,proveedor:'',observaciones:'Venta a '+(gs('vCliente').value||'cliente')}));
+      SB.from('movimientos').insert(movsVenta).then(({error})=>{if(error)console.warn('No se pudo registrar movimiento de venta',error);}).catch(()=>{});
     }
   }catch(e){
     showAlert('vMsg','No se pudo descontar stock, la venta no se guardó: '+(e?.message||e),'err');
