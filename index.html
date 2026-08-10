@@ -758,6 +758,7 @@ tbody tr:hover{background:rgba(120,120,128,.05)!important}
 /* ── Fondo neutro (sin beige), estilo macOS ── */
 :root{--bg:#f0f1f4!important}
 html,body,.app,.page,.main{background:#f0f1f4!important;background-image:none!important}
+html.dark,html.dark body,html.dark .app,html.dark .page,html.dark .main{background:#1c1c1e!important}
 
 /* ── Superficies sólidas y opacas: sin liquid glass, para que el panel */
 /*    siga siendo rápido. Fondo decorativo estático (no difuminado, costo cero). ── */
@@ -1114,6 +1115,7 @@ html.dark .svc-grid span,html.dark .stock-bubble-name,html.dark .svc-name{color:
    ══════════════════════════════════════════════════════════════ */
 :root{--bg:#f0f1f4!important}
 html,body,.app,.page,.main{background:#f0f1f4!important}
+html.dark,html.dark body,html.dark .app,html.dark .page,html.dark .main{background:#1c1c1e!important}
 
 /* Sin blur repetido en superficies fijas (rendimiento) */
 .sidebar,.topbar,.sales-save-bar,.sales-summary-sticky,.vm-sale-footer{
@@ -1299,6 +1301,14 @@ html.dark .cliente-card{background:#232325!important;border-color:rgba(255,255,2
 html.dark .cliente-card-head:hover{background:rgba(255,255,255,.05)!important}
 html.dark .cliente-info b,html.dark .cliente-money strong,html.dark .cliente-detail-grid b{color:#f2f2f7!important}
 
+/* ── Accesibilidad: foco visible por teclado en controles interactivos ── */
+.btn:focus-visible,.nav-item:focus-visible,.cfg-nav button:focus-visible,
+input:focus-visible,select:focus-visible,textarea:focus-visible,
+.cliente-card-head:focus-visible,.stock-bubble-head:focus-visible,.vm-sale-head:focus-visible{
+  outline:2px solid #337de8!important;outline-offset:2px!important;
+}
+html.dark .btn:focus-visible,html.dark .nav-item:focus-visible{outline-color:#5a94ec!important}
+
 /* ── Preferencias: fila de switch ── */
 .switch-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--border)}
 .switch-row:last-child{border-bottom:0}
@@ -1314,11 +1324,39 @@ html.dark .switch-row b{color:#f2f2f7!important}
 .perfil-avatar-big{width:76px;height:76px;border-radius:50%;background:#337de8;color:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .perfil-avatar-big img{width:100%;height:100%;object-fit:cover}
 .perfil-info{display:flex;flex-direction:column;align-items:center;gap:5px;margin-bottom:6px}
-.perfil-nombre{font-size:16px;font-weight:800;color:var(--text)}
+.perfil-persona-nombre{font-size:17px;font-weight:800;color:var(--text);background:none;border:0;cursor:pointer;display:flex;align-items:center;gap:6px;padding:2px 6px;border-radius:8px}
+.perfil-persona-nombre:hover{background:rgba(118,118,128,.08)}
+.perfil-edit-pencil{font-size:11px;opacity:.5}
 .perfil-rango{background:rgba(51,125,232,.12);color:#337de8;font-size:10.5px;font-weight:800;padding:4px 11px;border-radius:999px;text-transform:uppercase;letter-spacing:.4px}
-.perfil-email{font-size:12px;color:var(--text3);margin-top:2px}
+.perfil-negocio{font-size:12.5px;color:var(--text2);margin-top:3px;font-weight:600}
+.perfil-email{font-size:12px;color:var(--text3);margin-top:1px}
 .perfil-modal-actions{display:flex;flex-direction:column;gap:8px;width:100%;margin-top:14px}
-html.dark .perfil-nombre{color:#f2f2f7!important}
+html.dark .perfil-persona-nombre{color:#f2f2f7!important}
+html.dark .perfil-negocio{color:#c7c7cc!important}
+
+/* ── Sección Seguridad del perfil ── */
+.perfil-seguridad{width:100%;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+.perfil-seguridad-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:2px}
+.perfil-password-form{display:flex;flex-direction:column;gap:8px;padding:10px;background:rgba(118,118,128,.06);border-radius:12px}
+.perfil-password-actions{display:flex;gap:8px;justify-content:flex-end}
+html.dark .perfil-seguridad{border-color:rgba(255,255,255,.09)}
+
+/* ── Pantalla de bloqueo con PIN ── */
+.pin-lock-overlay{display:none;position:fixed;inset:0;z-index:9999;background:#1c1c1e;align-items:center;justify-content:center;flex-direction:column}
+.pin-lock-overlay.open{display:flex}
+.pin-lock-box{display:flex;flex-direction:column;align-items:center;text-align:center;width:280px}
+.pin-lock-avatar{width:60px;height:60px;border-radius:50%;background:#337de8;color:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:14px}
+.pin-lock-avatar img{width:100%;height:100%;object-fit:cover}
+.pin-lock-title{font-size:17px;font-weight:800;color:#f2f2f7}
+.pin-lock-sub{font-size:12.5px;color:#98989d;margin-top:3px;margin-bottom:20px}
+.pin-lock-dots{display:flex;gap:14px;margin-bottom:8px}
+.pin-lock-dots i{width:12px;height:12px;border-radius:50%;border:1.5px solid #636366;display:block}
+.pin-lock-dots i.filled{background:#337de8;border-color:#337de8}
+.pin-lock-error{font-size:11.5px;color:#ff6961;min-height:16px;margin-bottom:10px}
+.pin-lock-pad{display:grid;grid-template-columns:repeat(3,58px);gap:14px}
+.pin-lock-pad button{width:58px;height:58px;border-radius:50%;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#f2f2f7;font-size:19px;font-weight:600;cursor:pointer;transition:background .12s ease}
+.pin-lock-pad button:hover{background:rgba(255,255,255,.12)}
+.pin-lock-pad button:active{transform:scale(.94)}
 
 /* ── Sidebar compacto: que entren todas las opciones sin scroll ── */
 .nav-section{margin:9px 2px 0!important}
@@ -2556,16 +2594,62 @@ document.addEventListener('DOMContentLoaded', function(){
         <input type="file" id="perfilAvatarFile" accept="image/*" style="display:none" onchange="perfilCambiarFoto(this)">
       </div>
       <div class="perfil-info">
-        <div class="perfil-nombre" id="perfilNombreNegocio">Ritual Ancestral</div>
+        <button type="button" class="perfil-persona-nombre" id="perfilNombrePersona" onclick="perfilEditarNombrePersona()" title="Tocá para editar tu nombre">Tu nombre <span class="perfil-edit-pencil">✏️</span></button>
         <span class="perfil-rango">Administrador</span>
+        <div class="perfil-negocio" id="perfilNombreNegocio">Ritual Ancestral</div>
         <div class="perfil-email" id="perfilEmail"></div>
       </div>
       <div id="perfilMsg"></div>
+
+      <div class="perfil-seguridad">
+        <div class="perfil-seguridad-label">Seguridad</div>
+        <button type="button" class="btn btn-s btn-sm" onclick="perfilTogglePassword()">Cambiar contraseña</button>
+        <div id="perfilPasswordForm" class="perfil-password-form" style="display:none">
+          <input type="password" id="perfilPassNueva" placeholder="Nueva contraseña (mín. 6 caracteres)">
+          <input type="password" id="perfilPassConfirmar" placeholder="Confirmar contraseña">
+          <div id="perfilPassMsg"></div>
+          <div class="perfil-password-actions">
+            <button type="button" class="btn btn-s btn-sm" onclick="perfilTogglePassword()">Cancelar</button>
+            <button type="button" class="btn btn-p btn-sm" onclick="perfilGuardarPassword()">Guardar contraseña</button>
+          </div>
+        </div>
+        <button type="button" class="btn btn-s btn-sm" id="perfilPinBtn" onclick="perfilConfigurarPin()">Configurar PIN de bloqueo</button>
+        <button type="button" class="btn btn-s btn-sm" id="perfilBloquearBtn" onclick="bloquearPantalla()" style="display:none">🔒 Bloquear pantalla ahora</button>
+      </div>
+
       <div class="perfil-modal-actions">
         <button type="button" class="btn btn-s btn-sm" onclick="cerrarModal('modalPerfilUsuario');abrirPerfilUsuarioConfig()">Editar en Configuración</button>
         <button type="button" class="btn btn-d btn-sm" onclick="desconectar()">Cerrar sesión</button>
       </div>
     </div>
+  </div>
+</div>
+
+<div id="pinLockOverlay" class="pin-lock-overlay">
+  <div class="pin-lock-box">
+    <span class="pin-lock-avatar">
+      <img id="pinLockAvatarImg" alt="" style="display:none">
+      <svg id="pinLockAvatarIcon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </span>
+    <div class="pin-lock-title">Pantalla bloqueada</div>
+    <div class="pin-lock-sub">Ingresá tu PIN para continuar</div>
+    <div class="pin-lock-dots" id="pinLockDots"><i></i><i></i><i></i><i></i></div>
+    <div id="pinLockError" class="pin-lock-error"></div>
+    <div class="pin-lock-pad">
+      <button type="button" onclick="pinIngresar('1')">1</button>
+      <button type="button" onclick="pinIngresar('2')">2</button>
+      <button type="button" onclick="pinIngresar('3')">3</button>
+      <button type="button" onclick="pinIngresar('4')">4</button>
+      <button type="button" onclick="pinIngresar('5')">5</button>
+      <button type="button" onclick="pinIngresar('6')">6</button>
+      <button type="button" onclick="pinIngresar('7')">7</button>
+      <button type="button" onclick="pinIngresar('8')">8</button>
+      <button type="button" onclick="pinIngresar('9')">9</button>
+      <span></span>
+      <button type="button" onclick="pinIngresar('0')">0</button>
+      <button type="button" onclick="pinBorrar()">⌫</button>
+    </div>
+    <button type="button" class="btn btn-g btn-sm" style="margin-top:14px" onclick="desconectar()">Cerrar sesión en vez de esto</button>
   </div>
 </div>
 
@@ -3328,6 +3412,7 @@ function abrirPerfilUsuarioConfig(){
 async function abrirPerfilUsuario(){
   const theme={...DEFAULT_THEME,...parseJSONSafe(appConfig.apariencia,{})};
   if(gs('perfilNombreNegocio'))gs('perfilNombreNegocio').textContent=appConfig.nombre_negocio||'Ritual Ancestral';
+  if(gs('perfilNombrePersona'))gs('perfilNombrePersona').innerHTML=esc(appConfig.nombre_admin||'Tu nombre')+' <span class="perfil-edit-pencil">✏️</span>';
   const img=gs('perfilAvatarImg'),icon=gs('perfilAvatarIcon');
   if(img&&icon){
     if(theme.avatar){img.src=theme.avatar;img.style.display='block';icon.style.display='none';}
@@ -3341,8 +3426,99 @@ async function abrirPerfilUsuario(){
     }catch(e){}
   }
   if(gs('perfilMsg'))gs('perfilMsg').innerHTML='';
+  if(gs('perfilPasswordForm'))gs('perfilPasswordForm').style.display='none';
+  if(gs('perfilPassNueva'))gs('perfilPassNueva').value='';
+  if(gs('perfilPassConfirmar'))gs('perfilPassConfirmar').value='';
+  pinActualizarBotones();
   gs('modalPerfilUsuario').classList.add('open');
 }
+async function perfilEditarNombrePersona(){
+  const actual=appConfig.nombre_admin||'';
+  const nuevo=prompt('Tu nombre',actual);
+  if(nuevo===null)return;
+  const limpio=nuevo.trim();
+  if(!limpio)return;
+  await guardarConfigClave('nombre_admin',limpio);
+  if(gs('perfilNombrePersona'))gs('perfilNombrePersona').innerHTML=esc(limpio)+' <span class="perfil-edit-pencil">✏️</span>';
+  toast('Nombre actualizado');
+}
+function perfilTogglePassword(){
+  const form=gs('perfilPasswordForm');if(!form)return;
+  const abrir=form.style.display==='none';
+  form.style.display=abrir?'flex':'none';
+  if(gs('perfilPassMsg'))gs('perfilPassMsg').innerHTML='';
+  if(!abrir){gs('perfilPassNueva').value='';gs('perfilPassConfirmar').value='';}
+}
+async function perfilGuardarPassword(){
+  const nueva=gs('perfilPassNueva')?.value||'';
+  const confirmar=gs('perfilPassConfirmar')?.value||'';
+  if(nueva.length<6){showAlert('perfilPassMsg','Mínimo 6 caracteres','err');return;}
+  if(nueva!==confirmar){showAlert('perfilPassMsg','Las contraseñas no coinciden','err');return;}
+  const {error}=await SB.auth.updateUser({password:nueva});
+  if(error){showAlert('perfilPassMsg','No se pudo cambiar: '+error.message,'err');return;}
+  showAlert('perfilPassMsg','Contraseña actualizada','ok');
+  gs('perfilPassNueva').value='';gs('perfilPassConfirmar').value='';
+  setTimeout(perfilTogglePassword,1200);
+}
+
+/* ── PIN de bloqueo rápido (conveniencia local del dispositivo, no reemplaza el login) ── */
+let pinIngresado='';
+function pinActualizarBotones(){
+  const tienePin=!!localStorage.getItem('ritual_pin');
+  if(gs('perfilPinBtn'))gs('perfilPinBtn').textContent=tienePin?'Cambiar PIN de bloqueo':'Configurar PIN de bloqueo';
+  if(gs('perfilBloquearBtn'))gs('perfilBloquearBtn').style.display=tienePin?'':'none';
+}
+function perfilConfigurarPin(){
+  const nuevo=prompt('Elegí un PIN de 4 dígitos para bloquear la pantalla rápido (no reemplaza tu contraseña):');
+  if(nuevo===null)return;
+  if(!/^\d{4}$/.test(nuevo)){alert('El PIN debe ser de exactamente 4 números');return;}
+  localStorage.setItem('ritual_pin',nuevo);
+  pinActualizarBotones();
+  toast('PIN configurado');
+}
+function bloquearPantalla(){
+  const pin=localStorage.getItem('ritual_pin');
+  if(!pin){toast('Primero configurá un PIN en tu perfil');return;}
+  cerrarModal('modalPerfilUsuario');
+  pinIngresado='';
+  pinRenderDots();
+  if(gs('pinLockError'))gs('pinLockError').textContent='';
+  const theme={...DEFAULT_THEME,...parseJSONSafe(appConfig.apariencia,{})};
+  const img=gs('pinLockAvatarImg'),icon=gs('pinLockAvatarIcon');
+  if(img&&icon){
+    if(theme.avatar){img.src=theme.avatar;img.style.display='block';icon.style.display='none';}
+    else{img.style.display='none';icon.style.display='block';}
+  }
+  gs('pinLockOverlay').classList.add('open');
+}
+function pinRenderDots(){
+  const dots=document.querySelectorAll('#pinLockDots i');
+  dots.forEach((d,i)=>d.classList.toggle('filled',i<pinIngresado.length));
+}
+function pinIngresar(digito){
+  if(pinIngresado.length>=4)return;
+  pinIngresado+=digito;
+  pinRenderDots();
+  if(pinIngresado.length===4){
+    const correcto=localStorage.getItem('ritual_pin');
+    if(pinIngresado===correcto){
+      setTimeout(()=>{gs('pinLockOverlay').classList.remove('open');pinIngresado='';pinRenderDots();},150);
+    }else{
+      if(gs('pinLockError'))gs('pinLockError').textContent='PIN incorrecto, probá de nuevo';
+      setTimeout(()=>{pinIngresado='';pinRenderDots();},450);
+    }
+  }
+}
+function pinBorrar(){
+  pinIngresado=pinIngresado.slice(0,-1);
+  pinRenderDots();
+  if(gs('pinLockError'))gs('pinLockError').textContent='';
+}
+document.addEventListener('keydown',(e)=>{
+  if(!gs('pinLockOverlay')?.classList.contains('open'))return;
+  if(e.key>='0'&&e.key<='9')pinIngresar(e.key);
+  else if(e.key==='Backspace')pinBorrar();
+});
 async function perfilCambiarFoto(input){
   const f=input.files?.[0];if(!f)return;
   const dataUrl=await cfgLeerArchivoLogo(f);
