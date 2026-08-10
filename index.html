@@ -1300,6 +1300,7 @@ html.dark #darkModeToggle{background:rgba(255,255,255,.12)!important}
 html.dark .cliente-card{background:#232325!important;border-color:rgba(255,255,255,.09)!important}
 html.dark .cliente-card-head:hover{background:rgba(255,255,255,.05)!important}
 html.dark .cliente-info b,html.dark .cliente-money strong,html.dark .cliente-detail-grid b{color:#f2f2f7!important}
+#vClienteResultados{top:100%!important;margin-top:4px!important}
 
 /* ── Accesibilidad: foco visible por teclado en controles interactivos ── */
 .btn:focus-visible,.nav-item:focus-visible,.cfg-nav button:focus-visible,
@@ -4471,6 +4472,7 @@ function waEstadoPagoLabel(r){
 function waDatosCompra(r,totalFmt,saldo){
   const fechaEntrega=r.dia_entrega?formatoFecha(r.dia_entrega):'A confirmar';
   const entregaLabel=r.estado_entrega||'Pendiente';
+  const costoDelivery=parseInt(r.costo_delivery)||0;
   return '*DATOS DE COMPRA* 📝\n'+
     '👤 *Cliente:* '+(r.cliente||'')+'\n'+
     '📍 *Ciudad:* '+(r.ciudad||'')+
@@ -4485,6 +4487,7 @@ function waDatosCompra(r,totalFmt,saldo){
     '*PRODUCTOS:*\n'+
     '  • '+(r.detalle||'')+'\n'+
     '------------------------------------------\n'+
+    (costoDelivery>0?'🚚 *Delivery:* '+fmtGs(costoDelivery)+'\n------------------------------------------\n':'')+
     '💰 *TOTAL:* *'+totalFmt+'*\n'+
     '------------------------------------------';
 }
