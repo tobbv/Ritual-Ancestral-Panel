@@ -2588,7 +2588,7 @@ document.addEventListener('DOMContentLoaded', function(){
       <div class="field" id="stGrupoWrap"><label>Categoría</label><select class="select-s stock-edit" id="stGrupo"></select></div>
       <div class="field" id="stMinWrap"><label>Stock mínimo</label><input class="stock-edit" id="stMin" type="number"></div>
       <div class="field"><label>Precio (Gs)</label><input class="stock-edit" id="stPrecio" type="text" inputmode="numeric" oninput="formatMoneyInput(this)"></div>
-      <div class="field"><label>Promoción (Gs)</label><input class="stock-edit" id="stPromo" type="text" inputmode="numeric" oninput="formatMoneyInput(this)"></div>
+      <div class="field" id="stPromoWrap"><label>Promoción (Gs)</label><input class="stock-edit" id="stPromo" type="text" inputmode="numeric" oninput="formatMoneyInput(this)"></div>
       <div class="field"><label>Costo (Gs)</label><input class="stock-edit" id="stCosto" type="text" inputmode="numeric" oninput="formatMoneyInput(this)"></div>
       <div class="field"><label>Estado</label><select class="select-s stock-edit" id="stEstado"><option>En venta</option><option>Pausado</option><option>Descontinuado</option></select></div>
       <div class="field" id="stComboInfo" style="display:none;grid-column:span 2"><label>Componentes</label><div style="font-size:12px;color:var(--text2);padding:9px 0">Se editan desde "Archivar combo" y volver a crearlo con + Crear combo compuesto.</div></div>
@@ -2917,7 +2917,13 @@ function mesDesdeFecha(v){
   return getMesActual();
 }
 function ventasDelMesPorFecha(rows,mes){
-  return (rows||[]).filter(r=>mesDesdeFecha(r.fecha||'')===mes);
+  return (rows||[]).filter(r=>mesDesdeFecha(r.fecha||'')===mes)
+    .sort((a,b)=>{
+      const hist=r=>Array.isArray(r?.historial)?r.historial:parseJSONSafe(r?.historial,[]);
+      const ta=Date.parse(hist(a)[0]?.fecha||'')||Date.parse(a.fecha||'')||0;
+      const tb=Date.parse(hist(b)[0]?.fecha||'')||Date.parse(b.fecha||'')||0;
+      return tb-ta;
+    });
 }
 function showAlert(id,msg,tipo='ok'){
   const el=gs(id);if(!el)return;
@@ -5071,7 +5077,7 @@ function editarStock(codigo){
   if(!p){toast('No encontré ese producto');return;}
   stockEditCodigo=codigo;
   stockEditEsCombo=!!p.es_combo;
-  ['stStockWrap','stUnidadWrap','stGrupoWrap','stMinWrap'].forEach(id=>{if(gs(id))gs(id).style.display=stockEditEsCombo?'none':'';});
+  ['stStockWrap','stUnidadWrap','stGrupoWrap','stMinWrap','stPromoWrap'].forEach(id=>{if(gs(id))gs(id).style.display=stockEditEsCombo?'none':'';});
   if(gs('stComboInfo'))gs('stComboInfo').style.display=stockEditEsCombo?'':'none';
   if(stockEditEsCombo){
     stockEditBaseKey=null;
@@ -5118,19 +5124,19 @@ function cancelarStockEdit(){stockEditCodigo=null;stockEditBaseKey=null;stockEdi
 async function guardarStockEdit(codigoOriginal){
   const original=allProductos.find(p=>String(p.codigo)===String(codigoOriginal));
   if(stockEditEsCombo){
-    const nuevoCodigo=gs('stCodigo').value.trim();
+    const nuevoCodigo=gs('stCodigo').value.trim().toUpperCase();
     const nombreIngresado=gs('stNombre').value.trim();
-    const row={
-      codigo:nuevoCodigo,
-      nombre:nombreIngresado,
-      precio_venta:moneyVal('stPrecio'),
-      precio_promo:moneyVal('stPromo'),
-      costo:moneyVal('stCosto'),
-      estado:gs('stEstado').value
-    };
-    if(!row.codigo||!row.nombre){showAlert('stMsg','Codigo y nombre son obligatorios','err');return;}
-    const {error}=await SB.from('productos').update(row).eq('codigo',codigoOriginal);
-    if(error){showAlert('stMsg','No se pudo guardar: '+error.message,'err');return;}
+    if(!nuevoCodigo||!nombreIngresado){showAlert('stMsg','Codigo y nombre son obligatorios','err');return;}
+    const lista=raCombos();
+    const idx=lista.findIndex(c=>String(c.codigo)===String(codigoOriginal));
+    if(idx<0){showAlert('stMsg','No encontré ese combo en la configuración.','err');return;}
+    if(nuevoCodigo!==codigoOriginal&&lista.some((c,i)=>i!==idx&&String(c.codigo).toUpperCase()===nuevoCodigo)){
+      showAlert('stMsg','Ese código ya lo usa otro combo.','err');return;
+    }
+    const estadoSel=gs('stEstado').value;
+    lista[idx]={...lista[idx],codigo:nuevoCodigo,nombre:nombreIngresado,precio_venta:moneyVal('stPrecio'),costo:moneyVal('stCosto'),activo:estadoSel!=='Descontinuado'&&estadoSel!=='Pausado'};
+    const {error}=await guardarConfigClave('combos_compuestos',JSON.stringify(lista));
+    if(error){showAlert('stMsg','No se pudo guardar: '+(error.hint||error.message),'err');return;}
     stockEditCodigo=null;stockEditEsCombo=false;
     cerrarModal('modalStockEditar');
     toast('Combo actualizado');
