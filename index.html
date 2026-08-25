@@ -5499,6 +5499,26 @@ function labelPeriodoDelivery(){
   return mes;
 }
 let rutaPeriodo='dia'; // 'dia' | 'semana'
+/* Orden geográfico aproximado del Gran Asunción, arrancando en Fernando de la Mora,
+   para que la ruta no salte de una punta a otra. Ciudades que no están en esta lista
+   (viajes largos/puntuales) quedan al final, ordenadas alfabéticamente entre sí. */
+const ORDEN_RUTA_CIUDADES=[
+  'fernando de la mora','fdo de la mora','fdo. de la mora',
+  'lambare',
+  'villa elisa','san antonio','nemby',
+  'asuncion',
+  'san lorenzo','capiata','itaugua','ypacarai','aregua',
+  'luque','mariano roque alonso','limpio','ypane',
+  'guarambare','j a saldivar','j. augusto saldivar','julian augusto saldivar'
+];
+function normalizarTexto(v){
+  return String(v||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[.]/g,'');
+}
+function ordenRutaIndice(ciudad){
+  const norm=normalizarTexto(ciudad);
+  const idx=ORDEN_RUTA_CIUDADES.findIndex(c=>c===norm);
+  return idx===-1?999:idx;
+}
 function esDeliveryAsignado(r){
   const persona=String(r.delivery_persona||'').trim();
   if(!persona)return false;
@@ -5524,7 +5544,11 @@ function entregasParaRuta(personaFiltro){
     else{if(!(dia>=ini&&dia<=fin))return false;}
     if(personaFiltro&&r.delivery_persona!==personaFiltro)return false;
     return true;
-  }).sort((a,b)=>String(a.ciudad||'').localeCompare(String(b.ciudad||''))||String(a.delivery_persona||'').localeCompare(String(b.delivery_persona||'')));
+  }).sort((a,b)=>{
+    const ra=ordenRutaIndice(a.ciudad),rb=ordenRutaIndice(b.ciudad);
+    if(ra!==rb)return ra-rb;
+    return String(a.ciudad||'').localeCompare(String(b.ciudad||''))||String(a.delivery_persona||'').localeCompare(String(b.delivery_persona||''));
+  });
 }
 function rutaSetPeriodo(p){
   rutaPeriodo=p;
