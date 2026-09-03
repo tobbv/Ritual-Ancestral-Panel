@@ -37,7 +37,7 @@
 .rp-columns{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(260px,1fr);gap:18px;align-items:start}.rp-columns .rp-card{margin-bottom:18px}
 .rp-surface select{font:inherit;font-size:13px;min-height:42px;padding:8px 10px;border:1px solid var(--rp-line);border-radius:12px;background:var(--rp-card);color:var(--rp-text);max-width:100%}
 .rp-modal{position:fixed;inset:0;margin:auto;border:0;background:var(--rp-bg);border-radius:26px;width:70vw;max-width:none;max-height:70dvh;padding:26px;box-shadow:0 24px 100px #0003;overflow:auto}
-@media screen and (min-width:701px){.rp-modal{zoom:1;width:70vw;max-height:65dvh}}
+@media screen and (min-width:701px){.rp-modal{zoom:1;width:68vw;height:86dvh;max-height:86dvh}}
 .rp-modal::backdrop{background:#11182770;backdrop-filter:blur(6px)}.rp-close{float:right;margin-left:12px}.rp-modal:not([open]){display:none}
 .rp-footer{text-align:center;color:var(--rp-muted);font-size:11px;padding:5px 0 15px}.rp-mini{font:inherit;font-size:11px;color:#337de8;background:#337de80d;border:1px solid #337de822;border-radius:10px;min-height:29px;padding:4px 9px;cursor:pointer;margin-top:7px}.rp-inline-code{font-size:11px;color:#337de8;font-weight:650;margin-right:8px;white-space:nowrap}
 .rp-loading{text-align:center;padding:55px 20px}.rp-loading span{display:inline-block;width:24px;height:24px;border:3px solid #337de82b;border-top-color:#337de8;border-radius:50%;animation:rp-spin .8s linear infinite}@keyframes rp-spin{to{transform:rotate(360deg)}}
