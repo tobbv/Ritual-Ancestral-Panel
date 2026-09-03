@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><meta name="robots" content="noindex,nofollow,noarchive"><title>Tu pedido · Ritual Ancestral</title><link rel="stylesheet" href="pedidos.css"></head>
+<body class="rp-page rp-surface"><main class="rp-wrap" id="rpPublic"><div class="rp-card rp-loading" role="status"><span></span><p>Buscando tu pedido…</p></div></main>
+<script src="pedido-config.js"></script><script src="pedidos.js"></script>
+<script>
+(() => {
+ const root=document.getElementById('rpPublic'),R=window.RitualPedidos;
+ const demo=new URLSearchParams(location.search).get('demo')==='1';
+ let demoAdmin=false,model={...R.demo},busy=false;
+ const token=new URLSearchParams(location.hash.slice(1)).get('token')||'';
+ const valid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(token);
+ function renderDemo(){root.classList.toggle('rp-admin',demoAdmin);root.innerHTML=`<div class="rp-demo"><strong>Vista de ejemplo · No es un pedido real</strong><div class="rp-actions"><button class="rp-btn" id="rpDemoView">${demoAdmin?'Ver como cliente':'Ver ficha interna'}</button><button class="rp-btn" id="rpDemoNext">Probar siguiente estado</button></div></div>`+(demoAdmin?R.admin(model,true):R.customer(model));document.getElementById('rpDemoView').onclick=()=>{demoAdmin=!demoAdmin;renderDemo();};document.getElementById('rpDemoNext').onclick=()=>{const states=['Recibido','Preparando','Listo','En camino','Entregado'],next=states[(states.indexOf(R.state(model))+1)%states.length];model.preparacion_estado=['Preparando','Listo'].includes(next)?next:'Nuevo';model.estado_entrega=['En camino','Entregado'].includes(next)?next:'Pendiente';renderDemo();};root.querySelector('[data-rp="print"]')?.addEventListener('click',()=>window.print());}
+ function unavailable(message){root.innerHTML=`<section class="rp-card rp-loading"><h1>No pudimos mostrar el pedido</h1><p>${R.esc(message)}</p><button class="rp-btn" id="rpRetry">Volver a intentar</button></section>`;document.getElementById('rpRetry').onclick=()=>load();}
+ async function load(){
+  if(busy)return;if(!valid){unavailable('El enlace está incompleto o no es válido. Pedí el enlace privado a Ritual Ancestral.');return;}
+  busy=true;const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),12000);
+  try{
+   const c=window.RitualPedidoConfig;
+   const res=await fetch(c.url+'/rest/v1/rpc/pedido_obtener',{method:'POST',headers:{'Content-Type':'application/json',apikey:c.key,Authorization:'Bearer '+c.key},body:JSON.stringify({p_token:token}),cache:'no-store',referrerPolicy:'no-referrer',signal:controller.signal});
+   if(!res.ok)throw new Error('connection');const data=await res.json();
+   if(!data){unavailable('Este enlace ya no está disponible. Solicitá uno nuevo a Ritual Ancestral.');return;}
+   root.innerHTML=R.customer(data)+`<div class="rp-footer" role="status">Actualizado a las ${new Date().toLocaleTimeString('es-PY',{hour:'2-digit',minute:'2-digit'})} · <button class="rp-btn" id="rpRefresh">Actualizar</button></div>`;
+   document.getElementById('rpRefresh').onclick=()=>load();
+  }catch(e){unavailable('No se pudo conectar. Revisá tu conexión y volvé a intentar.');}finally{clearTimeout(timeout);busy=false;}
+ }
+ if(demo)renderDemo();else{load();setInterval(()=>{if(!document.hidden)load();},30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)load();});}
+})();
+</script></body></html>

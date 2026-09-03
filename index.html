@@ -3956,6 +3956,7 @@ async function vGuardar(confirmado=false){
   const row={fecha:fechaStr,mes,cliente:gs('vCliente').value,contacto:gs('vTel').value,ruc:gs('vRuc').value,
     detalle:carrito.map(p=>p.nombre+' x'+p.cant).join(', '),ciudad,tipo_envio:gs('vTipoEnvio').value,
     costo_delivery:costoDeliveryNeto,total_productos:totalProds,descuento,
+    pedido_items:carrito.map(p=>({nombre:p.nombre,codigo:p.codigo,cant:p.cant,precio:p.precio,costo:allProductos.find(x=>String(x.codigo)===String(p.codigo))?.costo??null})),
     ubicacion:gs('vUbicacion').value,direccion_referencia:gs('vReferencia')?.value||'',dia_entrega:gs('vDiaEntrega').value||null,
     metodo_pago:abono2>0?gs('vMetodo').value+' + '+gs('vMetodo2').value:gs('vMetodo').value,tipo_pago:gs('vTipoPago')?.value||(listaGet('tipos_pago')[0]||'Pago adelantado'),estado_pago:estadoPago,estado_entrega:listaGet('estados_entrega').includes('Pendiente')?'Pendiente':(listaGet('estados_entrega')[0]||'Pendiente'),estado_pedido:'Nuevo',
     monto_pagado:montoTotal,saldo_pendiente:Math.max(0,totalVentaForm-montoTotal),abonos,comprobante:gs('vComprobante')?.value||'',preparacion_estado:'Nuevo',
@@ -4083,10 +4084,10 @@ function vMostrarResumenVenta(row,subtotalBruto){
   modal.classList.add('open');
 }
 function vResumenCerrar(){gs('vResumenModal')?.classList.remove('open');}
-function vTextoVenta(row){return `Hola ${row.cliente||''}, confirmamos tu pedido en Ritual Ancestral.\n\n${row.detalle||''}\nProductos: ${fmtGs(row.total_productos)}\nDelivery: ${fmtGs(row.costo_delivery)}\nTotal: ${fmtGs(totalVenta(row))}\nPago: ${row.estado_pago||''}\nEntrega: ${formatoFecha(row.dia_entrega)||row.dia_entrega||'A coordinar'}\n\n¡Gracias por tu compra!`;}
+function vTextoVenta(row){return `Hola ${row.cliente||''}, confirmamos tu pedido${row.numero_orden?' #RIT'+String(row.numero_orden).padStart(5,'0'):''} en Ritual Ancestral.\n\n${row.detalle||''}\nProductos: ${fmtGs(row.total_productos)}\nDelivery: ${fmtGs(row.costo_delivery)}\nTotal: ${fmtGs(totalVenta(row))}\nPago: ${row.estado_pago||''}\nEntrega: ${formatoFecha(row.dia_entrega)||row.dia_entrega||'A coordinar'}\n\n¡Gracias por tu compra!`;}
 function vPostVentaMostrar(){
   const box=gs('vPostVenta'),r=vUltimaVentaGuardada;if(!box||!r)return;box.style.display='';
-  box.innerHTML=`<strong>Venta guardada</strong><span>¿Qué querés hacer ahora?</span><div><button class="btn btn-wa btn-sm" onclick="vPostWhatsApp()">Enviar WhatsApp</button><button class="btn btn-s btn-sm" onclick="vPostCopiar()">Copiar resumen</button>${r.comprobante?'<button class="btn btn-s btn-sm" onclick="vPostComprobante()">Abrir comprobante</button>':''}<button class="btn btn-s btn-sm" onclick="vPostDuplicar()">Duplicar pedido</button><button class="btn btn-p btn-sm" onclick="gs('vPostVenta').style.display='none';gs('vCliente').focus()">Crear otra venta</button></div>`;
+  box.innerHTML=`<strong>Venta guardada${r.numero_orden?' · #RIT'+String(r.numero_orden).padStart(5,'0'):''}</strong><span>¿Qué querés hacer ahora?</span><div>${r.id?`<button class="btn btn-s btn-sm" onclick="rpAbrirPedido('${esc(r.id)}')">Ver pedido</button>`:''}<button class="btn btn-wa btn-sm" onclick="vPostWhatsApp()">Enviar WhatsApp</button><button class="btn btn-s btn-sm" onclick="vPostCopiar()">Copiar resumen</button>${r.comprobante?'<button class="btn btn-s btn-sm" onclick="vPostComprobante()">Abrir comprobante</button>':''}<button class="btn btn-s btn-sm" onclick="vPostDuplicar()">Duplicar pedido</button><button class="btn btn-p btn-sm" onclick="gs('vPostVenta').style.display='none';gs('vCliente').focus()">Crear otra venta</button></div>`;
 }
 function vPostWhatsApp(){const r=vUltimaVentaGuardada;if(!r)return;const tel=telefonoWA(r.contacto);if(!tel){toast('Falta un WhatsApp válido');return;}window.open('https://wa.me/'+tel+'?text='+encodeURIComponent(vTextoVenta(r)),'_blank');}
 function vPostCopiar(){const txt=vTextoVenta(vUltimaVentaGuardada);navigator.clipboard?.writeText(txt).then(()=>toast('Resumen copiado'));}
@@ -4236,6 +4237,7 @@ async function actualizarCampoVenta(id,campo,valor,el){
   }
   if(el)el.disabled=false;
   toast('Venta actualizada');
+  if(item&&anterior!==valor&&['preparacion_estado','estado_entrega'].includes(campo))window.rpOfrecerAviso?.(item);
   vmRender(ventasDelMes);
   if(gs('pv-clientes')?.classList.contains('active'))cCargar();else clientesResumen=cArmarResumen(ventasDelMes);
   dRender(ventasDelMes);
@@ -4326,10 +4328,10 @@ async function vmCambiarRegalo(id,delta,el){
 function vmCardVenta(r){
   const id=esc(r.id),abierta=vmTarjetasAbiertas.has(String(r.id)),saldo=saldoPendienteVenta(r),total=totalVenta(r),alertas=vmAlertasVenta(r),regaloCant=vmRegaloCantidad(r),regaloTotal=regaloCant*montoRegaloActual();const tel=telefonoWA(r.contacto);const entrega=r.dia_entrega?formatoFecha(r.dia_entrega):'Sin fecha';
   const pagoCls=saldo<=0?'is-ok':'is-warn',entregaCls=r.estado_entrega==='Entregado'?'is-ok':r.estado_entrega==='Cancelado'?'is-error':r.estado_entrega==='En camino'?'is-info':'is-neutral';
-  return `<article class="vm-sale-card${abierta?' open':''}${vmSeleccionadas.has(String(r.id))?' selected':''}${vmAislarSeleccionadas&&vmSeleccionadas.size&&!vmSeleccionadas.has(String(r.id))?' muted':''}" data-vm-card data-id="${id}" data-pago="${esc(r.estado_pago||'')}" data-entrega="${esc(r.estado_entrega||'')}" data-saldo="${saldo}" data-search="${esc([r.cliente,r.contacto,r.detalle,r.ciudad,r.delivery_persona].join(' ').toLowerCase())}">
+  return `<article class="vm-sale-card${abierta?' open':''}${vmSeleccionadas.has(String(r.id))?' selected':''}${vmAislarSeleccionadas&&vmSeleccionadas.size&&!vmSeleccionadas.has(String(r.id))?' muted':''}" data-vm-card data-id="${id}" data-pago="${esc(r.estado_pago||'')}" data-entrega="${esc(r.estado_entrega||'')}" data-saldo="${saldo}" data-search="${esc([r.cliente,r.contacto,r.detalle,r.ciudad,r.delivery_persona,r.numero_orden,window.RitualPedidos?.code(r)].join(' ').toLowerCase())}">
     <div class="vm-sale-head" onclick="vmToggleCard('${id}')">
       <label class="vm-sale-check" onclick="event.stopPropagation()"><input type="checkbox" class="vm-card-check" data-id="${id}" ${vmSeleccionadas.has(String(r.id))?'checked':''} onchange="vmToggleSeleccion('${id}',this.checked)"></label>
-      <div class="vm-sale-main"><div class="vm-sale-name">${esc(r.cliente||'Sin cliente')}</div><div class="vm-sale-product">${esc(r.detalle||'Sin productos')}</div><div class="vm-sale-meta"><span>${uiIcon('pin')} ${esc(r.ciudad||'Sin ciudad')}</span><span>${uiIcon('clock')} ${esc(entrega)}</span>${r.delivery_persona?`<span>${uiIcon('truck')} ${esc(r.delivery_persona)}</span>`:''}</div></div>
+      <div class="vm-sale-main"><div class="vm-sale-name">${r.numero_orden?`<span class="rp-inline-code">#RIT${String(r.numero_orden).padStart(5,'0')}</span>`:''}${esc(r.cliente||'Sin cliente')}</div><div class="vm-sale-product">${esc(r.detalle||'Sin productos')}</div><div class="vm-sale-meta"><span>${uiIcon('pin')} ${esc(r.ciudad||'Sin ciudad')}</span><span>${uiIcon('clock')} ${esc(entrega)}</span>${r.delivery_persona?`<span>${uiIcon('truck')} ${esc(r.delivery_persona)}</span>`:''}</div><button type="button" class="rp-mini" onclick="event.stopPropagation();rpAbrirPedido('${id}')">Ver pedido</button></div>
       <div class="vm-sale-money"><strong>${fmtGs(total)}</strong><span class="${saldo>0?'due':''}">${saldo>0?'Saldo '+fmtGs(saldo):'Sin saldo'}</span></div>
       <div class="vm-sale-status">${alertas.length?`<div class="vm-status-row">${alertas.map(a=>`<span class="vm-status is-warn">${uiIcon('alert')} ${esc(a)}</span>`).join('')}</div>`:''}<div class="vm-status-row"><span class="vm-status ${pagoCls}">${esc(r.estado_pago||'Pendiente')}</span><span class="vm-status ${entregaCls}">${esc(r.estado_entrega||'Pendiente')}</span></div></div>
       <div class="vm-sale-chevron">⌄</div>
@@ -4348,7 +4350,7 @@ function vmCambiarVista(vista){vmVistaActual=vista;localStorage.setItem('ritual_
 function vmBuscarVentas(){vmAplicarFiltro();}
 function vmAbrirUbicacion(id){const r=ventaPorId(id),u=String(r?.ubicacion||'').trim();if(u)window.open(u,'_blank','noopener');}
 function vmDuplicarVenta(id){const r=ventaPorId(id);if(!r)return;vUltimaVentaGuardada=r;irARegistroVentas();setTimeout(vPostDuplicar,100);}
-function vmImprimirVenta(id){const r=ventaPorId(id);if(!r)return;const w=window.open('','_blank','width=760,height=850');if(!w)return;w.document.write(`<html><head><title>Pedido ${esc(r.id)}</title><style>body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:34px;color:#1d1d1f}h1{font-size:24px}.box{border:1px solid #ddd;border-radius:14px;padding:18px;margin:14px 0}.row{display:flex;justify-content:space-between;padding:6px 0}.total{font-size:20px;font-weight:700;border-top:1px solid #ddd;margin-top:8px;padding-top:12px}@media print{button{display:none}}</style></head><body><h1>Ritual Ancestral</h1><p>Comprobante de pedido</p><div class="box"><strong>${esc(r.cliente)}</strong><p>${esc(r.contacto||'')} · ${esc(r.ciudad||'')}</p><p>${esc(r.detalle||'')}</p></div><div class="box"><div class="row"><span>Productos</span><strong>${fmtGs(r.total_productos)}</strong></div><div class="row"><span>Delivery</span><strong>${fmtGs(r.costo_delivery)}</strong></div><div class="row total"><span>Total</span><strong>${fmtGs(totalVenta(r))}</strong></div><div class="row"><span>Pagado</span><strong>${fmtGs(r.monto_pagado)}</strong></div><div class="row"><span>Saldo</span><strong>${fmtGs(saldoPendienteVenta(r))}</strong></div></div><p>Entrega: ${esc(formatoFecha(r.dia_entrega)||'A coordinar')}</p><button onclick="print()">Imprimir</button></body></html>`);w.document.close();}
+function vmImprimirVenta(id){const r=ventaPorId(id);if(!r)return;const w=window.open('','_blank','width=760,height=850');if(!w)return;w.document.write(`<html><head><title>Pedido ${esc(window.RitualPedidos?.code(r)||r.id)}</title><style>body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:34px;color:#1d1d1f}h1{font-size:24px}.box{border:1px solid #ddd;border-radius:14px;padding:18px;margin:14px 0}.row{display:flex;justify-content:space-between;padding:6px 0}.total{font-size:20px;font-weight:700;border-top:1px solid #ddd;margin-top:8px;padding-top:12px}@media print{button{display:none}}</style></head><body><h1>Ritual Ancestral</h1><p>Pedido #${esc(window.RitualPedidos?.code(r)||r.id)}</p><div class="box"><strong>${esc(r.cliente)}</strong><p>${esc(r.contacto||'')} · ${esc(r.ciudad||'')}</p><p>${esc(r.detalle||'')}</p></div><div class="box"><div class="row"><span>Productos</span><strong>${fmtGs(r.total_productos)}</strong></div><div class="row"><span>Delivery</span><strong>${fmtGs(r.costo_delivery)}</strong></div><div class="row total"><span>Total</span><strong>${fmtGs(totalVenta(r))}</strong></div><div class="row"><span>Pagado</span><strong>${fmtGs(r.monto_pagado)}</strong></div><div class="row"><span>Saldo</span><strong>${fmtGs(saldoPendienteVenta(r))}</strong></div></div><p>Entrega: ${esc(formatoFecha(r.dia_entrega)||'A coordinar')}</p><button onclick="print()">Imprimir</button></body></html>`);w.document.close();}
 function vmRender(rows){
   const total=rows.reduce((s,r)=>s+(parseInt(r.total_productos)||0),0);
   const cobrado=rows.reduce((s,r)=>s+(esPagado(r.estado_pago)?(parseInt(r.total_productos)||0):0),0);
@@ -4505,7 +4507,7 @@ function vmAplicarFiltro(){
     else if(vmFiltroActivo==='falta')vis=saldo>0||pago!=='pagado'&&pago!=='';
     else if(vmFiltroActivo==='porEntregar')vis=entr!=='entregado'&&entr!=='cancelado'&&entr!=='';
     else if(vmFiltroActivo==='entregado')vis=entr==='entregado';
-    if(vis&&q){const id=String(row.dataset.id||row.querySelector('.vm-row-check')?.dataset.id||'');const venta=ventaPorId(id);vis=[venta?.cliente,venta?.contacto,venta?.detalle,venta?.ciudad,venta?.delivery_persona].some(x=>String(x||'').toLowerCase().includes(q));}
+    if(vis&&q){const id=String(row.dataset.id||row.querySelector('.vm-row-check')?.dataset.id||'');const venta=ventaPorId(id);vis=[venta?.cliente,venta?.contacto,venta?.detalle,venta?.ciudad,venta?.delivery_persona,venta?.numero_orden,window.RitualPedidos?.code(venta)].some(x=>String(x||'').toLowerCase().includes(q));}
     row.style.display=vis?'':'none';
   });
   const visiblesCards=[...document.querySelectorAll('#vmCards [data-vm-card]')].filter(x=>x.style.display!=='none').length;if(gs('vmCant'))gs('vmCant').textContent=visiblesCards;
@@ -4554,7 +4556,7 @@ function waDatosCompra(r,totalFmt,saldo){
   const fechaEntrega=r.dia_entrega?formatoFecha(r.dia_entrega):'A confirmar';
   const entregaLabel=r.estado_entrega||'Pendiente';
   const costoDelivery=parseInt(r.costo_delivery)||0;
-  return '*DATOS DE COMPRA* 📝\n'+
+  return (r.numero_orden?'*Pedido #RIT'+String(r.numero_orden).padStart(5,'0')+'*\n\n':'')+'*DATOS DE COMPRA* 📝\n'+
     '👤 *Cliente:* '+(r.cliente||'')+'\n'+
     '📍 *Ciudad:* '+(r.ciudad||'')+
     waLineaUbicacion(r)+'\n'+
@@ -4634,7 +4636,9 @@ function waAplicarTemplate(tpl,r){
 function waTemplateCliente(r){
   const templates=waTemplatesActuales();
   const key=waTemplateKey(r);
-  return waAplicarTemplate(templates[key]||DEFAULT_WA_TEMPLATES.generico_pendiente,r);
+  const mensaje=waAplicarTemplate(templates[key]||DEFAULT_WA_TEMPLATES.generico_pendiente,r);
+  const orden=r.numero_orden?'RIT'+String(r.numero_orden).padStart(5,'0'):'';
+  return orden&&!mensaje.includes(orden)?'Pedido #'+orden+'\n\n'+mensaje:mensaje;
 }
 function waRecordatorioPago(r){
   const templates=waTemplatesActuales();
@@ -9177,6 +9181,9 @@ html.dark #pv-ventasmes .vm-sale-body{background:#111113!important}
  #pv-ventasmes .vm-sale-section{padding:14px!important}
 }
 </style>
+<link rel="stylesheet" href="pedidos.css">
+<script src="pedidos.js"></script>
+<script src="pedidos-panel.js"></script>
 <!-- Despliegue posterior a recuperación de GitHub Pages · 2026-08-07 -->
 </body>
 </html>
