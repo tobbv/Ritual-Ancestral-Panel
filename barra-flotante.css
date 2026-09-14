@@ -1,0 +1,120 @@
+/* Barra superior flotante; conserva los controles y la navegación existentes. */
+#appMain .sidebar{
+  flex:0 0 248px;
+  box-sizing:border-box;
+  width:248px!important;
+  min-width:248px!important;
+  height:auto!important;
+  max-height:none!important;
+  align-self:stretch;
+  justify-content:space-between;
+  margin:18px 0 18px 18px;
+  border:1px solid #e3e8f1!important;
+  border-radius:27px;
+  background:rgba(255,255,255,.97)!important;
+  box-shadow:0 10px 30px rgba(35,49,77,.065),0 1px 3px rgba(35,49,77,.025)!important;
+  overflow-y:hidden!important;
+  overflow-x:hidden!important;
+  scrollbar-width:thin;
+  scrollbar-color:#d3dbe8 transparent;
+}
+#appMain .sidebar .sidebar-logo{padding:7px 8px 9px!important;gap:9px!important;flex-shrink:0}
+#appMain .sidebar .sidebar-logo-title{font-size:13px!important}
+#appMain .sidebar .sidebar-logo-sub{font-size:9.5px!important}
+#appMain .sidebar .nav-section{margin:0!important;padding:4px!important;border-radius:15px!important;flex-shrink:0}
+#appMain .sidebar .nav-item{min-height:34px!important;padding:3px 7px!important;gap:8px!important;font-size:12px!important}
+#appMain .sidebar .nav-icon-badge{width:24px!important;height:24px!important;flex:0 0 24px}
+#appMain .sidebar .nav-icon-badge svg{width:13px!important;height:13px!important}
+#appMain .sidebar .nav-label{padding:3px 7px 4px!important;font-size:10px!important}
+#appMain .sidebar .sidebar-profile-chip{margin:0!important;padding:6px 7px!important;min-height:42px;flex-shrink:0}
+#appMain .sidebar::-webkit-scrollbar{width:5px}
+#appMain .sidebar::-webkit-scrollbar-thumb{border-radius:999px;background:#d3dbe8}
+#appMain .sidebar::-webkit-scrollbar-track{background:transparent}
+@media(max-height:760px){
+  #appMain .sidebar{padding-top:6px!important;padding-bottom:6px!important}
+  #appMain .sidebar .sidebar-logo{padding:3px 6px 4px!important}
+  #appMain .sidebar .nav-section{margin-top:2px!important;padding:2px!important}
+  #appMain .sidebar .nav-label{padding:1px 6px 2px!important}
+  #appMain .sidebar .nav-item{min-height:28px!important;padding-block:1px!important}
+  #appMain .sidebar .nav-icon-badge{width:21px!important;height:21px!important;flex-basis:21px}
+  #appMain .sidebar .sidebar-profile-chip{min-height:35px;padding-block:3px!important}
+}
+#appMain .main{background:var(--bg,#f7f9fc)}
+#appMain .topbar{
+  position:relative;
+  z-index:35;
+  flex:0 0 auto;
+  width:auto;
+  height:auto!important;
+  min-height:78px!important;
+  margin:18px clamp(18px,2.7vw,40px) 0;
+  padding:12px 22px!important;
+  display:flex;
+  align-items:center;
+  gap:18px;
+  background:rgba(255,255,255,.97)!important;
+  border:1px solid #e3e8f1!important;
+  border-radius:27px;
+  box-shadow:0 10px 30px rgba(35,49,77,.065),0 1px 3px rgba(35,49,77,.025)!important;
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+}
+#appMain .topbar-title-wrap{flex:0 0 auto;min-width:145px}
+#appMain .topbar-eyebrow{font-size:10px!important;letter-spacing:.04em!important;color:#747e90!important;text-transform:none!important}
+#appMain .topbar-title{font-size:21px!important;font-weight:760!important;line-height:1.15;white-space:nowrap}
+#appMain .global-search{flex:1 1 360px;max-width:none;min-width:170px}
+#appMain .global-search input{width:100%;height:42px;background:#f4f6fa!important;border:1px solid #ebeff6!important;border-radius:16px!important;padding-left:43px!important;font-size:12px!important;box-shadow:inset 0 1px 2px rgba(29,43,67,.02)}
+#appMain .global-search::before{left:15px;font-size:20px;color:#8994a6}
+#appMain .global-results{top:calc(100% + 8px);border-color:#e2e8f2;box-shadow:0 14px 38px rgba(27,41,69,.12)}
+#appMain .topbar-user-controls{margin-left:0;flex:0 0 auto;gap:9px}
+#appMain .topbar-user-controls #userProfileBtn,
+#appMain .topbar-user-controls #darkModeToggle{
+  flex:0 0 42px;
+  box-sizing:border-box;
+  width:42px!important;
+  min-width:42px!important;
+  max-width:42px!important;
+  height:42px!important;
+  min-height:42px!important;
+  max-height:42px!important;
+  aspect-ratio:1;
+  padding:0!important;
+  border-radius:50%!important;
+}
+#appMain .topbar-user-controls #userProfileBtn img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+#appMain .topbar-actions{flex:0 1 auto;justify-content:flex-end;min-width:0;gap:7px}
+#appMain .topbar-actions .btn{white-space:nowrap}
+#appMain .page{padding-top:20px!important}
+html.dark #appMain .main{background:var(--bg,#15171d)}
+html.dark #appMain .sidebar{background:rgba(34,36,43,.96)!important;border-color:rgba(255,255,255,.13)!important;box-shadow:0 12px 35px rgba(0,0,0,.25)!important;scrollbar-color:#555d6a transparent}
+html.dark #appMain .topbar{background:rgba(34,36,43,.96)!important;border-color:rgba(255,255,255,.13)!important;box-shadow:0 12px 35px rgba(0,0,0,.25)!important}
+html.dark #appMain .topbar-eyebrow{color:#9da5b3!important}
+html.dark #appMain .global-search input{background:#2b2e36!important;border-color:#3a3e49!important;color:var(--text)!important}
+html.dark #appMain .global-search input::placeholder{color:#aeb8c8!important;opacity:1}
+@media(max-width:1100px){
+  #appMain .sidebar{flex-basis:64px;width:64px!important;min-width:64px!important;margin:13px 0 13px 13px;border-radius:20px}
+  #appMain .topbar{margin:13px 15px 0;padding:11px 15px!important;gap:11px;flex-wrap:wrap}
+  #appMain .topbar-title-wrap{min-width:120px}
+  #appMain .global-search{flex:1 1 220px}
+  #appMain .topbar-actions{flex-wrap:wrap}
+}
+@media(max-width:700px){
+  #appMain .sidebar{flex-basis:56px;width:56px!important;min-width:56px!important;margin:9px 0 9px 9px;border-radius:17px}
+  #appMain .topbar{margin:9px 9px 0;min-height:0!important;border-radius:19px;padding:11px!important;gap:9px;align-items:center}
+  #appMain .topbar-title-wrap{flex:1 1 auto;min-width:0}
+  #appMain .topbar-title{font-size:17px!important;overflow:hidden;text-overflow:ellipsis}
+  #appMain .topbar-eyebrow{font-size:9px!important}
+  #appMain .topbar-user-controls{margin-left:auto;order:2}
+  #appMain .global-search{order:3;flex:1 1 100%;min-width:0}
+  #appMain .global-search input{height:39px}
+  #appMain .topbar-actions{order:4;flex:1 1 100%;justify-content:flex-start}
+  #appMain .page{padding-top:13px!important}
+  /* En teléfonos, priorizar controles táctiles y evitar el zoom automático de iOS. */
+  #appMain .sidebar{overflow-y:auto!important}
+  #appMain .sidebar .nav-item{min-height:42px!important}
+  #appMain .global-search input{height:44px!important;font-size:16px!important}
+  #appMain .page input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+  #appMain .page select,
+  #appMain .page textarea{font-size:16px!important}
+  #appMain .page .btn,#appMain .page button{min-height:40px}
+}

@@ -2,9 +2,9 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23337de8'/%3E%3Ctext x='32' y='40' text-anchor='middle' font-family='-apple-system,BlinkMacSystemFont,sans-serif' font-size='23' font-weight='700' fill='white'%3ERA%3C/text%3E%3C/svg%3E">
-  <link rel="shortcut icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23337de8'/%3E%3Ctext x='32' y='40' text-anchor='middle' font-family='-apple-system,BlinkMacSystemFont,sans-serif' font-size='23' font-weight='700' fill='white'%3ERA%3C/text%3E%3C/svg%3E">
-  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23337de8'/%3E%3Ctext x='32' y='40' text-anchor='middle' font-family='-apple-system,BlinkMacSystemFont,sans-serif' font-size='23' font-weight='700' fill='white'%3ERA%3C/text%3E%3C/svg%3E">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="shortcut icon" type="image/png" href="favicon.png">
+  <link rel="apple-touch-icon" href="favicon.png">
 
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -1622,7 +1622,7 @@ document.addEventListener('DOMContentLoaded', function(){
         <div class="card sales-entry-card">
           <div class="sales-entry-title"><div><span class="sales-entry-kicker">Nueva venta</span><h2>Registrar pedido</h2></div></div>
           <div class="sales-entry-layout"><div class="sales-entry-main">
-          <section class="sales-form-section" data-sales-step="cliente"><div class="sales-section-head"><span class="sales-section-icon sales-step-num" data-step="1"><svg viewBox="0 0 24 24"><path d="M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10"/></svg><i class="sales-step-badge">1</i></span><div><h3>Cliente</h3><p>Solo nombre y fecha son necesarios para comenzar.</p></div><button type="button" class="sales-last-purchase" onclick="vUsarUltimaCompra()">Usar última compra</button><button type="button" class="sales-section-toggle" onclick="vToggleOptional('vClienteOpcional',this)">Más datos</button></div>
+          <section class="sales-form-section" data-sales-step="cliente"><div class="sales-section-head"><span class="sales-section-icon sales-step-num" data-step="1"><svg viewBox="0 0 24 24"><path d="M20 21a8 8 0 0 0-16 0M12 13a5 5 0 0 0 0-10 5 5 0 0 0 0 10"/></svg><i class="sales-step-badge">1</i></span><div><h3>Cliente</h3><p>Solo nombre y fecha son necesarios para comenzar.</p></div><button type="button" class="sales-last-purchase" onclick="vUsarUltimaCompra()">Usar última compra</button><button type="button" class="sales-section-toggle" aria-expanded="false" aria-controls="vClienteOpcional" onclick="vToggleOptional('vClienteOpcional',this)">Más datos</button></div>
           <div class="fg fg2" style="margin-bottom:14px;">
             <div class="field"><label>Fecha</label><input type="date" id="vFecha"></div>
             <div class="field" style="position:relative">
@@ -1694,8 +1694,8 @@ document.addEventListener('DOMContentLoaded', function(){
           <section class="sales-form-section" data-sales-step="pago"><div class="sales-section-head"><span class="sales-section-icon sales-step-num" data-step="3"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/></svg><i class="sales-step-badge">3</i></span><div><h3>Pago</h3><p>El saldo se calcula automáticamente.</p></div></div><div class="fg fg2">
             <div class="field"><label>Método</label><select id="vMetodo" class="select-s" onchange="vMetodoChange()"></select></div>
             <div class="field"><label>Tipo de pago</label><select id="vTipoPago" class="select-s" onchange="vTipoPagoChange()"></select></div>
-            <div class="field"><label>Estado</label><select id="vEstadoPago" class="select-s" onchange="vCalcTotal()"></select></div>
-            <div class="field"><label>Monto abonado (Gs)</label><input type="text" inputmode="numeric" id="vMontoPagado" value="0" oninput="formatMoneyInput(this);vCalcTotal()"></div>
+            <div class="field"><label>Estado (automático)</label><select id="vEstadoPago" class="select-s" onchange="vCalcTotal()"></select></div>
+            <div class="field"><label>Monto abonado (Gs)</label><input type="text" inputmode="numeric" id="vMontoPagado" value="" oninput="formatMoneyInput(this);vCalcTotal()"></div>
             <div class="field sales-wide"><button type="button" class="btn btn-s btn-sm" onclick="vToggleSegundoPago()" id="vSegundoPagoBtn">+ Agregar segundo método</button></div>
             <div id="vSegundoPagoWrap" class="sales-nested sales-wide" style="display:none"><div class="field"><label>Segundo método</label><select id="vMetodo2" class="select-s"></select></div><div class="field"><label>Segundo abono (Gs)</label><input type="text" inputmode="numeric" id="vMontoPagado2" value="0" oninput="formatMoneyInput(this);vCalcTotal()"></div></div>
             <div class="field sales-wide"><label>Saldo pendiente</label><input type="text" id="vSaldoPendiente" value="Gs 0" readonly></div>
@@ -1720,13 +1720,9 @@ document.addEventListener('DOMContentLoaded', function(){
               <button type="button" class="chip" onclick="vAgregarObsRapida('Coordinar horario')">Coordinar horario</button>
             </div>
             <textarea id="vObs" rows="2" placeholder="Opcional..."></textarea></div></section>
-          <div class="sales-save-bar">
-            <button type="button" class="btn btn-s" onclick="vLimpiar()">Limpiar</button>
-            <button type="button" class="btn btn-p" id="vGuardarBtn" onclick="vGuardar()">Guardar Venta</button>
-          </div>
           <div id="vMsg"></div>
           <div id="vPostVenta" class="ra-postventa" style="display:none"></div>
-          </div><div class="sales-summary-column"><div class="sales-progress"><span data-progress="cliente" class="active"><i>✓</i>1 Cliente</span><span data-progress="pedido"><i>✓</i>2 Pedido</span><span data-progress="pago"><i>✓</i>3 Pago</span><span data-progress="entrega"><i>✓</i>4 Entrega</span></div><aside class="sales-summary-sticky"><div class="sales-summary-label">Resumen</div><div id="vSummaryClient" class="sales-summary-client">Venta nueva</div><div class="sales-summary-breakdown"><div class="sales-summary-line"><span>Productos</span><strong id="vSummaryProducts">Gs 0</strong></div><div class="sales-summary-line discount"><span>Descuento</span><strong id="vSummaryDiscount">Gs 0</strong></div><div class="sales-summary-line"><span>Envío</span><strong id="vSummaryShipping">Gs 0</strong></div></div><div class="sales-summary-total"><span>Total</span><strong id="vSummaryTotal">Gs 0</strong></div><div class="sales-summary-line"><span>Abonado</span><strong id="vSummaryPaid">Gs 0</strong></div><div class="sales-summary-line balance"><span>Saldo</span><strong id="vSummaryBalance">Gs 0</strong></div><div id="vSummaryStatus" class="sales-summary-status">Pendiente</div><button type="button" class="btn btn-p" onclick="vGuardar()">Guardar venta</button></aside></div></div>
+          </div><div class="sales-summary-column"><div class="sales-progress" aria-label="Progreso de la venta"><span data-progress="cliente" class="active"><i>1</i><b>Cliente</b></span><span data-progress="pedido"><i>2</i><b>Pedido</b></span><span data-progress="pago"><i>3</i><b>Pago</b></span><span data-progress="entrega"><i>4</i><b>Entrega</b></span></div><aside class="sales-summary-sticky"><div class="sales-summary-label">Resumen</div><div id="vSummaryClient" class="sales-summary-client">Venta nueva</div><div class="sales-summary-breakdown"><div class="sales-summary-line"><span>Productos</span><strong id="vSummaryProducts">Gs 0</strong></div><div class="sales-summary-line discount"><span>Descuento</span><strong id="vSummaryDiscount">Gs 0</strong></div><div class="sales-summary-line"><span>Envío</span><strong id="vSummaryShipping">Gs 0</strong></div></div><div class="sales-summary-total"><span>Total</span><strong id="vSummaryTotal">Gs 0</strong></div><div class="sales-summary-line"><span>Abonado</span><strong id="vSummaryPaid">Gs 0</strong></div><div class="sales-summary-line balance"><span>Saldo</span><strong id="vSummaryBalance">Gs 0</strong></div><div id="vSummaryStatus" class="sales-summary-status">Pendiente</div><div class="sales-summary-actions"><button type="button" class="btn btn-s" onclick="vLimpiar()">Limpiar</button><button type="button" class="btn btn-p" id="vGuardarBtn" onclick="vGuardar()">Guardar venta</button></div></aside></div></div>
         </div>
       </div>
 
@@ -1941,26 +1937,27 @@ document.addEventListener('DOMContentLoaded', function(){
       <!-- DELIVERY -->
       <div class="pv" id="pv-delivery">
         <div class="stats">
-          <div class="stat" style="border-left:3px solid var(--warn)"><div class="stat-v" id="dPend" style="color:var(--warn)">-</div><div class="stat-l">Pendientes</div></div>
-          <div class="stat" style="border-left:3px solid var(--info)"><div class="stat-v" id="dCamino" style="color:var(--info)">-</div><div class="stat-l">En Camino</div></div>
-          <div class="stat" style="border-left:3px solid var(--ok)"><div class="stat-v" id="dEntregado" style="color:var(--ok)">-</div><div class="stat-l">Entregados</div></div>
-          <div class="stat" style="border-left:3px solid var(--err)"><div class="stat-v" id="dCancel" style="color:var(--err)">-</div><div class="stat-l">Cancelados</div></div>
-          <div class="stat"><div class="stat-v" id="dCosto">-</div><div class="stat-l">Costo Total</div></div>
-          <div class="stat"><div class="stat-v" id="dPagPend" style="color:var(--warn)">-</div><div class="stat-l">Cobro Pendiente</div></div>
+          <div class="stat"><span class="delivery-stat-icon delivery-stat-neutral" data-delivery-icon="document"></span><div><div class="stat-v" id="dPend">-</div><div class="stat-l">Pendientes</div></div></div>
+          <div class="stat"><span class="delivery-stat-icon delivery-stat-blue" data-delivery-icon="truck"></span><div><div class="stat-v" id="dCamino">-</div><div class="stat-l">En camino</div></div></div>
+          <div class="stat"><span class="delivery-stat-icon delivery-stat-green" data-delivery-icon="check"></span><div><div class="stat-v" id="dEntregado">-</div><div class="stat-l">Entregados</div></div></div>
+          <div class="stat"><span class="delivery-stat-icon delivery-stat-red" data-delivery-icon="close"></span><div><div class="stat-v" id="dCancel">-</div><div class="stat-l">Cancelados</div></div></div>
+          <div class="stat"><span class="delivery-stat-icon delivery-stat-neutral" data-delivery-icon="coins"></span><div><div class="stat-v" id="dCosto">-</div><div class="stat-l">Costo total</div></div></div>
+          <div class="stat"><span class="delivery-stat-icon delivery-stat-orange" data-delivery-icon="card"></span><div><div class="stat-v" id="dPagPend">-</div><div class="stat-l">Cobro pendiente</div></div></div>
         </div>
-        <div class="card" style="margin-bottom:14px">
-          <div class="card-hdr">Ruta del día</div>
+        <div class="card delivery-route" style="margin-bottom:14px">
+          <div class="card-hdr"><span data-delivery-icon="truck"></span><span>Ruta del día</span></div>
           <div id="dRutaDelDia"><div class="empty">Sin datos</div></div>
         </div>
-        <div class="tw" style="margin:16px 0">
+        <div class="tw delivery-orders" style="margin:16px 0">
+          <div class="delivery-list-header"><span data-delivery-icon="list"></span> <h3>Listado de entregas</h3></div>
           <table><thead><tr><th>Cliente</th><th>Ciudad</th><th>Delivery</th><th>Costo</th><th>Entrega</th><th>Pago</th><th>Fecha</th></tr></thead>
           <tbody id="dBody"><tr><td colspan="7" class="empty">Sin datos</td></tr></tbody></table>
         </div>
-        <div class="card">
-          <div class="card-hdr">Rendicion de Delivery
+        <div class="card delivery-settlement">
+          <div class="card-hdr"><span data-delivery-icon="document"></span> Rendición de Delivery
             <button type="button" class="btn btn-s btn-sm" onclick="generarRendicion()">Generar</button>
           </div>
-          <div id="rendicionContainer"><div class="empty">Presiona "Generar" para ver la rendicion</div></div>
+          <div id="rendicionContainer"><div class="delivery-empty"><span data-delivery-icon="document"></span><span>Sin datos de delivery</span></div></div>
         </div>
       </div>
 
@@ -2727,7 +2724,14 @@ function uiIcon(name,cls='ui-icon'){
     alert:'<path d="M10.3 3.5 2.4 18a2 2 0 0 0 1.8 3h15.6a2 2 0 0 0 1.8-3L13.7 3.5a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',
     bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>',
     bulb:'<path d="M9 18h6M10 22h4M8.5 14.5a6 6 0 1 1 7 0c-1 .8-1.5 1.7-1.5 3.5h-4c0-1.8-.5-2.7-1.5-3.5z"/>',
-    gift:'<rect x="3" y="9" width="18" height="12" rx="2"/><path d="M12 9v12M3 13h18M7.5 9A2.5 2.5 0 1 1 12 7c0-2.8 4.5-4.2 4.5-.5C16.5 8 15 9 12 9"/>'
+    gift:'<rect x="3" y="9" width="18" height="12" rx="2"/><path d="M12 9v12M3 13h18M7.5 9A2.5 2.5 0 1 1 12 7c0-2.8 4.5-4.2 4.5-.5C16.5 8 15 9 12 9"/>',
+    check:'<circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/>',
+    close:'<circle cx="12" cy="12" r="9"/><path d="m9 9 6 6m0-6-6 6"/>',
+    coins:'<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/>',
+    list:'<path d="M8 5h13M8 12h13M8 19h13M3 5h.01M3 12h.01M3 19h.01"/>',
+    document:'<path d="M6 2h8l5 5v14H6zM14 2v5h5M9 12h7M9 16h7"/>',
+    link:'<path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1M14 11a5 5 0 0 0-7.1 0l-2 2a5 5 0 0 0 7.1 7.1l1.1-1.1"/>',
+    rider:'<circle cx="12" cy="5" r="2"/><path d="m11 8-2 3 4 2 2 3m-2-6 3 1 2-1M9 11l-2 3"/><rect x="2" y="8" width="5" height="5" rx="1"/><path d="m7 19 3-6h5l3 6m-3-6 2-3h3M3 19h.5M20.5 19H22"/><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="19" r="2.5"/>'
   };
   return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name]||paths.package}</svg>`;
 }
@@ -3056,7 +3060,8 @@ async function dashCargar(){
     const analisis=analizarFinanzas(rows,gastos);
     const stockBajo=allProductos.filter(p=>(parseFloat(p.stock_actual)||0)<=(parseFloat(p.stock_minimo)||0)).sort((a,b)=>(parseFloat(a.stock_actual)||0)-(parseFloat(b.stock_actual)||0));
     const porEntregar=rows.filter(r=>!['entregado','cancelado'].includes(String(r.estado_entrega||'').toLowerCase())).length;
-    const ticket=rows.length?Math.round(analisis.fact/rows.length):0;
+    const ventasVigentes=rows.filter(r=>String(r.estado_entrega||'').toLowerCase()!=='cancelado');
+    const ticket=ventasVigentes.length?Math.round(analisis.fact/ventasVigentes.length):0;
     const hero=gs('dashHero');
     let cls='ok',titulo='Mes saludable',nota='Ventas, gastos y stock se ven bajo control.';
     if(analisis.neta<0){cls='err';titulo='Atencion: perdida';nota='Los costos y gastos superan la ganancia bruta del mes.';}
@@ -3464,7 +3469,7 @@ function aplicarApariencia(cfg=appConfig){
   if(logo){
     document.querySelectorAll('.sidebar-logo img,.setup-box img').forEach(img=>img.src=logo);
   }
-  aplicarFavicon(theme.favicon||logo||DEFAULT_LOGO_SRC);
+  aplicarFavicon(theme.favicon||'favicon.png');
   aplicarAvatarPerfil(theme.avatar||'');
 }
 function aplicarAvatarPerfil(src){
@@ -3691,6 +3696,7 @@ function totalVenta(r){
 }
 function saldoPendienteVenta(r){
   if(!r)return 0;
+  if(String(r.estado_entrega||'').toLowerCase()==='cancelado')return 0;
   if(esPagado(r.estado_pago))return 0;
   const abonado=parseInt(r.monto_pagado)||0;
   return Math.max(0,totalVenta(r)-abonado);
@@ -3740,7 +3746,8 @@ function vCalcTotal(){
   if(gs('vSaldoPendiente'))gs('vSaldoPendiente').value=fmtGs(calcularSaldoDesdeForm());
   if(gs('vEstadoPago')){
     const estado=abonado<=0?'Pendiente':abonado>=total?'Pagado':'Parcial';
-    if([...gs('vEstadoPago').options].some(o=>o.value===estado))gs('vEstadoPago').value=estado;
+    if(!gs('vMetodo')?.value&&!gs('vTipoPago')?.value&&abonado<=0)gs('vEstadoPago').value='';
+    else if([...gs('vEstadoPago').options].some(o=>o.value===estado))gs('vEstadoPago').value=estado;
   }
   if(gs('vSummaryClient'))gs('vSummaryClient').textContent=(gs('vCliente')?.value||'').trim()||'Venta nueva';
   if(gs('vSummaryProducts'))gs('vSummaryProducts').textContent=fmtGs(sub);
@@ -3755,7 +3762,7 @@ function vCalcTotal(){
   document.querySelectorAll('#pv-registro [data-sales-step]').forEach(s=>s.classList.toggle('is-complete',!!completos[s.dataset.salesStep]));
   if(moneyVal('vMontoPagado2')>0&&gs('vSegundoPagoWrap')){gs('vSegundoPagoWrap').style.display='grid';if(gs('vSegundoPagoBtn'))gs('vSegundoPagoBtn').textContent='− Quitar segundo método';}
 }
-function vToggleOptional(id,btn){const el=gs(id);if(!el)return;const abrir=getComputedStyle(el).display==='none';el.style.display=abrir?'':'none';if(btn)btn.textContent=abrir?'Menos datos':'Más datos';}
+function vToggleOptional(id,btn){const el=gs(id);if(!el)return;const abrir=getComputedStyle(el).display==='none';el.style.display=abrir?'block':'none';if(btn){btn.textContent=abrir?'Menos datos':'Más datos';btn.setAttribute('aria-expanded',String(abrir));}}
 function vToggleSegundoPago(){const wrap=gs('vSegundoPagoWrap'),btn=gs('vSegundoPagoBtn');if(!wrap)return;const abrir=getComputedStyle(wrap).display==='none';wrap.style.display=abrir?'grid':'none';if(!abrir){setMoneyValue('vMontoPagado2',0);if(gs('vMetodo2'))gs('vMetodo2').selectedIndex=0;vCalcTotal();}if(btn)btn.textContent=abrir?'− Quitar segundo método':'+ Agregar segundo método';}
 function vClienteBuscar(){
   const q=(gs('vCliente')?.value||'').trim().toLowerCase();
@@ -3928,6 +3935,14 @@ function vTipoPagoChange(){
   vCalcTotal();
 }
 let vUltimaVentaGuardada=null;
+function pedidoItemsConStock(items){
+  const combos=typeof raCombos==='function'?raCombos():[];
+  return (items||[]).filter(item=>item.codigo!==REGALO_CODIGO).map(item=>{
+    const combo=combos.find(c=>String(c.codigo)===String(item.codigo));
+    return {codigo:item.codigo,nombre:item.nombre,cant:Number(item.cant)||0,precio:Number(item.precio)||0,
+      ...(combo?{componentes:combo.componentes.map(c=>({codigo:c.codigo,cantidad:Number(c.cantidad)||0}))}:{})};
+  });
+}
 async function vGuardar(confirmado=false){
   vLimpiarErrores();
   if(!carrito.length){vMarcarError('vProdSearch','Agregá al menos un producto antes de guardar la venta.');return;}
@@ -3958,9 +3973,10 @@ async function vGuardar(confirmado=false){
     costo_delivery:costoDeliveryNeto,total_productos:totalProds,descuento,
     pedido_items:carrito.map(p=>({nombre:p.nombre,codigo:p.codigo,cant:p.cant,precio:p.precio,costo:allProductos.find(x=>String(x.codigo)===String(p.codigo))?.costo??null})),
     ubicacion:gs('vUbicacion').value,direccion_referencia:gs('vReferencia')?.value||'',dia_entrega:gs('vDiaEntrega').value||null,
-    metodo_pago:abono2>0?gs('vMetodo').value+' + '+gs('vMetodo2').value:gs('vMetodo').value,tipo_pago:gs('vTipoPago')?.value||(listaGet('tipos_pago')[0]||'Pago adelantado'),estado_pago:estadoPago,estado_entrega:listaGet('estados_entrega').includes('Pendiente')?'Pendiente':(listaGet('estados_entrega')[0]||'Pendiente'),estado_pedido:'Nuevo',
+    metodo_pago:abono2>0?gs('vMetodo').value+' + '+gs('vMetodo2').value:gs('vMetodo').value,tipo_pago:gs('vTipoPago')?.value||(listaGet('tipos_pago').includes('A confirmar')?'A confirmar':''),estado_pago:estadoPago,estado_entrega:listaGet('estados_entrega').includes('Pendiente')?'Pendiente':(listaGet('estados_entrega')[0]||'Pendiente'),estado_pedido:'Nuevo',
     monto_pagado:montoTotal,saldo_pendiente:Math.max(0,totalVentaForm-montoTotal),abonos,comprobante:gs('vComprobante')?.value||'',preparacion_estado:'Nuevo',
-    delivery_persona:gs('vDelivery').value,observaciones:gs('vObs').value,creado_por:sesion?.user?.id||null,actualizado_por:sesion?.user?.id||null,historial:[{fecha:ahora,accion:'Venta creada',usuario:actor}]};
+    delivery_persona:gs('vDelivery').value,observaciones:gs('vObs').value,creado_por:sesion?.user?.id||null,actualizado_por:sesion?.user?.id||null,historial:[{fecha:ahora,accion:'Venta creada',usuario:actor}],
+    pedido_items:pedidoItemsConStock(carrito)};
   if(!row.fecha){vMarcarError('vFecha','Elegí la fecha de compra.');return;}
   if(!row.cliente){vMarcarError('vCliente','Escribí el nombre del cliente.');return;}
   const errores=[];
@@ -4027,8 +4043,8 @@ function vLimpiar(){
   carrito=[];
   ['vCliente','vTel','vRuc','vDelivery','vObs','vOtraCiudad','vUbicacion','vReferencia','vDiaEntrega','vProdSearch','vProdCodigo','vProdNombre','vProdPrecio','vComprobante'].forEach(id=>{const el=gs(id);if(el)el.value='';});
   if(gs('vCostoEnvio'))gs('vCostoEnvio').value='0';
-  if(gs('vMontoPagado'))gs('vMontoPagado').value='0';
-  if(gs('vMontoPagado2'))gs('vMontoPagado2').value='0';
+  if(gs('vMontoPagado'))gs('vMontoPagado').value='';
+  if(gs('vMontoPagado2'))gs('vMontoPagado2').value='';
   if(gs('vDescuento'))gs('vDescuento').value='0';
   if(gs('vDescuentoTipo'))gs('vDescuentoTipo').value='gs';
   if(gs('vDescuentoAyuda'))gs('vDescuentoAyuda').textContent='Importe manual en guaraníes';
@@ -4037,9 +4053,9 @@ function vLimpiar(){
   if(gs('vProd'))gs('vProd').selectedIndex=0;
   if(gs('vCiudad'))gs('vCiudad').selectedIndex=0;
   if(gs('vTipoEnvio'))gs('vTipoEnvio').selectedIndex=0;
-  if(gs('vMetodo'))gs('vMetodo').selectedIndex=0;
-  if(gs('vTipoPago'))gs('vTipoPago').selectedIndex=0;
-  if(gs('vEstadoPago'))gs('vEstadoPago').selectedIndex=0;
+  if(gs('vMetodo'))gs('vMetodo').value='';
+  if(gs('vTipoPago'))gs('vTipoPago').value='';
+  if(gs('vEstadoPago'))gs('vEstadoPago').value='';
   if(gs('vMetodo2'))gs('vMetodo2').selectedIndex=0;
   vMetodoChange();
   if(gs('prodPickerValue'))gs('prodPickerValue').textContent='— Ningún producto seleccionado —';
@@ -4053,6 +4069,7 @@ function vLimpiar(){
   if(gs('vRegaloCant'))gs('vRegaloCant').value=0;if(gs('vRegaloCantDisplay'))gs('vRegaloCantDisplay').textContent=0;
   if(gs('vClienteFicha'))gs('vClienteFicha').style.display='none';
   if(gs('vClienteOpcional'))gs('vClienteOpcional').style.display='none';
+  const masDatos=gs('pv-registro')?.querySelector('.sales-section-toggle');if(masDatos){masDatos.textContent='Más datos';masDatos.setAttribute('aria-expanded','false');}
   if(gs('vSegundoPagoWrap'))gs('vSegundoPagoWrap').style.display='none';
   if(gs('vSegundoPagoBtn'))gs('vSegundoPagoBtn').textContent='+ Agregar segundo método';
   ppSelectedCodigo=null;
@@ -4211,6 +4228,23 @@ async function actualizarCampoVenta(id,campo,valor,el){
   if(!permitidos.includes(campo))return;
   const item=ventasDelMes.find(v=>String(v.id)===String(id));
   const anterior=item ? item[campo] : undefined;
+  let motivoCancelacion='';
+  const cambiaCancelacion=campo==='estado_entrega'&&(String(valor).toLowerCase()==='cancelado'||String(anterior||'').toLowerCase()==='cancelado');
+  if(cambiaCancelacion){
+    const {error:guardError}=await SB.from('ventas').select('stock_liberado_por_cancelacion').eq('id',id).single();
+    if(guardError){alert('Antes de cambiar la cancelación, activá cancelacion_stock.sql en Supabase. Así el stock no queda desincronizado.');if(el)el.value=anterior;return;}
+    if(String(valor).toLowerCase()==='cancelado'){
+      if((Number(item?.monto_pagado)||0)>0||esPagado(item?.estado_pago)){
+        alert('Este pedido tiene un pago o abono. Resolvé ese importe antes de cancelarlo.');if(el)el.value=anterior;return;
+      }
+      if(!Array.isArray(item?.pedido_items)||!item.pedido_items.length){
+        alert('Este pedido anterior no tiene el desglose necesario para devolver stock automáticamente. Revisá el inventario antes de cancelarlo.');if(el)el.value=anterior;return;
+      }
+      const respuesta=prompt('Motivo de cancelación (queda en el historial):','Cliente no respondió');
+      if(respuesta===null){if(el)el.value=anterior;return;}
+      motivoCancelacion=respuesta.trim()||'Sin motivo especificado';
+    }
+  }
   if(el)el.disabled=true;
   const update={[campo]:valor};
   if(campo==='fecha')update.mes=mesDesdeFecha(valor);
@@ -4219,7 +4253,7 @@ async function actualizarCampoVenta(id,campo,valor,el){
     update.saldo_pendiente=saldoPendienteVenta(temp);
   }
   if(item){
-    update.historial=historialCon(item,`Cambio ${campo}: "${anterior??''}" → "${valor??''}"`);
+    update.historial=historialCon(item,`Cambio ${campo}: "${anterior??''}" → "${valor??''}"${motivoCancelacion?' · Motivo: '+motivoCancelacion:''}`);
   }
   update.actualizado_por=leerSesionGuardada()?.user?.id||null;
   const {error}=await SB.from('ventas').update(update).eq('id',id);
@@ -4237,6 +4271,7 @@ async function actualizarCampoVenta(id,campo,valor,el){
   }
   if(el)el.disabled=false;
   toast('Venta actualizada');
+  if(cambiaCancelacion)await refrescarInventarioYVistas();
   if(item&&anterior!==valor&&['preparacion_estado','estado_entrega'].includes(campo))window.rpOfrecerAviso?.(item);
   vmRender(ventasDelMes);
   if(gs('pv-clientes')?.classList.contains('active'))cCargar();else clientesResumen=cArmarResumen(ventasDelMes);
@@ -4352,13 +4387,14 @@ function vmAbrirUbicacion(id){const r=ventaPorId(id),u=String(r?.ubicacion||'').
 function vmDuplicarVenta(id){const r=ventaPorId(id);if(!r)return;vUltimaVentaGuardada=r;irARegistroVentas();setTimeout(vPostDuplicar,100);}
 function vmImprimirVenta(id){const r=ventaPorId(id);if(!r)return;const w=window.open('','_blank','width=760,height=850');if(!w)return;w.document.write(`<html><head><title>Pedido ${esc(window.RitualPedidos?.code(r)||r.id)}</title><style>body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:34px;color:#1d1d1f}h1{font-size:24px}.box{border:1px solid #ddd;border-radius:14px;padding:18px;margin:14px 0}.row{display:flex;justify-content:space-between;padding:6px 0}.total{font-size:20px;font-weight:700;border-top:1px solid #ddd;margin-top:8px;padding-top:12px}@media print{button{display:none}}</style></head><body><h1>Ritual Ancestral</h1><p>Pedido #${esc(window.RitualPedidos?.code(r)||r.id)}</p><div class="box"><strong>${esc(r.cliente)}</strong><p>${esc(r.contacto||'')} · ${esc(r.ciudad||'')}</p><p>${esc(r.detalle||'')}</p></div><div class="box"><div class="row"><span>Productos</span><strong>${fmtGs(r.total_productos)}</strong></div><div class="row"><span>Delivery</span><strong>${fmtGs(r.costo_delivery)}</strong></div><div class="row total"><span>Total</span><strong>${fmtGs(totalVenta(r))}</strong></div><div class="row"><span>Pagado</span><strong>${fmtGs(r.monto_pagado)}</strong></div><div class="row"><span>Saldo</span><strong>${fmtGs(saldoPendienteVenta(r))}</strong></div></div><p>Entrega: ${esc(formatoFecha(r.dia_entrega)||'A coordinar')}</p><button onclick="print()">Imprimir</button></body></html>`);w.document.close();}
 function vmRender(rows){
-  const total=rows.reduce((s,r)=>s+(parseInt(r.total_productos)||0),0);
-  const cobrado=rows.reduce((s,r)=>s+(esPagado(r.estado_pago)?(parseInt(r.total_productos)||0):0),0);
-  const pendiente=rows.reduce((s,r)=>s+saldoPendienteVenta(r),0);
+  const vigentes=rows.filter(r=>String(r.estado_entrega||'').toLowerCase()!=='cancelado');
+  const total=vigentes.reduce((s,r)=>s+(parseInt(r.total_productos)||0),0);
+  const cobrado=vigentes.reduce((s,r)=>s+(esPagado(r.estado_pago)?(parseInt(r.total_productos)||0):0),0);
+  const pendiente=vigentes.reduce((s,r)=>s+saldoPendienteVenta(r),0);
   if(gs('vmTotal'))gs('vmTotal').textContent=fmtGs(total);
   if(gs('vmCobrado'))gs('vmCobrado').textContent=fmtGs(cobrado);
   if(gs('vmPend'))gs('vmPend').textContent=fmtGs(pendiente);
-  if(gs('vmCant'))gs('vmCant').textContent=rows.length;
+  if(gs('vmCant'))gs('vmCant').textContent=vigentes.length;
   const tbody=gs('vmBody');if(!tbody)return;
   vmSeleccionadas=new Set([...vmSeleccionadas].filter(id=>rows.some(r=>String(r.id)===String(id))));
   vmRenderCards(rows);vmCambiarVista(vmVistaActual);
@@ -5327,12 +5363,13 @@ function cArmarResumen(rows){
     const key=nombre.toLowerCase();
     if(!map[key])map[key]={nombre,tel:'',ciudad:'',compras:0,total:0,ultima:'',pendiente:0};
     const c=map[key];
-    c.compras++;
+    const vigente=String(r.estado_entrega||'').toLowerCase()!=='cancelado';
+    if(vigente)c.compras++;
     if(r.contacto)c.tel=r.contacto;
     if(r.ciudad)c.ciudad=r.ciudad;
     const total=(parseInt(r.total_productos)||0)+(parseInt(r.costo_delivery)||0);
-    c.total+=total;
-    if(r.estado_pago!=='Pagado')c.pendiente+=total;
+    if(vigente)c.total+=total;
+    if(vigente&&r.estado_pago!=='Pagado')c.pendiente+=total;
     if(!c.ultima||String(r.fecha||'')>String(c.ultima||''))c.ultima=r.fecha||'';
   });
   return Object.values(map).sort((a,b)=>String(b.ultima||'').localeCompare(String(a.ultima||''))||b.compras-a.compras||b.total-a.total);
@@ -5580,18 +5617,20 @@ function rutaSetPeriodo(p){
 function renderRutaDelDia(){
   const cont=gs('dRutaDelDia');if(!cont)return;
   const entregas=entregasParaRuta();
-  const selector=`<div style="display:flex;gap:8px;margin-bottom:12px">
+  const selector=`<div class="delivery-route-controls">
     <button type="button" class="btn btn-sm ${rutaPeriodo==='dia'?'btn-p':'btn-s'}" onclick="rutaSetPeriodo('dia')">Ruta de hoy</button>
     <button type="button" class="btn btn-sm ${rutaPeriodo==='semana'?'btn-p':'btn-s'}" onclick="rutaSetPeriodo('semana')">Ruta de la semana</button>
   </div>`;
-  if(!entregas.length){cont.innerHTML=selector+'<div class="empty">Sin entregas con delivery asignado para este periodo (no incluye Uber Moto, transportadora ni retiro del local)</div>';return;}
+  const header=cont.closest('.delivery-route')?.querySelector('.card-hdr');
+  if(header){header.querySelector('.delivery-route-controls')?.remove();header.insertAdjacentHTML('beforeend',selector);}
+  if(!entregas.length){cont.innerHTML='<div class="delivery-empty">'+uiIcon('truck')+'<span>Sin entregas con delivery asignado para este periodo<br><small>(no incluye Uber Moto, transportadora ni retiro del local)</small></span></div>';return;}
   const porPersona={};
   entregas.forEach(r=>{
     const persona=r.delivery_persona;
     if(!porPersona[persona])porPersona[persona]=[];
     porPersona[persona].push(r);
   });
-  cont.innerHTML=selector+Object.entries(porPersona).map(([persona,lista])=>{
+  cont.innerHTML=Object.entries(porPersona).map(([persona,lista])=>{
     const d=deliverysFijos.find(x=>x.nombre===persona);
     const tel=d?telefonoWA(d.telefono):'';
     const ciudades=[...new Set(lista.map(r=>r.ciudad||'Sin ciudad'))];
@@ -5638,10 +5677,11 @@ function dRender(rows){
   if(gs('dCamino'))gs('dCamino').textContent=rows.filter(r=>r.estado_entrega==='En camino').length;
   if(gs('dEntregado'))gs('dEntregado').textContent=rows.filter(r=>r.estado_entrega==='Entregado').length;
   if(gs('dCancel'))gs('dCancel').textContent=rows.filter(r=>r.estado_entrega==='Cancelado').length;
-  if(gs('dCosto'))gs('dCosto').textContent=fmtGs(rows.reduce((s,r)=>s+(r.costo_delivery||0),0));
-  if(gs('dPagPend'))gs('dPagPend').textContent=fmtGs(rows.reduce((s,r)=>s+saldoPendienteVenta(r),0));
+  const vigentes=rows.filter(r=>String(r.estado_entrega||'').toLowerCase()!=='cancelado');
+  if(gs('dCosto'))gs('dCosto').textContent=fmtGs(vigentes.reduce((s,r)=>s+(r.costo_delivery||0),0));
+  if(gs('dPagPend'))gs('dPagPend').textContent=fmtGs(vigentes.reduce((s,r)=>s+saldoPendienteVenta(r),0));
   const tbody=gs('dBody');if(!tbody)return;
-  if(!rows.length){tbody.innerHTML='<tr><td colspan="7" class="empty">Sin datos</td></tr>';return;}
+  if(!rows.length){tbody.innerHTML='<tr><td colspan="7" class="delivery-table-empty">Sin entregas registradas</td></tr>';renderRutaDelDia();generarRendicion();return;}
   const grupos={};
   rows.forEach(r=>{
     const ciudad=String(r.ciudad||'').trim()||'Sin ciudad';
@@ -5652,10 +5692,17 @@ function dRender(rows){
   tbody.innerHTML=ciudadesOrdenadas.map(ciudad=>{
     const filas=grupos[ciudad];
     const header=`<tr class="group-row"><td colspan="7" style="font-weight:700;color:var(--text2)">${esc(ciudad)} · ${filas.length} pedido${filas.length===1?'':'s'}</td></tr>`;
-    const cuerpo=filas.map(r=>`<tr><td class="td-em">${esc(r.cliente)}</td><td class="td-mu">${esc(r.ciudad||'')}</td><td class="td-mu">${esc(r.delivery_persona||'Sin asignar')}</td><td class="td-m">${fmtGs(r.costo_delivery)}</td><td>${estadoSelectVenta(r,'estado_entrega')}</td><td>${estadoSelectVenta(r,'estado_pago')}</td><td class="td-mu">${formatoFecha(r.fecha)||''}</td></tr>`).join('');
+    const cuerpo=filas.map(r=>`<tr><td class="td-em">${esc(r.cliente)}</td><td class="td-mu">${esc(r.ciudad||'')}</td><td class="td-mu">${esc(r.delivery_persona||'Sin asignar')}</td><td class="td-m">${fmtGs(r.costo_delivery)}</td><td>${deliveryEstadoControl(r,'estado_entrega')}</td><td>${deliveryEstadoControl(r,'estado_pago')}</td><td class="td-mu">${formatoFecha(r.fecha)||''}</td></tr>`).join('');
     return header+cuerpo;
   }).join('');
   renderRutaDelDia();
+  generarRendicion();
+}
+function deliveryEstadoControl(r,campo){
+  const valor=String(campo==='estado_pago'?(r.estado_pago||'Pendiente'):(r.estado_entrega||'Pendiente'));
+  const clase=estadoClass(valor)||(/parcial|reprogramado/i.test(valor)?'status-pendiente':'');
+  const icono=/cancel/i.test(valor)?'close':/entregado|pagado/i.test(valor)?'check':/camino/i.test(valor)?'truck':'clock';
+  return `<span class="delivery-status-control ${clase}">${uiIcon(icono)}${estadoSelectVenta(r,campo)}</span>`;
 }
 function generarRendicion(){
   const rows=ventasDelMes.filter(r=>r.tipo_envio==='Delivery');
@@ -5673,7 +5720,7 @@ function generarRendicion(){
   });
   const cont=gs('rendicionContainer');if(!cont)return;
   const entries=Object.entries(pp).filter(([_,d])=>d.pedidos.length);
-  if(!entries.length){cont.innerHTML='<div class="empty">Sin datos de delivery</div>';return;}
+  if(!entries.length){cont.innerHTML='<div class="delivery-empty">'+uiIcon('document')+'<span>Sin datos de delivery</span></div>';return;}
   cont.innerHTML=entries.map(([persona,d])=>`<div class="rend-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
       <div><div style="font-size:14px;font-weight:700;color:var(--olive1)">${persona}</div><div style="font-size:11px;color:var(--text3)">${d.pedidos.length} pedidos</div></div>
@@ -5714,6 +5761,7 @@ async function fCargar(){
   fRender(ventasDelMes);
 }
 function fRender(rows){
+  rows=rows.filter(r=>String(r.estado_entrega||'').toLowerCase()!=='cancelado');
   const mes=gs('mesSelectFin')?gs('mesSelectFin').value:getMesActual();
   const metaV=parseInt(localStorage.getItem('meta_v_'+mes)||'0');
   const metaG=parseInt(localStorage.getItem('meta_g_'+mes)||'0');
@@ -5917,6 +5965,9 @@ function vpRender(){
 async function vpGuardar(){
   const venta=ventasDelMes.find(v=>String(v.id)===String(vpVentaId));
   if(!venta)return;
+  if(String(venta.estado_entrega||'').toLowerCase()==='cancelado'){
+    showAlert('vpMsg','Reactivá el pedido antes de cambiar sus productos o cantidades.','err');return;
+  }
   if(!vpItems.length){showAlert('vpMsg','La venta debe tener al menos un producto','err');return;}
   const oldItems=itemsEditablesDesdeVenta(venta);
   const oldMap=acumularPorCodigo(oldItems);
@@ -5951,7 +6002,7 @@ async function vpGuardar(){
   const pagado=parseInt(venta.monto_pagado)||0;
   const saldo_pendiente=Math.max(0,totalVentaNuevo-pagado);
   const estado_pago=pagado<=0?'Pendiente':saldo_pendiente<=0?'Pagado':'Parcial';
-  const update={detalle,total_productos,saldo_pendiente,estado_pago,historial:historialCon(venta,'Productos y cantidades actualizados'),actualizado_por:leerSesionGuardada()?.user?.id||null};
+  const update={detalle,total_productos,saldo_pendiente,estado_pago,pedido_items:pedidoItemsConStock(vpItems),historial:historialCon(venta,'Productos y cantidades actualizados'),actualizado_por:leerSesionGuardada()?.user?.id||null};
   const {error}=await SB.from('ventas').update(update).eq('id',venta.id);
   if(error){showAlert('vpMsg','No se pudo guardar: '+error.message,'err');return;}
   Object.assign(venta,update);
@@ -5964,6 +6015,7 @@ async function vpGuardar(){
   if(gs('pv-clientes')?.classList.contains('active'))cCargar();else clientesResumen=cArmarResumen(ventasDelMes);
 }
 function analizarFinanzas(rows,gastosLista){
+  rows=(rows||[]).filter(r=>String(r.estado_entrega||'').toLowerCase()!=='cancelado');
   const productos={};
   let fact=0,cob=0,ventasProductos=0,costoProductos=0,gananciaCobrada=0;
   rows.forEach(r=>{
@@ -6024,7 +6076,7 @@ function periodoHastaFecha(rows){
   return {mes,hasta};
 }
 function fCalcularTicketMedio(){
-  const rows=ventasDelMes||[];
+  const rows=(ventasDelMes||[]).filter(r=>String(r.estado_entrega||'').toLowerCase()!=='cancelado');
   const el=gs('fTicketResultado');if(!el)return;
   if(!rows.length){
     el.innerHTML='<div class="insight-big">Gs 0</div><div class="insight-note">No hay ventas en este periodo.</div>';
@@ -7140,7 +7192,8 @@ function listasPoblarTodos() {
       const prev = sel.value;
       const isFilter = cfg.filterTargets.includes(selId);
       const pendienteEnvio=key==='tipos_envio'&&!isFilter?'<option value="">A definir</option>':'';
-      sel.innerHTML = (isFilter ? '<option value="">Todos</option>' : pendienteEnvio) +
+      const pendientePago=!isFilter&&['vMetodo','vTipoPago','vEstadoPago'].includes(selId)?'<option value="">Seleccionar…</option>':'';
+      sel.innerHTML = (isFilter ? '<option value="">Todos</option>' : pendienteEnvio+pendientePago) +
         items.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
       // Restore selection if still valid
       if([...sel.options].some(o => o.value===prev)) sel.value = prev;
@@ -7912,13 +7965,16 @@ function cfgPreviewLogoUrl(url) {
 
 function aplicarFavicon(src){
   if(!src)return;
-  let link=document.querySelector('link[rel="icon"]')||document.querySelector('link[rel="shortcut icon"]');
-  if(!link){
-    link=document.createElement('link');
-    link.rel='icon';
+  const href=/^https?:/i.test(src)?src+(src.includes('?')?'&':'?')+'ritualFavicon='+encodeURIComponent(String(Date.now())):src;
+  document.querySelectorAll('link[rel="icon"],link[rel="shortcut icon"]').forEach(link=>link.remove());
+  for(const rel of ['icon','shortcut icon']){
+    const link=document.createElement('link');
+    link.rel=rel;
+    link.href=href;
     document.head.appendChild(link);
   }
-  link.href=src;
+  const apple=document.querySelector('link[rel="apple-touch-icon"]');
+  if(apple)apple.href=href;
   cfgPintarFaviconPreview(src);
 }
 
@@ -8331,12 +8387,23 @@ async function raGuardarVentaRapida(){
 }
 
 function raCalcPrecio(){
-  const n=id=>moneyVal(id),pct=id=>parseFloat(gs(id)?.value)||0;const costo=n('raFcProd')+n('raFcEmp')+n('raFcAds')+n('raFcDel')+n('raFcImp')+n('raFcOtros');const margen=Math.min(99,pct('raFcMargen'));const sugerido=margen>=100?0:Math.ceil((costo/(1-margen/100))/1000)*1000;const actual=n('raFcActual');const bruto=(actual||sugerido)-costo;const margenReal=(actual||sugerido)>0?bruto*100/(actual||sugerido):0;const descSinPerder=(actual||sugerido)>0?Math.max(0,((actual||sugerido)-costo)*100/(actual||sugerido)):0;const descMax=Math.min(pct('raFcDesc'),descSinPerder);let estado=actual&&actual<costo?'⚠ Precio actual genera pérdida':actual&&margenReal<margen?'⚠ Precio actual por debajo del margen deseado':'✓ Margen saludable';gs('raCalcResultado').innerHTML=`<div class="ra-calc-line"><span>Costo total real</span><strong>${fmtGs(costo)}</strong></div><div class="ra-calc-line"><span>Precio sugerido</span><strong>${fmtGs(sugerido)}</strong></div><div class="ra-calc-line"><span>Ganancia neta estimada</span><strong>${fmtGs(bruto)}</strong></div><div class="ra-calc-line"><span>Margen bruto</span><strong>${margenReal.toFixed(1)}%</strong></div><div class="ra-calc-line"><span>Descuento seguro</span><strong>${descMax.toFixed(1)}% (hasta ${fmtGs((actual||sugerido)*(1-descMax/100))})</strong></div><div class="${estado.startsWith('✓')?'ra-ok':'ra-warn'}"><strong>${estado}</strong></div>`;
+  const n=id=>moneyVal(id),pct=id=>parseFloat(gs(id)?.value)||0;
+  const base=n('raFcProd')+n('raFcEmp')+n('raFcImp')+n('raFcOtros');
+  const supuestos=n('raFcAds')+n('raFcDel');
+  const costoEscenario=base+supuestos;
+  const margenDeseado=Math.max(0,Math.min(95,pct('raFcMargen')));
+  const sugerido=costoEscenario>0?Math.ceil((costoEscenario/(1-margenDeseado/100))/1000)*1000:0;
+  const precio=n('raFcActual')||sugerido;
+  const ganancia=precio-costoEscenario;
+  const margenBruto=precio>0?(precio-base)*100/precio:0;
+  const descuentoSeguro=precio>0?Math.min(Math.max(0,pct('raFcDesc')),Math.max(0,(precio-costoEscenario)*100/precio)):0;
+  const estado=precio<=0?'Ingresá costos o un precio para calcular':ganancia<0?'⚠ El precio genera pérdida en este escenario':ganancia*100/precio<margenDeseado?'⚠ Margen inferior al deseado':'✓ Margen saludable';
+  gs('raCalcResultado').innerHTML=`<div class="ra-calc-line"><span>Costo base unitario</span><strong>${fmtGs(base)}</strong></div><div class="ra-calc-line"><span>Publicidad y delivery (supuestos)</span><strong>${fmtGs(supuestos)}</strong></div><div class="ra-calc-line"><span>Precio sugerido</span><strong>${fmtGs(sugerido)}</strong></div><div class="ra-calc-line"><span>Ganancia estimada en este escenario</span><strong>${fmtGs(ganancia)}</strong></div><div class="ra-calc-line"><span>Margen bruto del producto</span><strong>${margenBruto.toFixed(1)}%</strong></div><div class="ra-calc-line"><span>Descuento seguro</span><strong>${descuentoSeguro.toFixed(1)}% · precio mínimo ${fmtGs(precio*(1-descuentoSeguro/100))}</strong></div><div class="${estado.startsWith('✓')?'ra-ok':'ra-warn'}"><strong>${estado}</strong></div>`;
 }
 function raInyectarUI(){
-  const reg=gs('pv-registro')?.querySelector('.sales-entry-title');if(reg&&!gs('raQuickBtn')){const b=document.createElement('button');b.id='raQuickBtn';b.type='button';b.className='btn btn-s btn-sm';b.textContent='⚡ Modo rápido';b.onclick=raAbrirQuick;b.style.cssText='position:absolute;top:2px;right:0;';reg.style.position='relative';reg.appendChild(b);}
+  const reg=gs('pv-registro')?.querySelector('.sales-entry-title');if(reg&&!gs('raQuickBtn')){const b=document.createElement('button');b.id='raQuickBtn';b.type='button';b.className='btn btn-s btn-sm';b.innerHTML='<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m13 2-8 11h6l-1 9 9-12h-6l1-8Z"/></svg><span>Modo rápido</span>';b.onclick=raAbrirQuick;b.style.cssText='position:absolute;top:2px;right:0;';reg.style.position='relative';reg.appendChild(b);}
   const prod=gs('pv-productos')?.querySelector('.card');if(prod&&!gs('raComboBtn')){const bar=document.createElement('div');bar.style.cssText='display:flex;justify-content:flex-end;margin-bottom:12px';bar.innerHTML='<button type="button" class="btn btn-s" id="raComboBtn" onclick="raAbrirCombo()">+ Crear combo compuesto</button>';prod.insertBefore(bar,prod.children[1]||null);}
-  const fin=gs('pv-finanzas');if(fin&&!gs('raCalcCard')){const card=document.createElement('div');card.className='card';card.id='raCalcCard';card.style.marginBottom='14px';card.innerHTML=`<div class="card-hdr">Calculadora de costos y precio</div><div class="fg fg4"><div class="field"><label>Costo producto</label><input id="raFcProd" inputmode="numeric" oninput="formatMoneyInput(this);raCalcPrecio()"></div><div class="field"><label>Empaque</label><input id="raFcEmp" inputmode="numeric" oninput="formatMoneyInput(this);raCalcPrecio()"></div><div class="field"><label>Publicidad</label><input id="raFcAds" inputmode="numeric" oninput="formatMoneyInput(this);raCalcPrecio()"></div><div class="field"><label>Delivery</label><input id="raFcDel" inputmode="numeric" oninput="formatMoneyInput(this);raCalcPrecio()"></div><div class="field"><label>IVA / impuestos</label><input id="raFcImp" inputmode="numeric" oninput="formatMoneyInput(this);raCalcPrecio()"></div><div class="field"><label>Otros gastos</label><input id="raFcOtros" inputmode="numeric" oninput="formatMoneyInput(this);raCalcPrecio()"></div><div class="field"><label>Margen deseado %</label><input id="raFcMargen" type="number" value="40" oninput="raCalcPrecio()"></div><div class="field"><label>Descuento máximo %</label><input id="raFcDesc" type="number" value="10" oninput="raCalcPrecio()"></div><div class="field"><label>Precio actual (opcional)</label><input id="raFcActual" inputmode="numeric" oninput="formatMoneyInput(this);raCalcPrecio()"></div></div><div class="ra-calc-result" id="raCalcResultado" style="margin-top:14px"></div>`;fin.insertBefore(card,fin.children[1]||null);raCalcPrecio();}
+  const fin=gs('pv-finanzas');if(fin&&!gs('raCalcCard')&&!gs('pRefreshCalcOverlay')){const card=document.createElement('div');card.className='card';card.id='raCalcCard';card.style.marginBottom='14px';card.innerHTML=`<div class="card-hdr">Calculadora de costos y precio</div><div class="fg fg4"><div class="field"><label>Costo producto</label><input id="raFcProd" inputmode="numeric" oninput="formatMoneyInput(this);raCalcPrecio()"></div><div class="field"><label>Empaque</label><input id="raFcEmp" inputmode="numeric" oninput="formatMoneyInput(this);raCalcPrecio()"></div><div class="field"><label>Publicidad</label><input id="raFcAds" inputmode="numeric" oninput="formatMoneyInput(this);raCalcPrecio()"></div><div class="field"><label>Delivery</label><input id="raFcDel" inputmode="numeric" oninput="formatMoneyInput(this);raCalcPrecio()"></div><div class="field"><label>IVA / impuestos</label><input id="raFcImp" inputmode="numeric" oninput="formatMoneyInput(this);raCalcPrecio()"></div><div class="field"><label>Otros gastos</label><input id="raFcOtros" inputmode="numeric" oninput="formatMoneyInput(this);raCalcPrecio()"></div><div class="field"><label>Margen deseado %</label><input id="raFcMargen" type="number" value="40" oninput="raCalcPrecio()"></div><div class="field"><label>Descuento máximo %</label><input id="raFcDesc" type="number" value="10" oninput="raCalcPrecio()"></div><div class="field"><label>Precio actual (opcional)</label><input id="raFcActual" inputmode="numeric" oninput="formatMoneyInput(this);raCalcPrecio()"></div></div><div class="ra-calc-result" id="raCalcResultado" style="margin-top:14px"></div>`;fin.insertBefore(card,fin.children[1]||null);raCalcPrecio();}
 }
 document.addEventListener('DOMContentLoaded',()=>{raInyectarUI();setTimeout(raInyectarUI,300);});
 </script>
@@ -8347,8 +8414,8 @@ document.addEventListener('DOMContentLoaded',()=>{raInyectarUI();setTimeout(raIn
 <script>
 function deliveryPortalInyectar(){
   const pv=gs('pv-delivery');if(!pv||gs('deliveryPortalCard'))return;
-  const card=document.createElement('div');card.className='card';card.id='deliveryPortalCard';card.style.marginBottom='14px';
-  card.innerHTML=`<div class="card-hdr">Portal privado del repartidor</div><div style="font-size:12px;color:var(--text3);margin-bottom:12px">Generá un enlace individual. La persona solamente verá sus pedidos asignados y podrá actualizar entrega, observación o fecha.</div><div class="delivery-portal-box"><div class="field"><label>Repartidor</label><select id="deliveryPortalPersona"></select></div><button type="button" class="btn btn-p" onclick="deliveryPortalCrear()">Generar enlace privado</button></div><div id="deliveryPortalMsg"></div><div class="delivery-link-result" id="deliveryPortalResult"><strong>Enlace listo para compartir</strong><div class="delivery-link-url" id="deliveryPortalUrl"></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-s btn-sm" onclick="deliveryPortalCopiar()">Copiar enlace</button><button class="btn btn-wa btn-sm" onclick="deliveryPortalWhatsApp()">Enviar por WhatsApp</button><button class="btn btn-d btn-sm" onclick="deliveryPortalRevocar()">Revocar enlace</button></div></div>`;
+  const card=document.createElement('div');card.className='card delivery-portal';card.id='deliveryPortalCard';card.style.marginBottom='14px';
+  card.innerHTML=`<div class="delivery-portal-main"><span class="delivery-portal-icon">${uiIcon('rider')}</span><div class="delivery-portal-copy"><h2>Portal privado del repartidor</h2><p>Generá un enlace individual. La persona solamente verá sus pedidos asignados y podrá actualizar entrega, observación o fecha.</p></div><div class="delivery-portal-box"><div class="field"><label>Repartidor</label><select id="deliveryPortalPersona"></select></div><button type="button" class="btn btn-p" onclick="deliveryPortalCrear()">${uiIcon('link')} Generar enlace privado</button></div></div><div id="deliveryPortalMsg"></div><div class="delivery-link-result" id="deliveryPortalResult"><strong>Enlace listo para compartir</strong><div class="delivery-link-url" id="deliveryPortalUrl"></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-s btn-sm" onclick="deliveryPortalCopiar()">Copiar enlace</button><button class="btn btn-wa btn-sm" onclick="deliveryPortalWhatsApp()">Enviar por WhatsApp</button><button class="btn btn-d btn-sm" onclick="deliveryPortalRevocar()">Revocar enlace</button></div></div>`;
   pv.insertBefore(card,pv.firstChild);deliveryPortalPoblar();
 }
 function deliveryPortalPoblar(){const sel=gs('deliveryPortalPersona');if(!sel)return;const nombres=[...new Set([...(deliverysFijos||[]).filter(x=>x.activo!==false).map(x=>x.nombre),...allVentasCache.map(x=>x.delivery_persona).filter(Boolean)].filter(x=>!['Sin asignar','Uber Moto','Otro externo'].includes(x)))];sel.innerHTML=nombres.length?nombres.map(n=>`<option>${esc(n)}</option>`).join(''):'<option value="">Configurá primero un delivery fijo</option>';}
@@ -9184,6 +9251,14 @@ html.dark #pv-ventasmes .vm-sale-body{background:#111113!important}
 <link rel="stylesheet" href="pedidos.css?v=20260903-modal86">
 <script src="pedidos.js"></script>
 <script src="pedidos-panel.js"></script>
+<link rel="stylesheet" href="ventas-mes-refresh.css?v=20260914-7">
+<script src="ventas-mes-refresh.js?v=20260914-8"></script>
+<link rel="stylesheet" href="nuevo-producto-refresh.css?v=20260913-5">
+<script src="nuevo-producto-refresh.js?v=20260913-5"></script>
+<link rel="stylesheet" href="barra-flotante.css?v=20260914-7">
+<link rel="stylesheet" href="registro-ventas-refresh.css?v=20260914-2">
+<link rel="stylesheet" href="delivery-refresh.css?v=20260914-2">
+<script src="delivery-refresh.js?v=20260914-1"></script>
 <!-- Despliegue posterior a recuperación de GitHub Pages · 2026-08-07 -->
 </body>
 </html>
