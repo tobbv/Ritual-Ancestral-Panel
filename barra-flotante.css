@@ -7,7 +7,8 @@
   height:auto!important;
   max-height:none!important;
   align-self:stretch;
-  justify-content:space-between;
+  justify-content:space-evenly;
+  gap:clamp(5px,1vh,10px);
   margin:18px 0 18px 18px;
   border:1px solid #e3e8f1!important;
   border-radius:27px;
@@ -21,8 +22,11 @@
 #appMain .sidebar .sidebar-logo{padding:7px 8px 9px!important;gap:9px!important;flex-shrink:0}
 #appMain .sidebar .sidebar-logo-title{font-size:13px!important}
 #appMain .sidebar .sidebar-logo-sub{font-size:9.5px!important}
-#appMain .sidebar .nav-section{margin:0!important;padding:4px!important;border-radius:15px!important;flex-shrink:0}
-#appMain .sidebar .nav-item{min-height:34px!important;padding:3px 7px!important;gap:8px!important;font-size:12px!important}
+#appMain .sidebar .nav-section{margin:0!important;padding:clamp(4px,.7vh,7px)!important;border-radius:15px!important;flex-shrink:0}
+#appMain .sidebar .nav-item{min-height:clamp(30px,calc(5vh - 5px),44px)!important;padding:4px 7px!important;gap:8px!important;font-size:12px!important}
+#appMain .sidebar .nav-item + .nav-item{margin-top:3px!important}
+#appMain .sidebar .nav-icon-badge{display:grid!important;place-items:center}
+#appMain .sidebar .sidebar-footer:empty{display:none!important}
 #appMain .sidebar .nav-icon-badge{width:24px!important;height:24px!important;flex:0 0 24px}
 #appMain .sidebar .nav-icon-badge svg{width:13px!important;height:13px!important}
 #appMain .sidebar .nav-label{padding:3px 7px 4px!important;font-size:10px!important}
@@ -92,6 +96,7 @@ html.dark #appMain .topbar-eyebrow{color:#9da5b3!important}
 html.dark #appMain .global-search input{background:#2b2e36!important;border-color:#3a3e49!important;color:var(--text)!important}
 html.dark #appMain .global-search input::placeholder{color:#aeb8c8!important;opacity:1}
 @media(max-width:1100px){
+  #appMain .sidebar .sidebar-logo-title,#appMain .sidebar .sidebar-logo-sub,#appMain .sidebar .nav-label,#appMain .sidebar .nav-item span:not(.nav-icon-badge),#appMain .sidebar .sidebar-profile-chip{display:none!important}
   #appMain .sidebar{flex-basis:64px;width:64px!important;min-width:64px!important;margin:13px 0 13px 13px;border-radius:20px}
   #appMain .topbar{margin:13px 15px 0;padding:11px 15px!important;gap:11px;flex-wrap:wrap}
   #appMain .topbar-title-wrap{min-width:120px}

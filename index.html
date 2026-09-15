@@ -3350,10 +3350,12 @@ function globalIr(tab){
 const PAGE_TITLES = {inicio:'Dashboard',registro:'Registro de Ventas',ventasmes:'Ventas del Mes',stock:'Stock Actual',productos:'Nuevo Producto',movimientos:'Movimientos',clientes:'Clientes',delivery:'Delivery',finanzas:'Finanzas',config:'Configuracion'};
 
 function navTo(tab, el) {
+  if(!gs('pv-'+tab))return;
   document.querySelectorAll('.pv').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   const pv=gs('pv-'+tab);if(pv)pv.classList.add('active');
-  if(el)el.classList.add('active');
+  const nav=el?.closest('.nav-item')||[...document.querySelectorAll('.nav-item')].find(n=>n.getAttribute('onclick')===`navTo('${tab}',this)`);
+  if(nav)nav.classList.add('active');
   if(gs('topbarTitle'))gs('topbarTitle').textContent=PAGE_TITLES[tab]||tab;
   // Acciones del topbar
   const acts = {
@@ -3686,7 +3688,7 @@ function vCambiarCantidad(i,delta){
   if(carrito[i].cant<=0)carrito.splice(i,1);vRenderCarrito();vCalcTotal();vBorradorProgramar();
 }
 function esPagado(valor){
-  return String(valor||'').toLowerCase().includes('pagado');
+  return /^pagad[oa]$/i.test(String(valor||'').trim());
 }
 function esContraEntrega(valor){
   return String(valor||'').toLowerCase().includes('contra');
@@ -3943,9 +3945,12 @@ function pedidoItemsConStock(items){
       ...(combo?{componentes:combo.componentes.map(c=>({codigo:c.codigo,cantidad:Number(c.cantidad)||0}))}:{})};
   });
 }
+let vGuardando=false;
 async function vGuardar(confirmado=false){
+  if(vGuardando)return;
   vLimpiarErrores();
   if(!carrito.length){vMarcarError('vProdSearch','Agregá al menos un producto antes de guardar la venta.');return;}
+  vGuardando=true;
   const btn=gs('vGuardarBtn');
   const btnTxt=btn?btn.textContent:'Guardar Venta';
   if(btn){btn.disabled=true;btn.textContent='Guardando...';}
@@ -3971,19 +3976,19 @@ async function vGuardar(confirmado=false){
   const row={fecha:fechaStr,mes,cliente:gs('vCliente').value,contacto:gs('vTel').value,ruc:gs('vRuc').value,
     detalle:carrito.map(p=>p.nombre+' x'+p.cant).join(', '),ciudad,tipo_envio:gs('vTipoEnvio').value,
     costo_delivery:costoDeliveryNeto,total_productos:totalProds,descuento,
-    pedido_items:carrito.map(p=>({nombre:p.nombre,codigo:p.codigo,cant:p.cant,precio:p.precio,costo:allProductos.find(x=>String(x.codigo)===String(p.codigo))?.costo??null})),
     ubicacion:gs('vUbicacion').value,direccion_referencia:gs('vReferencia')?.value||'',dia_entrega:gs('vDiaEntrega').value||null,
     metodo_pago:abono2>0?gs('vMetodo').value+' + '+gs('vMetodo2').value:gs('vMetodo').value,tipo_pago:gs('vTipoPago')?.value||(listaGet('tipos_pago').includes('A confirmar')?'A confirmar':''),estado_pago:estadoPago,estado_entrega:listaGet('estados_entrega').includes('Pendiente')?'Pendiente':(listaGet('estados_entrega')[0]||'Pendiente'),estado_pedido:'Nuevo',
     monto_pagado:montoTotal,saldo_pendiente:Math.max(0,totalVentaForm-montoTotal),abonos,comprobante:gs('vComprobante')?.value||'',preparacion_estado:'Nuevo',
     delivery_persona:gs('vDelivery').value,observaciones:gs('vObs').value,creado_por:sesion?.user?.id||null,actualizado_por:sesion?.user?.id||null,historial:[{fecha:ahora,accion:'Venta creada',usuario:actor}],
     pedido_items:pedidoItemsConStock(carrito)};
   if(!row.fecha){vMarcarError('vFecha','Elegí la fecha de compra.');return;}
+  row.cliente=row.cliente.trim();
   if(!row.cliente){vMarcarError('vCliente','Escribí el nombre del cliente.');return;}
   const errores=[];
   const telLimpio=String(row.contacto||'').replace(/\D/g,'');
   if(telLimpio&&!(/^0?9\d{8}$/.test(telLimpio)||/^595\d{9}$/.test(telLimpio)))errores.push('teléfono válido o dejarlo vacío');
   if(String(row.ubicacion||'').trim()){try{const u=new URL(row.ubicacion);if(!/^https?:$/.test(u.protocol))throw new Error();}catch(e){errores.push('un enlace de ubicación válido o dejarlo vacío');}}
-  if(montoTotal>0&&!gs('vMetodo').value)errores.push('método del primer pago');
+  if(abono1>0&&!gs('vMetodo').value)errores.push('método del primer pago');
   if(abono2>0&&!gs('vMetodo2').value)errores.push('método del segundo pago');
   if(montoTotal>totalVentaForm)errores.push('un monto abonado que no supere el total');
   if(errores.length){const id=telLimpio&&!(/^0?9\d{8}$/.test(telLimpio)||/^595\d{9}$/.test(telLimpio))?'vTel':montoTotal>totalVentaForm?'vMontoPagado':String(row.ubicacion||'').trim()?'vUbicacion':'vMetodo';vMarcarError(id,'Falta corregir: '+errores.join(' · ')+'.');return;}
@@ -4010,22 +4015,24 @@ async function vGuardar(confirmado=false){
       await ajustarStockProducto(codigo,-cant,'venta');
       stockDescontado.push({codigo,cant});
     }
-    if(stockDescontado.length){
-      const movsVenta=stockDescontado.map(({codigo,cant})=>({fecha:fechaStr,codigo_producto:codigo,tipo:'venta',cantidad:-cant,costo_unitario:0,proveedor:'',observaciones:'Venta a '+(gs('vCliente').value||'cliente')}));
-      SB.from('movimientos').insert(movsVenta).then(({error})=>{if(error)console.warn('No se pudo registrar movimiento de venta',error);}).catch(()=>{});
-    }
   }catch(e){
-    showAlert('vMsg','No se pudo descontar stock, la venta no se guardó: '+(e?.message||e),'err');
+    const pendientes=await vRevertirStock(stockDescontado);
+    showAlert('vMsg','No se pudo descontar stock, la venta no se guardó: '+(e?.message||e)+(pendientes.length?' Revisá el stock de: '+pendientes.join(', ')+'.':''),'err');
     return;
   }
-  const {data:ventaCreada,error}=await SB.from('ventas').insert([row]).select().single();
+  let ventaCreada,error;
+  try{({data:ventaCreada,error}=await SB.from('ventas').insert([row]).select().single());}
+  catch(e){error=e;}
   if(error){
-    for(const item of stockDescontado){
-      await ajustarStockProducto(item.codigo,item.cant,'devolver por venta fallida').catch(()=>{});
-    }
+    const pendientes=await vRevertirStock(stockDescontado);
     await refrescarInventarioYVistas();
-    showAlert('vMsg','No se pudo guardar la venta: '+error.message,'err');
+    showAlert('vMsg','No se pudo guardar la venta: '+error.message+(pendientes.length?' Revisá el stock de: '+pendientes.join(', ')+'.':''),'err');
     return;
+  }
+  if(stockDescontado.length){
+    const movsVenta=stockDescontado.map(({codigo,cant})=>({fecha:fechaStr,codigo_producto:codigo,tipo:'venta',cantidad:-cant,costo_unitario:0,proveedor:'',observaciones:'Venta a '+row.cliente}));
+    try{const {error:movError}=await SB.from('movimientos').insert(movsVenta);if(movError)throw movError;}
+    catch(e){toast('Venta guardada; no se pudo registrar el movimiento de stock. Revisá Movimientos.');console.warn(e);}
   }
   await refrescarInventarioYVistas();
   vUltimaVentaGuardada=ventaCreada||row;
@@ -4036,8 +4043,14 @@ async function vGuardar(confirmado=false){
   }catch(e){
     showAlert('vMsg','No se pudo guardar la venta: '+(e?.message||e),'err');
   }finally{
+    vGuardando=false;
     if(btn){btn.disabled=false;btn.textContent=btnTxt;}
   }
+}
+async function vRevertirStock(items){
+  const pendientes=[];
+  for(const item of items){try{await ajustarStockProducto(item.codigo,item.cant,'devolver por venta fallida');}catch(e){pendientes.push(item.codigo);}}
+  return pendientes;
 }
 function vLimpiar(){
   carrito=[];
@@ -6918,7 +6931,12 @@ function crearClienteLocal(){
   }
   class LocalQuery{
     constructor(table,action='select',payload=null){this.table=table;this.action=action;this.payload=payload;this.filters=[];this.orderBy=null;}
-    select(){this.action='select';return this;}
+    select(){return this;}
+    limit(n){this.maxRows=n;return this;}
+    single(){this.singleRow=true;return this;}
+    maybeSingle(){this.singleRow=true;return this;}
+    gte(field,value){this.filters.push({field,value,op:'gte'});return this;}
+    in(field,value){this.filters.push({field,value,op:'in'});return this;}
     insert(rows){this.action='insert';this.payload=rows;return this;}
     update(row){this.action='update';this.payload=row;return this;}
     delete(){this.action='delete';return this;}
@@ -6927,7 +6945,7 @@ function crearClienteLocal(){
     order(field,{ascending=true}={}){this.orderBy={field,ascending};return this;}
     then(resolve,reject){return this.exec().then(resolve,reject);}
     catch(reject){return this.exec().catch(reject);}
-    matches(row){return this.filters.every(f=>String(row[f.field])===String(f.value));}
+    matches(row){return this.filters.every(f=>f.op==='gte'?row[f.field]>=f.value:f.op==='in'?f.value.includes(row[f.field]):String(row[f.field])===String(f.value));}
     async exec(){
       const db=read();db[this.table]=db[this.table]||[];
       let data=null;
@@ -6954,6 +6972,8 @@ function crearClienteLocal(){
         });
         write(db);
       }
+      if(this.maxRows!=null&&Array.isArray(data))data=data.slice(0,this.maxRows);
+      if(this.singleRow)data=data?.[0]||null;
       return {data,error:null};
     }
   }
@@ -8128,6 +8148,7 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   await cargarCiudades().catch(()=>{});
   await cargarConfiguracion().catch(()=>{});
   initUI();
+  dashCargar();
 });
 </script>
 <style>
@@ -9255,7 +9276,7 @@ html.dark #pv-ventasmes .vm-sale-body{background:#111113!important}
 <script src="ventas-mes-refresh.js?v=20260914-8"></script>
 <link rel="stylesheet" href="nuevo-producto-refresh.css?v=20260913-5">
 <script src="nuevo-producto-refresh.js?v=20260913-5"></script>
-<link rel="stylesheet" href="barra-flotante.css?v=20260914-7">
+<link rel="stylesheet" href="barra-flotante.css?v=20260915-1">
 <link rel="stylesheet" href="registro-ventas-refresh.css?v=20260914-2">
 <link rel="stylesheet" href="delivery-refresh.css?v=20260914-2">
 <script src="delivery-refresh.js?v=20260914-1"></script>
