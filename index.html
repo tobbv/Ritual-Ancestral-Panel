@@ -3945,6 +3945,19 @@ function pedidoItemsConStock(items){
       ...(combo?{componentes:combo.componentes.map(c=>({codigo:c.codigo,cantidad:Number(c.cantidad)||0}))}:{})};
   });
 }
+function stockRequeridoPorCodigo(items){
+  const combos=typeof raCombos==='function'?raCombos():[];
+  return (items||[]).filter(item=>item.codigo!==REGALO_CODIGO).reduce((map,item)=>{
+    const cant=Number(item.cant)||0;
+    const combo=combos.find(c=>String(c.codigo)===String(item.codigo));
+    if(combo){
+      (combo.componentes||[]).forEach(c=>{const codigo=String(c.codigo||'');map[codigo]=(map[codigo]||0)+cant*(Number(c.cantidad)||0);});
+    }else{
+      const codigo=String(item.codigo||'');map[codigo]=(map[codigo]||0)+cant;
+    }
+    return map;
+  },{});
+}
 let vGuardando=false;
 async function vGuardar(confirmado=false){
   if(vGuardando)return;
@@ -3995,16 +4008,13 @@ async function vGuardar(confirmado=false){
   if(!confirmado){if(!await vConfirmarPosibleDuplicado(row))return;vMostrarResumenVenta(row,subtotalBruto);return;}
   const stockActualPorCodigo={};
   const carritoProductos=carrito.filter(item=>item.codigo!==REGALO_CODIGO);
-  for(const item of carritoProductos){
+  const pedidoPorCodigo=stockRequeridoPorCodigo(carritoProductos);
+  for(const codigo of Object.keys(pedidoPorCodigo)){
     let prod=null;
-    try{prod=await productoFreshPorCodigo(item.codigo);}catch(e){showAlert('vMsg','No pude verificar stock: '+(e?.message||e),'err');return;}
-    if(!prod){showAlert('vMsg','El producto '+item.nombre+' ya no existe en inventario.','err');btn.disabled=false;return;}
-    stockActualPorCodigo[item.codigo]=parseFloat(prod.stock_actual)||0;
+    try{prod=await productoFreshPorCodigo(codigo);}catch(e){showAlert('vMsg','No pude verificar stock: '+(e?.message||e),'err');return;}
+    if(!prod){showAlert('vMsg','El producto '+codigo+' ya no existe en inventario.','err');return;}
+    stockActualPorCodigo[codigo]=parseFloat(prod.stock_actual)||0;
   }
-  const pedidoPorCodigo=carritoProductos.reduce((map,item)=>{
-    map[item.codigo]=(map[item.codigo]||0)+(parseFloat(item.cant)||0);
-    return map;
-  },{});
   for(const [codigo,cant] of Object.entries(pedidoPorCodigo)){
     const prod=allProductos.find(p=>String(p.codigo)===String(codigo))||{nombre:codigo};
     if((stockActualPorCodigo[codigo]||0)<cant){showAlert('vMsg','No hay stock suficiente de '+prod.nombre+'. Disponible: '+(stockActualPorCodigo[codigo]||0)+'.','err');return;}
