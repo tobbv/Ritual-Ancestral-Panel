@@ -1,0 +1,23 @@
+/* Entrada al panel: usa la misma paleta, superficies y tipografía que el shell. */
+#setupScreen:not(.hidden){gap:0;padding:clamp(14px,3vw,40px);background:#f3f2ef;color:var(--brand-strong);font-family:var(--ui-font,'Poppins',sans-serif)}
+#setupScreen .login-intro,#setupScreen .setup-box{min-height:min(630px,calc(100dvh - 80px))}
+#setupScreen .login-intro{display:flex;flex:0 1 480px;flex-direction:column;justify-content:space-between;padding:clamp(30px,4vw,58px);border-radius:30px 0 0 30px;background:var(--brand-strong);color:#fff}
+.login-intro-mark{font-size:15px;font-weight:700;letter-spacing:-.02em}
+.login-intro-eyebrow{font-size:12px;font-weight:600;color:#dbe9bd}
+.login-intro h2{max-width:330px;margin:14px 0 12px;font-size:clamp(30px,3.2vw,46px);line-height:1.12;letter-spacing:-.05em}
+.login-intro p{max-width:300px;margin:0;color:#e0e9d2;font-size:14px;line-height:1.6}
+.login-intro-foot{color:#cedabc;font-size:11px}
+#setupScreen .setup-box{display:flex;flex:0 1 480px;flex-direction:column;justify-content:center;max-width:480px;margin:0;padding:clamp(28px,4vw,58px);border-radius:0 30px 30px 0;background:var(--ui-surface,#fff);box-shadow:0 22px 65px #20281413;text-align:left}
+#setupScreen .setup-box>img{width:62px;height:62px;object-fit:contain;margin:0 0 25px;border-radius:15px}
+#setupScreen .setup-box h1{margin:0 0 6px!important;color:var(--brand-strong);font-size:28px;line-height:1.2}
+#setupScreen .setup-box p{margin:0 0 27px!important;color:#656b62;font-size:13px;line-height:1.5}
+#setupScreen .setup-field label{color:var(--brand-strong);font-size:12px}
+#setupScreen .setup-field input{width:100%;height:48px;background:#f3f2ef!important;color:var(--brand-strong)!important;border:1px solid transparent!important;border-radius:14px!important}
+#setupScreen .setup-field input:focus{background:#fff!important;border-color:var(--brand)!important;box-shadow:0 0 0 4px color-mix(in srgb,var(--brand) 18%,transparent)!important}
+#setupScreen .login-check{align-items:flex-start;margin:4px 0 14px!important;color:#535b50;font-size:12px;line-height:1.45}
+#setupScreen .login-check input{flex:none;margin-top:1px;accent-color:var(--brand)}
+#setupScreen .btn.btn-p{min-height:48px;border-radius:999px!important;background:var(--brand)!important;color:var(--brand-on-color,#fff)!important;box-shadow:none!important}
+#setupScreen .btn.btn-p:hover{background:var(--brand-hover,var(--brand-strong))!important}
+#setupScreen .btn.btn-p:focus-visible{outline:3px solid var(--brand-strong);outline-offset:3px}
+@media(max-width:760px){#setupScreen:not(.hidden){align-items:center;padding:18px;overflow-y:auto}#setupScreen .login-intro{display:none}#setupScreen .setup-box{flex:0 1 460px;min-height:0;padding:34px 28px;border-radius:26px}}
+@media(max-width:390px){#setupScreen:not(.hidden){padding:12px}#setupScreen .setup-box{padding:27px 21px}#setupScreen .setup-box h1{font-size:24px}}

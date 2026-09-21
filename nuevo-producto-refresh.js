@@ -4,6 +4,7 @@
   const svg = (name, color = 'currentColor') => {
     const paths = {
       cube: '<path d="m12 2 9 5-9 5-9-5 9-5Zm-9 5v10l9 5 9-5V7M12 12v10"/>',
+      product: '<path d="M7 9c-1.3 2.2-1.8 4.8-1.2 7.2C6.6 19.3 8.7 21 12 21s5.4-1.7 6.2-4.8c.6-2.4.1-5-1.2-7.2"/><path d="M7 9c2.5 1.3 7.5 1.3 10 0M8 12c2 1 6 1 8 0"/><path d="m11 10-4-8-2-1"/>',
       tag: '<path d="M3 4h9l9 9-8 8-10-10V4Z"/><circle cx="8" cy="8" r="1"/>',
       chart: '<path d="M4 20V11m5 9V5m5 15v-8m5 8V3"/>',
       calculator: '<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M8 6h8M8 10h2m4 0h2M8 14h2m4 0h2M8 18h2m4 0h2"/>',
@@ -58,7 +59,7 @@
     intro.innerHTML = '<h2>Nuevo Producto</h2><p>Registra un nuevo producto en tu catálogo.</p>';
     const general = document.createElement('section');
     general.className = 'p-refresh-section p-refresh-general';
-    general.innerHTML = '<div class="p-refresh-section-head"><span class="p-refresh-symbol green">' + svg('cube') + '</span><div><h3>Registrar Producto</h3><p>Información general del producto en tu catálogo.</p></div><div class="p-refresh-header-actions"></div></div><div class="p-refresh-general-grid"></div>';
+    general.innerHTML = '<div class="p-refresh-section-head"><span class="p-refresh-symbol green">' + svg('product') + '</span><div><h3>Registrar Producto</h3><p>Información general del producto en tu catálogo.</p></div><div class="p-refresh-header-actions"></div></div><div class="p-refresh-general-grid"></div>';
     const calcButton = document.createElement('button');
     calcButton.type = 'button';
     calcButton.id = 'pRefreshCalcButton';
@@ -92,7 +93,7 @@
     if (variantTitle && variantButton) {
       const variantHead = document.createElement('div');
       variantHead.className = 'p-refresh-section-head';
-      variantHead.innerHTML = '<span class="p-refresh-symbol purple">' + svg('cube') + '</span>';
+      variantHead.innerHTML = '<span class="p-refresh-symbol purple">' + svg('layers') + '</span>';
       variantHead.append(variantTitle, variantButton);
       variants.prepend(variantHead);
     }
@@ -102,7 +103,7 @@
     empty.innerHTML = svg('cube') + '<strong>Sin variantes configuradas</strong><span>Agregá una o más variantes si tu producto tiene opciones como colores o tamaños.</span>';
     variantsList.after(empty);
     actions?.classList.add('p-refresh-save-actions');
-    root.replaceChildren(intro, general, inventory, variants);
+    root.replaceChildren(general, inventory, variants);
     if (preview) root.append(preview);
     if (actions) root.append(actions);
     if (message) root.append(message);
@@ -138,8 +139,8 @@
     $('pRefreshCalcDifference').textContent = current ? format(suggested - current) : '—';
     const breakdown = $('pRefreshCalcBreakdown');
     const parts = [money('raFcProd'),money('raFcEmp'),money('raFcAds'),money('raFcDel'),money('raFcImp'),money('raFcOtros')];
-    breakdown.innerHTML = parts.map((amount,index) => '<span style="width:' + (total ? amount / total * 100 : 0) + '%;background:' + ['#337de8','#9b71db','#eea765','#59ae86','#ee8f91','#aeb9cc'][index] + '"></span>').join('');
-    $('pRefreshCalcLegend').innerHTML = ['Producto','Empaque','Publicidad','Delivery','IVA','Otros'].map((label,index) => '<div><i style="background:' + ['#337de8','#9b71db','#eea765','#59ae86','#ee8f91','#aeb9cc'][index] + '"></i><span>' + label + '</span><strong>' + (total ? (parts[index] / total * 100).toFixed(1) : '0') + '%</strong></div>').join('');
+    breakdown.innerHTML = parts.map((amount,index) => '<span style="width:' + (total ? amount / total * 100 : 0) + '%;background:' + ['var(--brand)','#9b71db','#eea765','#59ae86','#ee8f91','#aeb9cc'][index] + '"></span>').join('');
+    $('pRefreshCalcLegend').innerHTML = ['Producto','Empaque','Publicidad','Delivery','IVA','Otros'].map((label,index) => '<div><i style="background:' + ['var(--brand)','#9b71db','#eea765','#59ae86','#ee8f91','#aeb9cc'][index] + '"></i><span>' + label + '</span><strong>' + (total ? (parts[index] / total * 100).toFixed(1) : '0') + '%</strong></div>').join('');
   }
 
   function openCalculator(open) {

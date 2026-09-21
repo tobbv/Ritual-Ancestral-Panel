@@ -42,12 +42,12 @@
 /* Ruta y rendición a la misma altura visual. */
 #pv-delivery .delivery-route,#pv-delivery .delivery-settlement{position:relative;min-height:194px!important}
 #pv-delivery .card-hdr{display:flex;align-items:center;justify-content:flex-start!important;gap:9px;min-height:34px;padding-bottom:11px;margin-bottom:10px;border-bottom:1px solid #e6ebf3;color:#26334b;font-size:12.5px;font-weight:750}
-#pv-delivery .card-hdr .ui-icon{color:#3c587c}
+#pv-delivery .card-hdr .ui-icon{color:var(--brand-strong)}
 #pv-delivery .delivery-settlement .card-hdr .btn{margin-left:auto;min-height:30px!important;padding:5px 12px!important;font-size:10px}
 #pv-delivery .delivery-route-controls{position:static;display:flex;gap:5px;margin-left:auto;flex:0 0 auto}
 #pv-delivery .delivery-route-controls .btn{min-height:30px!important;padding:5px 10px!important;font-size:10px;border-radius:9px!important}
 #pv-delivery .delivery-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;min-height:99px;text-align:center;color:#64738b;font-size:11px;line-height:1.45}
-#pv-delivery .delivery-empty .ui-icon{width:32px;height:32px;padding:9px;border-radius:50%;box-sizing:content-box;background:#f3f6fb;color:#667997}
+#pv-delivery .delivery-empty .ui-icon{width:32px;height:32px;padding:9px;border-radius:50%;box-sizing:content-box;background:var(--brand-subtle);color:var(--brand-strong)}
 #pv-delivery .delivery-empty small{font-size:10px;color:#75839a}
 #pv-delivery #dRutaDelDia .cfg-item{background:#f8faff!important;border-color:#e6ecf5!important;border-radius:11px!important;padding:9px 11px!important}
 #pv-delivery #rendicionContainer .rend-card{background:#f8faff!important;border:1px solid #e6ecf5!important;border-radius:13px!important;padding:12px!important}
@@ -55,7 +55,7 @@
 /* Listado: grupo, importes y estados editables. */
 #pv-delivery .delivery-orders{padding:16px 17px 18px!important}
 #pv-delivery .delivery-list-header{display:flex;align-items:center;gap:9px;margin:0 0 13px;color:#26334b}
-#pv-delivery .delivery-list-header .ui-icon{color:#3c587c}
+#pv-delivery .delivery-list-header .ui-icon{color:var(--brand-strong)}
 #pv-delivery .delivery-list-header h3{margin:0;font-size:12.5px;font-weight:750}
 #pv-delivery .delivery-orders table{width:100%;min-width:740px;border-collapse:separate;border-spacing:0;border:1px solid #e3eaf4;border-radius:14px;overflow:hidden}
 #pv-delivery .delivery-orders thead{background:#f8faff}
@@ -103,3 +103,60 @@ html.dark #pv-delivery .delivery-orders thead,html.dark #pv-delivery .delivery-o
  #pv-delivery .delivery-route-controls .btn{flex:1}
  #pv-delivery .card{padding:14px!important}
 }
+
+/* Delivery · lenguaje visual común del panel. */
+#pv-delivery.delivery-layout-ready.active{padding-bottom:24px;background:transparent!important}
+#pv-delivery .card,#pv-delivery .tw,#pv-delivery .delivery-kpis .stat{border:0!important;background:var(--ui-surface)!important;box-shadow:var(--ui-shadow)!important}
+#pv-delivery #deliveryPortalCard{border-radius:25px!important;background:#faf9f7!important}
+#pv-delivery .delivery-portal-icon{width:58px;height:58px;border-radius:18px;background:var(--brand-soft)!important;color:var(--brand-strong)!important}
+#pv-delivery .delivery-portal-icon .ui-icon{width:32px;height:32px;stroke-width:1.65}
+#pv-delivery .delivery-portal-copy h2,#pv-delivery .card-hdr,#pv-delivery .delivery-list-header{color:var(--brand-strong)!important}
+#pv-delivery .delivery-portal-copy p{color:#686e66!important}
+#pv-delivery .delivery-portal-box{padding:12px;border-radius:18px;background:var(--ui-surface);box-shadow:var(--ui-shadow-soft)}
+#pv-delivery .delivery-portal-box label{color:#5f625d!important}
+#pv-delivery .delivery-portal-box select{min-height:42px!important;border:0!important;border-radius:15px!important;background:var(--ui-field)!important;color:var(--ui-ink)!important;box-shadow:none!important}
+#pv-delivery .delivery-portal-box select:focus{outline:0!important;background:var(--ui-surface)!important;box-shadow:0 0 0 4px var(--brand-soft),inset 0 0 0 1.5px var(--brand)!important}
+#pv-delivery .delivery-portal-box .btn{min-height:42px!important;border:0!important;border-radius:999px!important;background:var(--brand)!important;color:var(--brand-on-color)!important}
+#pv-delivery .delivery-link-result{border:0!important;border-radius:18px!important;background:var(--ui-surface)!important;box-shadow:var(--ui-shadow-soft)!important}
+#pv-delivery .delivery-link-url{border-radius:14px!important;background:var(--ui-field)!important;color:var(--brand-strong)!important}
+#pv-delivery .delivery-kpis{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:0!important;padding:12px 10px!important;border-radius:25px;background:var(--ui-surface)!important;box-shadow:var(--ui-shadow)!important}
+#pv-delivery .delivery-kpis .stat{position:relative;display:grid!important;grid-template-columns:46px minmax(0,1fr)!important;align-items:center!important;gap:12px!important;min-height:72px;padding:8px 16px!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;overflow:visible!important}
+#pv-delivery .delivery-kpis .stat:not(:last-child)::after{content:""!important;position:absolute;display:block!important;top:4px;right:0;bottom:4px;width:1px;background:#e5e4e0}
+#pv-delivery .delivery-kpis .stat>div{display:flex;min-width:0;flex-direction:column}
+#pv-delivery .delivery-stat-icon{width:46px;height:46px;flex-basis:46px;border-radius:15px;background:var(--brand)!important;color:var(--brand-on-color)!important}
+#pv-delivery .delivery-stat-red{background:color-mix(in srgb,var(--err) 13%,white)!important;color:var(--err)!important}
+#pv-delivery .delivery-stat-green{background:color-mix(in srgb,var(--ok) 13%,white)!important;color:var(--ok)!important}
+#pv-delivery .delivery-stat-orange{background:color-mix(in srgb,var(--warn) 13%,white)!important;color:var(--warn)!important}
+#pv-delivery .delivery-kpis .stat-v{order:2;color:var(--brand-strong)!important;font-size:20px!important;line-height:1.15!important}
+#pv-delivery .delivery-kpis .stat-l{order:1;margin:0 0 4px!important;color:#797d76!important;font-size:10px!important;font-weight:500!important}
+#pv-delivery .delivery-route,#pv-delivery .delivery-settlement,#pv-delivery .delivery-orders{border-radius:25px!important}
+#pv-delivery .card-hdr{border-bottom-color:#e6e5e1!important}
+#pv-delivery .delivery-route-controls .btn,#pv-delivery .delivery-settlement .btn{border:0!important;border-radius:999px!important;background:var(--brand-soft)!important;color:var(--brand-strong)!important}
+#pv-delivery .delivery-route-controls .btn.btn-p{background:var(--brand)!important;color:var(--brand-on-color)!important}
+#pv-delivery .delivery-empty{margin-top:4px;padding:18px;border-radius:18px;background:#faf9f7;color:#666c64!important}
+#pv-delivery .delivery-empty .ui-icon{border-radius:15px;background:var(--brand-soft)!important;color:var(--brand-strong)!important}
+#pv-delivery #dRutaDelDia .cfg-item,#pv-delivery #rendicionContainer .rend-card{border:0!important;background:#faf9f7!important;box-shadow:inset 0 0 0 1px #e8e6e1!important}
+#pv-delivery .delivery-orders{background:#faf9f7!important}
+#pv-delivery .delivery-orders table{border:0!important;background:var(--ui-surface)!important;box-shadow:inset 0 0 0 1px #e8e6e1!important}
+#pv-delivery .delivery-orders thead{background:#f0efec!important}
+#pv-delivery .delivery-orders th{border-bottom-color:#e5e3de!important;color:#5e645c!important}
+#pv-delivery .delivery-orders tbody td{border-bottom-color:#efede9!important}
+#pv-delivery .delivery-orders .group-row{background:#f5f4f1!important}
+#pv-delivery .delivery-status-control.status-entregado,#pv-delivery .delivery-status-control.status-pagado{background:color-mix(in srgb,var(--ok) 13%,white)!important;color:var(--ok)!important}
+#pv-delivery .delivery-status-control.status-cancelado{background:color-mix(in srgb,var(--err) 13%,white)!important;color:var(--err)!important}
+#pv-delivery .delivery-status-control.status-pendiente{background:color-mix(in srgb,var(--warn) 13%,white)!important;color:var(--warn)!important}
+@media(max-width:1250px){#pv-delivery .delivery-kpis{grid-template-columns:repeat(3,minmax(0,1fr))!important}#pv-delivery .delivery-kpis .stat:nth-child(3)::after{display:none!important}#pv-delivery .delivery-kpis .stat:nth-child(n+4){border-top:1px solid #e5e4e0}}
+@media(max-width:700px){#pv-delivery .delivery-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}#pv-delivery .delivery-kpis .stat:nth-child(3)::after{display:block!important}#pv-delivery .delivery-kpis .stat:nth-child(even)::after{display:none!important}#pv-delivery .delivery-kpis .stat:nth-child(n+3){border-top:1px solid #e5e4e0}}
+
+/* Misma barra de métricas del Dashboard, incluso después de reorganizar el DOM. */
+#pv-delivery :is(.delivery-kpis,.refresh-delivery-stats,.stats){display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:0!important;padding:12px 10px!important;border-radius:25px!important;background:var(--ui-surface)!important;box-shadow:var(--ui-shadow)!important}
+#pv-delivery :is(.delivery-kpis,.refresh-delivery-stats,.stats) .stat{position:relative!important;display:grid!important;grid-template-columns:42px minmax(0,1fr)!important;align-items:center!important;gap:12px!important;min-height:80px!important;padding:8px 16px!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;overflow:visible!important}
+#pv-delivery :is(.delivery-kpis,.refresh-delivery-stats,.stats) .stat:not(:last-child)::after{content:""!important;position:absolute!important;display:block!important;top:4px!important;right:0!important;bottom:4px!important;width:1px!important;background:#e5e4e0!important}
+#pv-delivery :is(.delivery-kpis,.refresh-delivery-stats,.stats) .stat>div{display:flex!important;min-width:0!important;flex-direction:column!important;justify-content:center!important}
+#pv-delivery :is(.delivery-kpis,.refresh-delivery-stats,.stats) .delivery-stat-icon{grid-row:1!important;width:42px!important;height:42px!important;flex-basis:42px!important;border-radius:15px!important}
+#pv-delivery :is(.delivery-kpis,.refresh-delivery-stats,.stats) .stat-l{order:1!important;margin:0 0 3px!important;color:#797d76!important;font-size:10px!important;font-weight:500!important;white-space:normal!important}
+#pv-delivery :is(.delivery-kpis,.refresh-delivery-stats,.stats) .stat-v{order:2!important;margin:0!important;color:var(--brand-strong)!important;font-size:20px!important;line-height:1.1!important;white-space:nowrap!important}
+#pv-delivery .delivery-stat-note{order:3;display:block;margin-top:5px;color:#8b8e88;font-size:8.5px;line-height:1.2;white-space:normal}
+@media(max-width:1250px){#pv-delivery :is(.delivery-kpis,.refresh-delivery-stats,.stats){grid-template-columns:repeat(3,minmax(0,1fr))!important}#pv-delivery :is(.delivery-kpis,.refresh-delivery-stats,.stats) .stat:nth-child(3)::after{display:none!important}#pv-delivery :is(.delivery-kpis,.refresh-delivery-stats,.stats) .stat:nth-child(n+4){border-top:1px solid #e5e4e0!important}}
+@media(max-width:700px){#pv-delivery :is(.delivery-kpis,.refresh-delivery-stats,.stats){grid-template-columns:repeat(2,minmax(0,1fr))!important}#pv-delivery :is(.delivery-kpis,.refresh-delivery-stats,.stats) .stat:nth-child(3)::after{display:block!important}#pv-delivery :is(.delivery-kpis,.refresh-delivery-stats,.stats) .stat:nth-child(even)::after{display:none!important}#pv-delivery :is(.delivery-kpis,.refresh-delivery-stats,.stats) .stat:nth-child(n+3){border-top:1px solid #e5e4e0!important}}
+@media(max-width:480px){#pv-delivery :is(.delivery-kpis,.refresh-delivery-stats,.stats){grid-template-columns:1fr!important}#pv-delivery :is(.delivery-kpis,.refresh-delivery-stats,.stats) .stat{min-width:0!important;padding-inline:12px!important}#pv-delivery :is(.delivery-kpis,.refresh-delivery-stats,.stats) .stat:not(:first-child){border-top:1px solid #e5e4e0!important}#pv-delivery :is(.delivery-kpis,.refresh-delivery-stats,.stats) .stat::after{display:none!important}}

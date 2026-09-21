@@ -1,0 +1,67 @@
+/* Ritual UI V2 · neutral tokens. Brand values are supplied by brand-config.js. */
+:root {
+  --ui-font:'Poppins',sans-serif;
+  --ui-canvas:#deddda;
+  --ui-surface:#ffffff;
+  --ui-subtle:#f2f1ef;
+  --ui-field:#f3f2ef;
+  --ui-hover:#ebeae7;
+  --ui-ink:#262726;
+  --ui-muted:#70726d;
+  --ui-line:#e7e6e2;
+  --ui-line-strong:#d9d8d3;
+  --ui-success:#397448;
+  --ui-success-soft:#eaf5e8;
+  --ui-warning:#c86708;
+  --ui-warning-soft:#fbf3de;
+  --ui-danger:#aa5048;
+  --ui-danger-soft:#fbece8;
+  --ui-info:#397b3f;
+  --ui-info-soft:#e4f3df;
+  --ui-radius-sm:11px;
+  --ui-radius:16px;
+  --ui-radius-lg:22px;
+  --ui-shadow:0 2px 3px #282a2714,0 10px 24px #282a270d;
+  --ui-space-1:4px;
+  --ui-space-2:8px;
+  --ui-space-3:12px;
+  --ui-space-4:16px;
+  --ui-space-5:24px;
+  --ui-space-6:32px;
+  --ui-control:32px;
+  --ui-row:52px;
+  --brand:#79d66b;
+  --brand-hover:#69c85c;
+  --brand-strong:#2d4f28;
+  --brand-soft:#e4f5e1;
+  --brand-subtle:#f2faf0;
+  --brand-border:#b0dda9;
+  --brand-on-color:#1f3420;
+  --brand-primary:var(--brand);
+  --brand-primary-hover:var(--brand-hover);
+  --brand-primary-soft:var(--brand-soft);
+  --brand-on-primary:var(--brand-on-color);
+}
+html.dark {
+  --ui-canvas:#151915;--ui-surface:#222722;--ui-subtle:#2b312b;--ui-hover:#343b34;
+  --ui-field:#303630;
+  --ui-ink:#f0f3ed;--ui-muted:#abb4a8;--ui-line:#363e36;--ui-line-strong:#4a5549;
+  --ui-success:#a0c994;--ui-success-soft:#293d2d;--ui-warning:#e2c17b;--ui-warning-soft:#3d3526;
+  --ui-danger:#e6a19a;--ui-danger-soft:#412e2c;--ui-info:#a8d79d;--ui-info-soft:#293d2c;
+  --ui-shadow:0 2px 4px #0004,0 12px 28px #0002;
+  --brand-primary-soft:color-mix(in srgb,var(--brand) 25%,var(--ui-surface));
+}
+html {height:100%;zoom:1;color-scheme:light}
+html.dark {color-scheme:dark}
+body {height:100%;margin:0;padding:0;overflow:hidden;background:var(--ui-canvas);color:var(--ui-ink);font-family:var(--ui-font);font-size:13px;line-height:1.5}
+.ui-v2,.ui-v2 *,.ui-v2 *::before,.ui-v2 *::after {box-sizing:border-box}
+.ui-v2 {font-family:var(--ui-font);font-size:13px;line-height:1.5;color:var(--ui-ink)}
+.ui-v2 :where(h1,h2,h3,h4,p,ul,ol,dl,dd,figure) {margin:0;padding:0}
+.ui-v2 :where(button,input,select,textarea) {font:inherit;color:inherit}
+.ui-v2 button {cursor:pointer}
+.ui-v2 :where(button,input,select,textarea,a,[tabindex]):focus-visible {outline:2px solid var(--brand-primary);outline-offset:3px}
+.ui-v2 [hidden] {display:none}
+.ui-v2 svg {width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
+.ui-v2 ::selection {background:var(--brand-primary-soft);color:var(--ui-ink)}
+body.modo-compacto {--ui-row:44px;--ui-control:30px}
+@media(prefers-reduced-motion:reduce) {.ui-v2 * {scroll-behavior:auto;transition:none;animation:none}}
