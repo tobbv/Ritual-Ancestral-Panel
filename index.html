@@ -23,7 +23,7 @@
 <link rel="stylesheet" href="components-v2.css?v=20260920-18">
 <link rel="stylesheet" href="shell-v2.css?v=20260921-2">
 <link rel="stylesheet" href="pages-v2.css?v=20260921-4">
-<link rel="stylesheet" href="login-refresh.css?v=20260922-1">
+<link rel="stylesheet" href="login-refresh.css?v=20260922-2">
 <script src="brand-config.js?v=20260922-1"></script>
 <script src="ui-v2.js?v=20260920-17"></script>
 </head>
@@ -2643,6 +2643,7 @@ function estadoClass(valor){
   if(v==='pendiente')return 'status-pendiente';
   if(v==='entregado')return 'status-entregado';
   if(v==='encamino')return 'status-camino';
+  if(v==='entregadoatransportadora')return 'status-camino';
   if(v==='cancelado')return 'status-cancelado';
   return '';
 }
@@ -2651,6 +2652,7 @@ function estadoSelectVenta(r,campo){
   const valor=campo==='estado_pago'?(r.estado_pago||'Pendiente'):(r.estado_entrega||'Pendiente');
   const key=campo==='estado_pago'?'estados_pago':'estados_entrega';
   const base=[...listaGet(key)];if(campo==='estado_pago'&&!base.includes('Parcial'))base.splice(1,0,'Parcial');
+  if(campo==='estado_entrega'&&!base.includes('Entregado a transportadora'))base.splice(Math.max(0,base.indexOf('En camino')),0,'Entregado a transportadora');
   const opciones=[valor,...base.filter(o=>o!==valor)];
   return `<select class="select-s status-select ${estadoClass(valor)}" data-prev="${esc(valor)}" onchange="actualizarEstadoVenta('${id}','${campo}',this.value,this)">${opciones.map(o=>`<option value="${esc(o)}" ${o===valor?'selected':''}>${esc(o)}</option>`).join('')}</select>`;
 }
@@ -2703,6 +2705,10 @@ async function actualizarCampoVenta(id,campo,valor,el){
   if(!permitidos.includes(campo))return;
   const item=ventasDelMes.find(v=>String(v.id)===String(id));
   const anterior=item ? item[campo] : undefined;
+  const etapaDespachada=['Entregado a transportadora','En camino','Entregado'];
+  if(campo==='preparacion_estado'&&item&&etapaDespachada.includes(item.estado_entrega)&&valor!=='Listo'){
+    alert('Un pedido despachado debe permanecer listo. Cambiá primero el estado de entrega.');if(el)el.value=anterior;return;
+  }
   let motivoCancelacion='';
   const cambiaCancelacion=campo==='estado_entrega'&&(String(valor).toLowerCase()==='cancelado'||String(anterior||'').toLowerCase()==='cancelado');
   if(cambiaCancelacion){
@@ -2722,6 +2728,7 @@ async function actualizarCampoVenta(id,campo,valor,el){
   }
   if(el)el.disabled=true;
   const update={[campo]:valor};
+  if(campo==='estado_entrega'&&etapaDespachada.includes(valor))update.preparacion_estado='Listo';
   if(campo==='fecha')update.mes=mesDesdeFecha(valor);
   if(['estado_pago','monto_pagado','total_productos','costo_delivery','tipo_pago'].includes(campo) && item){
     const temp={...item,[campo]:valor};
@@ -2740,6 +2747,7 @@ async function actualizarCampoVenta(id,campo,valor,el){
   }
   if(item){
     item[campo]=valor;
+    if(update.preparacion_estado)item.preparacion_estado='Listo';
     if(campo==='fecha')item.mes=update.mes;
     if(update.saldo_pendiente!=null)item.saldo_pendiente=update.saldo_pendiente;
     if(update.historial)item.historial=update.historial;
@@ -5632,11 +5640,14 @@ const LISTAS_CONFIG = {
   tipos_pago:      { label:'Tipos de Pago',       defaults:['Pago adelantado','Contra entrega','Seña + saldo','A confirmar'], targets:['vTipoPago','fpTipoPago'], filterTargets:['fpTipoPago'] },
   tipos_envio:     { label:'Tipos de Envío',      defaults:['Delivery','Sin Delivery','Transportadora','Retiro del Local'], targets:['vTipoEnvio','opVTipoEnvio'],          filterTargets:[] },
   estados_pago:    { label:'Estados de Pago',     defaults:['Pagado','Contra entrega','Pendiente','Falta transferir'],       targets:['vEstadoPago','fpEstPago','opVEstPago'], filterTargets:['fpEstPago'] },
-  estados_entrega: { label:'Estados de Entrega',  defaults:['Pendiente','En camino','Entregado','Cancelado'],               targets:['fpEstEntrega','opVEstEntrega'],        filterTargets:['fpEstEntrega'] },
+  estados_entrega: { label:'Estados de Entrega',  defaults:['Pendiente','Entregado a transportadora','En camino','Entregado','Cancelado'], targets:['fpEstEntrega','opVEstEntrega'], filterTargets:['fpEstEntrega'] },
 };
 
 function listaGet(key) {
-  try { return JSON.parse(localStorage.getItem('lista_'+key)) || LISTAS_CONFIG[key].defaults.slice(); }
+  try { const items=JSON.parse(localStorage.getItem('lista_'+key)) || LISTAS_CONFIG[key].defaults.slice();
+    if(key==='estados_entrega'&&!items.includes('Entregado a transportadora'))items.splice(Math.max(0,items.indexOf('En camino')),0,'Entregado a transportadora');
+    return items;
+  }
   catch(e) { return LISTAS_CONFIG[key].defaults.slice(); }
 }
 function listaSave(key, arr) { localStorage.setItem('lista_'+key, JSON.stringify(arr)); }
@@ -7203,9 +7214,9 @@ html.dark #pv-ventasmes .vm-sale-body{background:#111113!important}
  #pv-ventasmes .vm-sale-section{padding:14px!important}
 }
 </style>
-<link rel="stylesheet" href="pedidos.css?v=20260920-17">
-<script src="pedidos.js"></script>
-<script src="pedidos-panel.js"></script>
+<link rel="stylesheet" href="pedidos.css?v=20260922-1">
+<script src="pedidos.js?v=20260922-1"></script>
+<script src="pedidos-panel.js?v=20260922-1"></script>
 <link rel="stylesheet" href="ventas-mes-refresh.css?v=20260920-17">
 <script src="ventas-mes-refresh.js?v=20260914-8"></script>
 <link rel="stylesheet" href="nuevo-producto-refresh.css?v=20260921-1">

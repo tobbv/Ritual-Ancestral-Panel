@@ -22,7 +22,7 @@
   return u;
  }
  async function link(r){const u=publicBase();const {data,error}=await SB.rpc('pedido_crear_acceso',{p_venta_id:r.id});if(error||!data?.token)throw new Error('No se pudo generar el enlace privado. Revisá la sesión e intentá otra vez.');u.hash='token='+encodeURIComponent(data.token);return u.href;}
- function noticeText(r,url){const s=R.state(r),phrases={Recibido:'recibimos tu pedido',Preparando:'ya estamos preparando tu pedido',Listo:'tu pedido ya está listo','En camino':'tu pedido está en camino',Entregado:'tu pedido figura como entregado',Cancelado:'tu pedido fue cancelado'};return '¡Hola '+(r.cliente||'').split(' ')[0]+'! '+phrases[s]+' #'+R.code(r)+' de Ritual Ancestral.\nPodés ver el detalle y seguimiento acá:\n'+url;}
+ function noticeText(r,url){const s=R.state(r),phrases={Recibido:'recibimos tu pedido',Preparando:'ya estamos preparando tu pedido',Listo:'tu pedido ya está listo','Entregado a transportadora':'tu pedido fue entregado a la transportadora','En camino':'tu pedido está en camino',Entregado:'tu pedido figura como entregado',Cancelado:'tu pedido fue cancelado'};return '¡Hola '+(r.cliente||'').split(' ')[0]+'! '+phrases[s]+' #'+R.code(r)+' de Ritual Ancestral.\nPodés ver el detalle y seguimiento acá:\n'+url;}
  async function act(action,button){const r=current();if(!r)return;
   if(action==='print'){window.print();return;}
   if(action==='shipping'){
@@ -42,6 +42,14 @@
     if(error||updated?.preparacion_estado!==value)throw new Error('No se pudo confirmar el cambio. Cerrá y volvé a abrir la ficha.');
     if(activeId!==String(r.id))return;activeRow=updated;
     render(updated);message('Estado guardado. Podés avisar al cliente por WhatsApp.');return;
+   }
+   if(action==='save-delivery'){
+    const value=document.getElementById('rpDelivery').value;
+    await actualizarCampoVenta(r.id,'estado_entrega',value,button);
+    const {data:updated,error}=await SB.from('ventas').select('*').eq('id',r.id).single();
+    if(error||updated?.estado_entrega!==value)throw new Error('No se pudo confirmar la entrega. Cerrá y volvé a abrir la ficha.');
+    if(activeId!==String(r.id))return;activeRow=updated;
+    render(updated);message('Entrega actualizada. El cliente verá el nuevo paso en su enlace.');return;
    }
    if(action==='revoke'){const {error}=await SB.rpc('pedido_revocar_acceso',{p_venta_id:r.id});if(error)throw new Error('No se pudo revocar el enlace.');message('Enlace revocado. El anterior ya no permite ver el pedido.');return;}
    publicBase();

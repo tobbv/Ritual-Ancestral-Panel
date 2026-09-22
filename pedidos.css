@@ -60,4 +60,16 @@ html.dark .rp-modal{--rp-bg:#171719;--rp-card:#242426;--rp-text:#f5f5f7;--rp-mut
 .rp-btn:focus-visible,.rp-surface select:focus-visible{outline-color:#526f00}
 .rp-step.current .rp-dot:after{border-color:#79d66b55}
 .rp-surface .rp-loading{color:var(--rp-text)}
+/* Un símbolo propio por etapa, sin checks gigantes ni animación distractora. */
+.rp-timeline{gap:0}
+.rp-step{line-height:1.25;overflow-wrap:anywhere}
+.rp-step-label{display:block;max-width:108px;margin:auto}
+.rp-dot{width:40px;height:40px;border-width:2px;color:#89928b;font-size:initial;transition:background .18s ease,border-color .18s ease}
+.rp-dot svg{width:20px;height:20px;display:block}
+.rp-step:before{top:19px;height:3px}
+.rp-step.done .rp-dot{background:#e8f4e8;border-color:#45935b;color:#286f42}
+.rp-step.current .rp-dot{background:#2d7c49;border-color:#2d7c49;color:white;box-shadow:0 0 0 5px #e3f2e5}
+.rp-step.current .rp-dot:after{display:none}
+.rp-tag[data-state="Entregado a transportadora"]{color:#285a8a;background:#e4f1fa}
+@media(max-width:700px){.rp-timeline{margin-inline:-9px}.rp-step{font-size:9px}.rp-dot{width:30px;height:30px;margin-bottom:8px}.rp-dot svg{width:16px;height:16px}.rp-step:before{top:14px;height:2px}}
 @media(max-width:700px){.rp-card{padding:20px 17px}.rp-page{padding:16px 12px}}

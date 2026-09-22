@@ -146,7 +146,7 @@ begin
   select t.delivery_persona into v_persona from public.delivery_access_tokens t
    where t.token=p_token and t.activo=true and t.vence_en>now();
   if v_persona is null then raise exception 'Enlace inválido o vencido'; end if;
-  if p_estado not in ('Pendiente','Asignado','En camino','Entregado','Cliente ausente','Cliente no responde','Reprogramado','Cancelado')
+  if p_estado not in ('Pendiente','Asignado','Entregado a transportadora','En camino','Entregado','Cliente ausente','Cliente no responde','Reprogramado','Cancelado')
     then raise exception 'Estado no permitido'; end if;
   if length(coalesce(p_observacion,''))>1000 then raise exception 'Observación demasiado larga'; end if;
   if p_estado in ('Cliente ausente','Cliente no responde','Reprogramado','Cancelado')

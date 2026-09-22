@@ -44,6 +44,39 @@ html.dark #setupScreen:not(.hidden){background:#222a2b url('assets/login-cover.p
 #setupScreen .login-reset-fields{display:grid;gap:12px}
 #setupScreen .login-reset-fields input{padding-left:16px!important}
 #setupScreen.recovering .setup-field,#setupScreen.recovering .login-options,#setupScreen.recovering .setup-box>button[type=submit]{display:none}
+/* Escala del login equivalente a verlo al 80% en un navegador de escritorio. */
+@media(min-width:961px){
+ #setupScreen:not(.hidden){padding-left:clamp(16px,5vw,72px);padding-right:clamp(16px,5vw,72px)}
+ #setupScreen .login-intro,#setupScreen .setup-box{height:min(660px,calc(100dvh - 100px));min-height:540px}
+ #setupScreen .login-intro{flex-basis:61.5%;padding:32px 48px}
+ .login-intro-mark,.login-form-brand{gap:11px}
+ .login-intro-mark{font-size:17px}
+ .login-intro-mark img{width:47px;height:47px;border-radius:13px}
+ .login-intro-content{margin-top:26px;max-width:500px}
+ .login-intro-rule{width:44px;margin-bottom:19px}
+ .login-intro h2{max-width:500px;margin-bottom:11px;font-size:clamp(33px,2.8vw,45px)}
+ .login-intro p{max-width:370px;font-size:18px}
+ .login-benefits{gap:16px;margin-top:28px}
+ .login-benefits li{gap:13px}
+ .login-benefits li>span{width:49px;height:49px;flex-basis:49px}
+ .login-benefits svg{width:23px;height:23px}
+ .login-benefits strong{font-size:13px}
+ .login-benefits small{font-size:12px}
+ .login-intro-foot{font-size:12px}
+ #setupScreen .setup-box{flex-basis:38.5%;padding:32px 40px!important}
+ #setupScreen .login-form-brand{margin-bottom:43px;font-size:17px}
+ #setupScreen .login-form-brand img{width:39px;height:39px;border-radius:11px!important}
+ #setupScreen .setup-box h1{font-size:31px}
+ #setupScreen .setup-box>p{margin-bottom:23px!important;font-size:15px}
+ #setupScreen .setup-field{margin-bottom:13px!important}
+ #setupScreen .setup-field label,#setupScreen .login-reset-fields label{margin-bottom:7px!important;font-size:12px!important}
+ #setupScreen .setup-field input,#setupScreen .login-reset-fields input{height:44px;font-size:14px}
+ #setupScreen .login-input-icon svg,#setupScreen .login-eye svg{width:18px;height:18px}
+ #setupScreen .login-check{font-size:12px}
+ #setupScreen .login-forgot{font-size:11px}
+ #setupScreen #setupMsg:empty{display:none}
+ #setupScreen .setup-box>.btn.btn-p,#setupScreen .login-reset-fields .btn.btn-p{min-height:50px;font-size:15px!important}
+}
 @media(max-width:960px){#setupScreen .login-intro{flex-basis:52%;padding:30px}#setupScreen .setup-box{flex-basis:48%;min-width:350px;padding:30px}.login-intro h2{font-size:35px}.login-benefits{gap:12px}}
 @media(max-width:760px){#setupScreen:not(.hidden){padding:16px;align-items:center}#setupScreen .login-intro{display:none}#setupScreen .setup-box{flex:0 1 490px;min-width:0;height:auto;min-height:0;max-width:490px!important;padding:36px 30px!important;border:1px solid #e9ece6;border-radius:24px!important}#setupScreen .login-form-brand{margin-bottom:43px}}
 @media(max-width:390px){#setupScreen:not(.hidden){padding:11px}#setupScreen .setup-box{padding:27px 20px}#setupScreen .login-form-brand{margin-bottom:30px}#setupScreen .login-options{align-items:flex-start;flex-direction:column}#setupScreen .login-forgot{padding-left:24px}}
