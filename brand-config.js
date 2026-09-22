@@ -10,10 +10,13 @@
  function apply(config={}){
   const appearance=parse(config.apariencia);const saved=appearance.brand||{};
   const primary=hex(saved.primary)||hex(appearance.primary)||defaults.primary;
-  const luminance=rgb(primary).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;}).reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);
+  const getLuminance=color=>rgb(color).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;}).reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);
+  const luminance=getLuminance(primary);
   const ink=luminance>.179?'#20251c':'#ffffff';
+  const loginStart=mix(primary,'#ffffff',.35),loginEnd=mix(primary,'#ffffff',.50);
+  const loginInk=getLuminance(loginStart)>.179?'#17291a':'#ffffff';
   const root=document.documentElement;
-  const values={'--brand':primary,'--brand-hover':shade(primary,-.12),'--brand-strong':shade(primary,-.63),'--brand-soft':shade(primary,.80),'--brand-subtle':shade(primary,.91),'--brand-border':shade(primary,.62),'--brand-on-color':ink};
+  const values={'--brand':primary,'--brand-hover':shade(primary,-.12),'--brand-strong':shade(primary,-.63),'--brand-soft':shade(primary,.80),'--brand-subtle':shade(primary,.91),'--brand-border':shade(primary,.62),'--brand-on-color':ink,'--login-accent-start':loginStart,'--login-accent-end':loginEnd,'--login-accent-ink':loginInk};
   Object.entries(values).forEach(([key,value])=>root.style.setProperty(key,value));
   root.style.setProperty('--ok',hex(appearance.ok)||'#248a3d');
   root.style.setProperty('--warn',hex(appearance.warn)||'#ff9500');
