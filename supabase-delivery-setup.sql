@@ -33,6 +33,16 @@ using (
   and activo=true and vence_en>now()
 );
 
+-- Permisos explícitos para la Data API. Desde el 30/10 las tablas nuevas
+-- en public ya no reciben estos GRANT automáticamente.
+revoke all on table public.delivery_access_tokens from anon, authenticated;
+grant select (token,delivery_persona,activo,vence_en)
+  on table public.delivery_access_tokens to anon;
+grant select, insert, update, delete
+  on table public.delivery_access_tokens to authenticated;
+grant select, insert, update, delete
+  on table public.delivery_access_tokens to service_role;
+
 -- Campo independiente para las notas escritas por el repartidor.
 alter table public.ventas add column if not exists delivery_observacion text default '';
 alter table public.ventas add column if not exists delivery_actualizado_en timestamptz;

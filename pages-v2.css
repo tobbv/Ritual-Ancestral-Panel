@@ -351,15 +351,17 @@ html.dark #pv-config .cfg-cat-desc,html.dark #pv-config .cfg-nav button{color:#c
 @media(max-width:760px){#pv-config.config-layout-ready.active{zoom:1}#pv-config .cfg-shell{grid-template-columns:1fr}#pv-config .cfg-nav{position:static;display:grid;grid-template-columns:repeat(5,minmax(126px,1fr));overflow-x:auto}#pv-config .cfg-nav button{grid-template-columns:31px minmax(0,1fr);min-height:48px}#pv-config .cfg-nav-icon{width:31px;height:31px}.cfg-nav-chevron{display:none}#pv-config .cfg-cat-header{min-height:68px}}
 @media(max-width:520px){#pv-config .cfg-cat-header{align-items:flex-start}#pv-config .fg,#pv-config .fg2,#pv-config .fg3,#pv-config .fg4{grid-template-columns:1fr!important}#pv-config .visual-settings-panel{padding:9px!important}#pv-config .semantic-colors{grid-template-columns:1fr}}
 
-/* Registro de ventas · recuperar capas y contraste del bloque de descuento. */
+/* Registro de ventas · tarjeta blanca e inputs gris claro de la referencia. */
 #pv-registro .sales-discount-total{align-items:stretch!important}
-#pv-registro .discount-panel{border:0!important;background:#faf9f7!important;box-shadow:inset 0 0 0 1px #ebe9e4!important}
+#pv-registro .discount-panel{border:1px solid #e7e4df!important;border-radius:25px!important;background:#fff!important;box-shadow:none!important}
+#pv-registro .discount-panel>label{color:#303630!important;font-weight:500!important;text-transform:none!important;letter-spacing:0!important}
 #pv-registro .discount-panel .discount-control{padding:0;background:transparent!important}
-#pv-registro .discount-panel .discount-control :is(input,select,.v2-select-trigger){min-height:42px!important;border:0!important;border-radius:14px!important;background:var(--ui-field)!important;box-shadow:none!important}
+#pv-registro .discount-panel .discount-control :is(input,select,.v2-select-trigger){min-height:42px!important;border:0!important;border-radius:15px!important;background:#f7f7f6!important;box-shadow:none!important}
 #pv-registro .discount-panel .discount-control :is(input,select,.v2-select-trigger):focus{outline:0!important;background:var(--ui-surface)!important;box-shadow:0 0 0 3px var(--brand-soft),inset 0 0 0 1.5px var(--brand)!important}
 #pv-registro .discount-presets button{background:var(--brand-soft)!important;color:var(--brand-strong)!important}
 #pv-registro .discount-presets button:hover,#pv-registro .discount-presets button.selected{background:var(--brand)!important;color:var(--brand-on-color)!important}
 #pv-registro .sales-entry-card .cart-total{border-radius:20px!important;background:#f2f1ef!important;padding:18px 22px!important}
-html.dark #pv-registro .discount-panel{background:var(--ui-subtle)!important;box-shadow:inset 0 0 0 1px var(--ui-line)!important}
+html.dark #pv-registro .discount-panel{background:var(--ui-surface)!important;border-color:var(--ui-line)!important;box-shadow:none!important}
+html.dark #pv-registro .discount-panel>label{color:var(--ui-ink)!important}
 html.dark #pv-registro .discount-panel .discount-control{background:transparent!important}
 html.dark #pv-registro .discount-panel .discount-control :is(input,select,.v2-select-trigger){background:var(--ui-field)!important}

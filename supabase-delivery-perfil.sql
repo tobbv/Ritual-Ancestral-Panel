@@ -9,6 +9,7 @@ as $$
 declare
   v_persona text;
   v_foto text;
+  v_primary text;
 begin
   select t.delivery_persona into v_persona
   from public.delivery_access_tokens t
@@ -30,7 +31,16 @@ begin
     v_foto := null;
   end if;
 
-  return jsonb_build_object('nombre', v_persona, 'foto', v_foto);
+  select coalesce(c.valor::jsonb #>> '{brand,primary}', c.valor::jsonb ->> 'primary')
+  into v_primary
+  from public.configuracion c
+  where c.clave = 'apariencia'
+  limit 1;
+  if v_primary is null or v_primary !~ '^#[0-9A-Fa-f]{6}$' then
+    v_primary := null;
+  end if;
+
+  return jsonb_build_object('nombre', v_persona, 'foto', v_foto, 'primary', v_primary);
 end;
 $$;
 
